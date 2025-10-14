@@ -46,3 +46,25 @@ func (u *UserRequest) ValidateRequest() error {
 	}
 	return nil
 }
+
+type ChangePasswordRequest struct {
+	Email    string `bson:"email" json:"email"`
+	Password string `bson:"password" json:"password"`
+}
+
+func (u *ChangePasswordRequest) ValidateChangePasswordRequest() error {
+	if strings.TrimSpace(u.Email) == "" {
+		return errors.New("the field 'email' is required")
+	}
+	if strings.TrimSpace(u.Password) == "" {
+		return errors.New("the field 'password' is required")
+	}
+	if err := utils.ValidateEmail(u.Email); err != nil {
+		return errors.New("invalid email format")
+	}
+
+	if err := utils.ValidatePassword(u.Password); err != nil {
+		return errors.New("invalid password format")
+	}
+	return nil
+}
