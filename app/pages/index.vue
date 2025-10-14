@@ -1,4 +1,13 @@
 <script setup lang="ts">
+definePageMeta({
+  layout: false,
+})
+useHead({ title: 'Login' })
+
+useSeoMeta({ description: 'Login page' })
+
+defineOgImageComponent('Techs', { title: 'Login page' })
+
 const toast = useToast()
 
 const state = ref<Auth>({ email: '', password: '' })
