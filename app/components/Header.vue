@@ -90,13 +90,14 @@ const items = computed<NavigationMenuItem[]>(() => [
 <template>
   <UHeader>
     <template #title>
+      <NuxtImg src="/logo.png" alt="SanchezDNS Logo" width="32" />
       Sanchez<span class="text-green-500">DNS</span>
     </template>
 
     <UNavigationMenu v-if="route.path !== '/login'" :items="items" />
 
     <template #right>
-      <USelectMenu v-model="optionSelected" :items="optionsConection" placeholder="Select a connection" size="sm" />
+      <USelectMenu v-if="route.path !== '/login'" v-model="optionSelected" :items="optionsConection" placeholder="Select a connection" size="sm" />
       <UTooltip text="Open on GitHub">
         <UButton color="neutral" variant="ghost" to="https://github.com/rafinhacuri/SanchezDNS" target="_blank" icon="i-simple-icons-github" aria-label="GitHub" />
       </UTooltip>
