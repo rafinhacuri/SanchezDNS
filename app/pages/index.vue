@@ -132,7 +132,7 @@ async function register(){
 
     <UModal v-model:open="modal" title="Create User" description="Create your account to enjoy the system" :ui="{ footer: 'justify-end' }">
       <template #body>
-        <UForm :schema="AuthSchema" :state="state" class="space-y-4" @submit="login">
+        <UForm :schema="AuthSchema" :state="state" class="space-y-4" @submit="register">
           <UFormField label="Email" name="email">
             <UInput v-model="state.email" icon="i-lucide-mail" class="w-full" />
           </UFormField>
