@@ -62,10 +62,10 @@ async function login(){
 
   if(!res) return finish({ error: true })
 
-  setUserSession({ username: state.value.email, admin: res.isAdmin, token: res.token })
   finish({ force: true })
+  setUserSession({ username: state.value.email, admin: res.isAdmin, token: res.token })
   toast.add({ title: res.message, icon: 'i-lucide-badge-check', color: 'success' })
-  await navigateTo('/zones/dashboard')
+  await navigateTo('/start')
 }
 
 async function register(){

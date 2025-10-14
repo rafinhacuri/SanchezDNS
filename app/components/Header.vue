@@ -126,10 +126,10 @@ const itemsDropdown = ref<DropdownMenuItem[]>([
       Sanchez<span class="text-green-500">DNS</span>
     </template>
 
-    <UNavigationMenu v-if="route.path !== '/login'" :items="items" />
+    <UNavigationMenu v-if="optionSelected" :items="items" />
 
     <template #right>
-      <USelectMenu v-if="route.path !== '/login'" v-model="optionSelected" :items="optionsConection" placeholder="Select a connection" size="sm" />
+      <USelectMenu v-model="optionSelected" :items="optionsConection" placeholder="Select a connection" size="sm" />
 
       <UDropdownMenu :items="itemsDropdown">
         <UButton icon="i-lucide-user" class="rounded-full" color="neutral" variant="outline" size="sm" />

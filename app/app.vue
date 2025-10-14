@@ -9,7 +9,7 @@ onMounted(() => {
 <template>
   <UApp :toaster="{expand: false}">
     <NuxtRouteAnnouncer />
-    <NuxtLoadingIndicator color="repeating-linear-gradient(to right,#1d4ed8 0%,#60a5fa 100%)" />
+    <NuxtLoadingIndicator />
     <NuxtLayout>
       <NuxtPage :transition="{ name: 'page', mode: 'out-in' }" />
     </NuxtLayout>
