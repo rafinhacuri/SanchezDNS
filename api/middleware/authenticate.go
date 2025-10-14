@@ -12,13 +12,13 @@ func Authenticate(ctx *gin.Context) {
 		return
 	}
 
-	mail, adm, err := utils.JWTValidate(token)
+	email, adm, err := utils.JWTValidate(token)
 	if err != nil {
 		ctx.AbortWithStatusJSON(401, gin.H{"message": "Invalid token"})
 		return
 	}
 
-	ctx.Set("mail", mail)
-	ctx.Set("adm", adm)
+	ctx.Set("email", email)
+	ctx.Set("admin", adm)
 	ctx.Next()
 }

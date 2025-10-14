@@ -20,8 +20,6 @@ func init() {
 }
 
 func main() {
-	key := os.Getenv("DEV_KEY")
-	cert := os.Getenv("DEV_CERT")
 
 	gin.DefaultWriter = io.Discard
 
@@ -32,10 +30,5 @@ func main() {
 	server.SetTrustedProxies([]string{"127.0.0.1", "::1"})
 
 	routes.RegisterRoutes(server)
-
-	if key == "" || cert == "" {
-		server.Run(":8080")
-	} else {
-		server.RunTLS(":8080", cert, key)
-	}
+	server.Run(":8080")
 }

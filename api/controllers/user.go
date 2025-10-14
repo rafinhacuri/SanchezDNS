@@ -46,8 +46,11 @@ func InsertUser(ctx *gin.Context) {
 		ctx.JSON(500, gin.H{"message": err.Error()})
 		return
 	}
+
 	if countUsers == 0 {
-		user.Level = "adm"
+		user.Level = "admin"
+	} else {
+		user.Level = "user"
 	}
 
 	count, err := db.Database.Collection("users").CountDocuments(ctxReq, bson.M{"email": user.Email})

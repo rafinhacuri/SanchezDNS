@@ -13,7 +13,7 @@ type User struct {
 	ID       primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
 	Email    string             `bson:"email" json:"email" binding:"required"`
 	Password string             `bson:"password" json:"password" binding:"required"`
-	Level    string             `bson:"level" json:"level" binding:"required,oneof=adm user"`
+	Level    string             `bson:"level" json:"level" binding:"required,oneof=admin user"`
 	CreateAt time.Time          `bson:"createdAt" json:"createdAt"`
 	UpdateAt time.Time          `bson:"updatedAt" json:"updatedAt"`
 }
@@ -34,8 +34,8 @@ func (u *UserRequest) ValidateRequest() error {
 	if strings.TrimSpace(u.Level) == "" {
 		return errors.New("the field 'level' is required")
 	}
-	if u.Level != "adm" && u.Level != "user" {
-		return errors.New("the field 'level' must be 'adm' or 'user'")
+	if u.Level != "admin" && u.Level != "user" {
+		return errors.New("the field 'level' must be 'admin' or 'user'")
 	}
 	if err := utils.ValidateEmail(u.Email); err != nil {
 		return errors.New("invalid email format")

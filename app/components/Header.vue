@@ -3,7 +3,14 @@ import type { NavigationMenuItem } from '@nuxt/ui'
 
 const route = useRoute()
 
+const { clearUserSession } = useUserSession()
+
 const { optionSelected, optionsConection } = useConection()
+
+async function clearUserSessionAndRedirect(){
+  clearUserSession()
+  await navigateTo('/')
+}
 
 const items = computed<NavigationMenuItem[]>(() => [
   {
@@ -107,6 +114,9 @@ const items = computed<NavigationMenuItem[]>(() => [
 
       <UTooltip text="Open on GitHub">
         <UButton color="neutral" variant="ghost" to="https://github.com/rafinhacuri/SanchezDNS" target="_blank" icon="i-simple-icons-github" aria-label="GitHub" />
+      </UTooltip>
+      <UTooltip text="Logout">
+        <UButton color="neutral" variant="ghost" icon="i-lucide-log-out" aria-label="Logout" @click="clearUserSessionAndRedirect" />
       </UTooltip>
     </template>
 

@@ -15,10 +15,9 @@ func RegisterRoutes(server *gin.Engine) {
 
 	server.GET("/healthcheck", controllers.HealthCheck)
 
-	server.POST("/auth", controllers.Auth)
+	server.POST("/login", controllers.Auth)
 
-	api := server.Group("/api", middleware.Authenticate)
+	server.POST("/api/user", controllers.InsertUser)
 
-	api.POST("/logout", controllers.Logout)
-	api.POST("/user", controllers.InsertUser)
+	server.Group("/api", middleware.Authenticate)
 }

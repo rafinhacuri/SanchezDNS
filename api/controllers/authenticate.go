@@ -12,30 +12,24 @@ import (
 func Auth(ctx *gin.Context) {
 	var user models.Auth
 	if err := ctx.ShouldBindJSON(&user); err != nil {
-		ctx.JSON(400, gin.H{"error": "Invalid request payload"})
+		ctx.JSON(400, gin.H{"message": "Invalid request payload"})
 		return
 	}
 
 	if err := user.Validate(); err != nil {
 		slog.Error("Validation error", "error", err)
-		ctx.JSON(400, gin.H{"error": err.Error()})
+		ctx.JSON(400, gin.H{"message": "Username or password incorrect"})
 		return
 	}
 
 	ctxReq, cancel := context.WithTimeout(ctx.Request.Context(), 5*time.Second)
 	defer cancel()
 
-	token, err := user.Login(ctxReq)
+	token, isAdmin, err := user.Login(ctxReq)
 	if err != nil {
-		slog.Error("Login error", "error", err)
-		ctx.JSON(401, gin.H{"error": err.Error()})
+		ctx.JSON(401, gin.H{"message": "Username or password incorrect"})
 		return
 	}
 
-	ctx.Header("Authorization", "Bearer "+token)
-	ctx.Header("Access-Control-Expose-Headers", "Authorization")
-
-	ctx.SetCookie("session", token, 86400, "/", "", false, true)
-
-	ctx.JSON(200, gin.H{"message": "Login successful"})
+	ctx.JSON(200, gin.H{"message": "Login successful", "token": token, "isAdmin": isAdmin})
 }

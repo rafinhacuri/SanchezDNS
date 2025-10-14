@@ -4,8 +4,9 @@ useHead({ title: 'Dashboard zones' })
 useSeoMeta({ description: 'Dashboard zones page' })
 
 defineOgImageComponent('Techs', { title: 'Dashboard zones page' })
+const { user } = useUserSession()
 </script>
 
 <template>
-  <p>oi</p>
+  <p>{{ user }}</p>
 </template>
