@@ -60,7 +60,7 @@ const items = computed<NavigationMenuItem[]>(() => [
         label: 'DNS Connections',
         icon: 'i-lucide-computer',
         description: 'Manage DNS Connections connections.',
-        to: '/config/dns-Connections',
+        to: '/config/dns-connections',
       },
       {
         label: 'API Keys',

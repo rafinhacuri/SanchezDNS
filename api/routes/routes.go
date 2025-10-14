@@ -25,4 +25,6 @@ func RegisterRoutes(server *gin.Engine) {
 	api.PATCH("/user/password", controllers.ChangePassword)
 
 	apiAdmin.POST("/connections", controllers.InsertConnection)
+	apiAdmin.GET("/users", controllers.GetUsers)
+	apiAdmin.POST("/connection/user", controllers.AddUserToConnection)
 }

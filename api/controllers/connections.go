@@ -21,7 +21,7 @@ func GetConnections(ctx *gin.Context) {
 		filter = bson.M{"users": username}
 	}
 
-	opts := options.Find().SetProjection(bson.M{"_id": 1, "name": 1})
+	opts := options.Find().SetProjection(bson.M{"_id": 1, "name": 1, "users": 1})
 
 	cursor, err := db.Database.Collection("connections").Find(ctx.Request.Context(), filter, opts)
 	if err != nil {
