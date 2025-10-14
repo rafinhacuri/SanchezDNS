@@ -26,5 +26,6 @@ func RegisterRoutes(server *gin.Engine) {
 
 	apiAdmin.POST("/connections", controllers.InsertConnection)
 	apiAdmin.GET("/users", controllers.GetUsers)
-	apiAdmin.POST("/connection/user", controllers.AddUserToConnection)
+	apiAdmin.POST("/connection/user", controllers.AddUser)
+	apiAdmin.DELETE("/connection/user", controllers.RemoveUser)
 }

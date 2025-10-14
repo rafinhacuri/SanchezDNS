@@ -1,6 +1,8 @@
 export default defineNuxtRouteMiddleware(async to => {
   const { isLoggedIn, setUserSession, clearUserSession, user } = useUserSession()
-  const { optionSelected } = await useConnection()
+  const { optionSelected, refreshConnections } = await useConnection()
+
+  await refreshConnections()
 
   const res = await useRequestFetch()<{ username: string, isAdmin: boolean }>('/server/api/check-session').catch(() => null)
 

@@ -32,6 +32,33 @@ async function addUser(){
   selectedUser.value = ''
   finish()
 }
+
+const selectedUserDelete = ref('')
+const modalDelete = ref(false)
+
+function openDeleteModal(user: string){
+  selectedUserDelete.value = user
+  modalDelete.value = true
+}
+
+async function deleteUser(){
+  start()
+  if(!selectedUserDelete.value){
+    toast.add({ title: 'Please select a user', icon: 'i-lucide-shield-alert', color: 'error' })
+    return finish({ error: true })
+  }
+
+  const res = await $fetch<{ message: string }>('/server/api/connection/user', { method: 'DELETE', body: { email: selectedUserDelete.value, connection: optionSelected.value } })
+    .catch(error => { toast.add({ title: error.data.message, icon: 'i-lucide-shield-alert', color: 'error' }) })
+
+  if(!res) return finish({ error: true })
+
+  toast.add({ title: res.message, icon: 'i-lucide-check-circle', color: 'success' })
+  await refreshConnections()
+  modalDelete.value = false
+  selectedUserDelete.value = ''
+  finish()
+}
 </script>
 
 <template>
@@ -58,7 +85,7 @@ async function addUser(){
             </div>
             <span class="text-gray-700 dark:text-gray-200">{{ member }}</span>
           </div>
-          <UButton icon="i-lucide-trash" variant="outline" color="error">
+          <UButton icon="i-lucide-trash" variant="outline" color="error" @click="openDeleteModal(member)">
             Remove Member
           </UButton>
         </li>
@@ -73,6 +100,17 @@ async function addUser(){
       <template #footer>
         <UButton label="Cancel" :loading="isLoading" variant="outline" @click="modal = false" />
         <UButton label="Confirm" :loading="isLoading" @click="addUser" />
+      </template>
+    </UModal>
+
+    <UModal v-model:open="modalDelete" title="Remove User" description="Remove a user from the group" :ui="{ footer: 'justify-end' }">
+      <template #body>
+        <p>Are you sure you want to remove {{ selectedUserDelete }}?</p>
+      </template>
+
+      <template #footer>
+        <UButton label="Cancel" :loading="isLoading" variant="outline" @click="modalDelete = false" />
+        <UButton label="Confirm" :loading="isLoading" @click="deleteUser" />
       </template>
     </UModal>
   </section>
