@@ -22,7 +22,7 @@ func RegisterRoutes(server *gin.Engine) {
 
 	api.GET("/check-session", middleware.CheckSession)
 	api.GET("/connections", controllers.GetConnections)
-	api.PUT("/user/password", controllers.ChangePassword)
+	api.PATCH("/user/password", controllers.ChangePassword)
 
 	apiAdmin.POST("/connections", controllers.InsertConnection)
 }

@@ -54,13 +54,13 @@ const items = computed<NavigationMenuItem[]>(() => [
   {
     label: 'Configuration',
     icon: 'i-lucide-settings',
-    active: route.path.startsWith('/config/dns-machines') || route.path.startsWith('/config/api-keys'),
+    active: route.path.startsWith('/config/dns-connections') || route.path.startsWith('/config/api-keys'),
     children: [
       {
-        label: 'DNS Machines',
+        label: 'DNS Connections',
         icon: 'i-lucide-computer',
-        description: 'Manage DNS machines connections.',
-        to: '/config/dns-machines',
+        description: 'Manage DNS Connections connections.',
+        to: '/config/dns-Connections',
       },
       {
         label: 'API Keys',
@@ -189,7 +189,7 @@ async function changePassword(){
     return finish({ error: true })
   }
 
-  const res = await $fetch<{ message: string }>('/server/api/user/password', { method: 'PUT', body: { password: newPassword.value, email: user.value?.username } })
+  const res = await $fetch<{ message: string }>('/server/api/user/password', { method: 'PATCH', body: { password: newPassword.value, email: user.value?.username } })
     .catch(error => { toast.add({ title: error.data.message, icon: 'i-lucide-shield-alert', color: 'error' }) })
 
   if(!res) return finish({ error: true })
