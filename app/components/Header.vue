@@ -14,7 +14,7 @@ const items = computed<NavigationMenuItem[]>(() => [
     children: [
       {
         label: 'Dashboard',
-        icon: 'i-lucide-list',
+        icon: 'i-lucide-chart-pie',
         description: 'View and manage all DNS zones.',
         to: '/',
       },
@@ -83,6 +83,12 @@ const items = computed<NavigationMenuItem[]>(() => [
         to: '/groups',
       },
     ],
+  },
+  {
+    label: 'Logs',
+    icon: 'i-lucide-git-fork',
+    to: '/logs',
+    active: route.path.startsWith('/logs'),
   },
 ])
 </script>
