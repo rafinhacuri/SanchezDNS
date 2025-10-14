@@ -5,7 +5,7 @@ useSeoMeta({ description: 'Groups page' })
 
 defineOgImageComponent('Techs', { title: 'Groups page' })
 
-const { optionSelected } = useConnection()
+const { nameServer } = await useConnection()
 
 const usersConnection = ref(['rafinhacurig@gmail.com', 'user2@example.com', 'user3@example.com', 'user3@example.com', 'user3@example.com', 'user3@example.com', 'user3@example.com', 'user3@example.com', 'user3@example.com'])
 </script>
@@ -14,7 +14,7 @@ const usersConnection = ref(['rafinhacurig@gmail.com', 'user2@example.com', 'use
   <section class="max-w-7xl mx-auto p-4 w-full">
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100">
-        {{ optionSelected }} Member
+        {{ nameServer }} Member
       </h1>
 
       <UButton icon="i-lucide-user-plus" class="text-white" variant="soft" color="primary">

@@ -21,6 +21,7 @@ func RegisterRoutes(server *gin.Engine) {
 	apiAdmin := api.Group("/", middleware.AuthenticateAdmin)
 
 	api.GET("/check-session", middleware.CheckSession)
+	api.GET("/connections", controllers.GetConnections)
 	api.PUT("/user/password", controllers.ChangePassword)
 
 	apiAdmin.POST("/connections", controllers.InsertConnection)

@@ -7,7 +7,7 @@ const { user, clearUserSession } = useUserSession()
 
 const { isLoading, start, finish } = useLoadingIndicator()
 
-const { optionSelected, optionsConnection } = useConnection()
+const { optionSelected, optionsConnection, refreshConnections } = await useConnection()
 
 const toast = useToast()
 
@@ -139,6 +139,7 @@ async function createConnection(){
 
   finish({ force: true })
   toast.add({ title: res.message, icon: 'i-lucide-badge-check', color: 'success' })
+  refreshConnections()
   modal.value = false
 }
 
@@ -209,7 +210,7 @@ async function changePassword(){
     <UNavigationMenu v-if="optionSelected" :items="items" />
 
     <template #right>
-      <USelectMenu v-model="optionSelected" :items="optionsConnection" placeholder="Select a connection" size="sm" class="hidden md:block" />
+      <USelectMenu v-model="optionSelected" :items="optionsConnection" label-key="name" value-key="_id" placeholder="Select a connection" size="sm" class="hidden md:block " />
 
       <UDropdownMenu :items="itemsDropdown">
         <UButton icon="i-lucide-user" class="rounded-full" color="neutral" variant="outline" size="sm" />
@@ -217,7 +218,7 @@ async function changePassword(){
     </template>
 
     <template #body>
-      <USelectMenu v-model="optionSelected" :items="optionsConnection" placeholder="Select a connection" size="sm" />
+      <USelectMenu v-model="optionSelected" :items="optionsConnection" label-key="name" value-key="_id" placeholder="Select a connection" size="sm" />
 
       <UNavigationMenu :items="items" orientation="vertical" class="-mx-2.5" />
     </template>
