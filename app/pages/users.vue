@@ -5,7 +5,7 @@ useSeoMeta({ description: 'Groups page' })
 
 defineOgImageComponent('Techs', { title: 'Groups page' })
 
-const { optionSelected } = useConection()
+const { optionSelected } = useConnection()
 
 const usersConnection = ref(['rafinhacurig@gmail.com', 'user2@example.com', 'user3@example.com', 'user3@example.com', 'user3@example.com', 'user3@example.com', 'user3@example.com', 'user3@example.com', 'user3@example.com'])
 </script>

@@ -18,7 +18,9 @@ func RegisterRoutes(server *gin.Engine) {
 	server.POST("/api/user", controllers.InsertUser)
 
 	api := server.Group("/api", middleware.Authenticate)
-	// apiAdmin := api.Group("/", middleware.AuthenticateAdmin)
+	apiAdmin := api.Group("/", middleware.AuthenticateAdmin)
 
 	api.GET("/check-session", middleware.CheckSession)
+
+	apiAdmin.POST("/connections", controllers.InsertConnection)
 }

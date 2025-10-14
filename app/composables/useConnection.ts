@@ -1,5 +1,5 @@
 export default createGlobalState(() => {
-  const optionsConection = ref([
+  const optionsConnection = ref([
     'connection1',
     'connection2',
     'connection3',
@@ -10,5 +10,5 @@ export default createGlobalState(() => {
     await navigateTo('/zones/dashboard')
   })
 
-  return { optionsConection, optionSelected }
+  return { optionsConnection, optionSelected }
 })

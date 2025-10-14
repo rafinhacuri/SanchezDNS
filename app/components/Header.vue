@@ -5,7 +5,11 @@ const route = useRoute()
 
 const { user, clearUserSession } = useUserSession()
 
-const { optionSelected, optionsConection } = useConection()
+const { isLoading, start, finish } = useLoadingIndicator()
+
+const { optionSelected, optionsConnection } = useConnection()
+
+const toast = useToast()
 
 const items = computed<NavigationMenuItem[]>(() => [
   {
@@ -75,6 +79,8 @@ const items = computed<NavigationMenuItem[]>(() => [
   },
 ])
 
+const modal = ref(false)
+
 const itemsDropdown = ref<DropdownMenuItem[]>([
   [
     {
@@ -84,6 +90,16 @@ const itemsDropdown = ref<DropdownMenuItem[]>([
     {
       label: user.value?.admin ? 'admin' : 'user',
       icon: 'i-lucide-shield',
+    },
+  ],
+  [
+    {
+      label: 'New connection',
+      icon: 'i-lucide-radio-tower',
+      onClick: () => {
+        if(!user.value.admin) return toast.add({ title: 'Only admins can create new connections', icon: 'i-lucide-shield-alert', color: 'error' })
+        modal.value = true
+      },
     },
   ],
   [{
@@ -98,6 +114,28 @@ const itemsDropdown = ref<DropdownMenuItem[]>([
     },
   }],
 ])
+
+const state = ref<ConnectionType>({ name: '', host: '', apiKey: '', serverId: '', users: [] })
+
+async function createConnection(){
+  start()
+
+  const body = ConnectionSchema.safeParse(state.value)
+
+  if(!body.success){
+    for(const e of body.error.issues) toast.add({ title: e.message, icon: 'i-lucide-shield-alert', color: 'error' })
+    return finish({ error: true })
+  }
+
+  const res = await $fetch<{ message: string }>('/server/api/connections', { method: 'post', body: body.data })
+    .catch(error => { toast.add({ title: error.data.message, icon: 'i-lucide-shield-alert', color: 'error' }) })
+
+  if(!res) return finish({ error: true })
+
+  finish({ force: true })
+  toast.add({ title: res.message, icon: 'i-lucide-badge-check', color: 'success' })
+  modal.value = false
+}
 </script>
 
 <template>
@@ -110,20 +148,44 @@ const itemsDropdown = ref<DropdownMenuItem[]>([
     <UNavigationMenu v-if="optionSelected" :items="items" />
 
     <template #right>
-      <USelectMenu v-model="optionSelected" :items="optionsConection" placeholder="Select a connection" size="sm" class="hidden md:block" />
+      <USelectMenu v-model="optionSelected" :items="optionsConnection" placeholder="Select a connection" size="sm" class="hidden md:block" />
 
-      <UDropdownMenu :items="itemsDropdown">
-        <UButton icon="i-lucide-user" class="rounded-full" color="neutral" variant="outline" size="sm" />
-      </UDropdownMenu>
       <UTooltip text="Open on GitHub">
         <UButton color="neutral" variant="ghost" to="https://github.com/rafinhacuri/SanchezDNS" target="_blank" icon="i-simple-icons-github" aria-label="GitHub" />
       </UTooltip>
+      <UDropdownMenu :items="itemsDropdown">
+        <UButton icon="i-lucide-user" class="rounded-full" color="neutral" variant="outline" size="sm" />
+      </UDropdownMenu>
     </template>
 
     <template #body>
-      <USelectMenu v-model="optionSelected" :items="optionsConection" placeholder="Select a connection" size="sm" />
+      <USelectMenu v-model="optionSelected" :items="optionsConnection" placeholder="Select a connection" size="sm" />
 
       <UNavigationMenu :items="items" orientation="vertical" class="-mx-2.5" />
     </template>
+
+    <UModal v-model:open="modal" title="Create Connection" description="Create a new connection to an authoritative server" :ui="{ footer: 'justify-end' }">
+      <template #body>
+        <UForm :schema="ConnectionSchema" :state="state" class="space-y-4">
+          <UFormField label="Name" name="name">
+            <UInput v-model="state.name" icon="i-lucide-computer" class="w-full" />
+          </UFormField>
+          <UFormField label="Host" name="host">
+            <UInput v-model="state.host" icon="i-lucide-server" class="w-full" />
+          </UFormField>
+          <UFormField label="API Key" name="apiKey">
+            <UInput v-model="state.apiKey" icon="i-lucide-key" class="w-full" />
+          </UFormField>
+          <UFormField label="Server ID" name="serverId">
+            <UInput v-model="state.serverId" icon="i-lucide-hash" class="w-full" />
+          </UFormField>
+        </UForm>
+      </template>
+
+      <template #footer>
+        <UButton label="Cancel" :loading="isLoading" variant="outline" @click="modal = false" />
+        <UButton label="Confirm" :loading="isLoading" @click="createConnection" />
+      </template>
+    </UModal>
   </UHeader>
 </template>
