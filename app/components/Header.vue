@@ -66,26 +66,7 @@ const items = computed<NavigationMenuItem[]>(() => [
       },
     ],
   },
-  {
-    label: 'Users',
-    icon: 'i-lucide-users',
-    to: '/user/users',
-    active: route.path.startsWith('/user/users') || route.path.startsWith('/user/groups'),
-    children: [
-      {
-        label: 'Manage Users',
-        icon: 'i-lucide-user',
-        description: 'View and manage all users.',
-        to: '/user/users',
-      },
-      {
-        label: 'Manage Groups',
-        icon: 'i-lucide-users',
-        description: 'View and manage all groups.',
-        to: '/user/groups',
-      },
-    ],
-  },
+  ...(user.value?.admin ? [{ label: 'Users', icon: 'i-lucide-users', to: '/users', active: route.path.startsWith('/users') }] : []),
   {
     label: 'Logs',
     icon: 'i-lucide-git-fork',
@@ -129,7 +110,7 @@ const itemsDropdown = ref<DropdownMenuItem[]>([
     <UNavigationMenu v-if="optionSelected" :items="items" />
 
     <template #right>
-      <USelectMenu v-model="optionSelected" :items="optionsConection" placeholder="Select a connection" size="sm" />
+      <USelectMenu v-model="optionSelected" :items="optionsConection" placeholder="Select a connection" size="sm" class="hidden md:block" />
 
       <UDropdownMenu :items="itemsDropdown">
         <UButton icon="i-lucide-user" class="rounded-full" color="neutral" variant="outline" size="sm" />
@@ -140,6 +121,8 @@ const itemsDropdown = ref<DropdownMenuItem[]>([
     </template>
 
     <template #body>
+      <USelectMenu v-model="optionSelected" :items="optionsConection" placeholder="Select a connection" size="sm" />
+
       <UNavigationMenu :items="items" orientation="vertical" class="-mx-2.5" />
     </template>
   </UHeader>

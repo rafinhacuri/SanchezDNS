@@ -4,7 +4,7 @@ export default createGlobalState(() => {
     'connection2',
     'connection3',
   ])
-  const optionSelected = ref('')
+  const optionSelected = ref('connection1')
 
   watch(optionSelected, async () => {
     await navigateTo('/zones/dashboard')
