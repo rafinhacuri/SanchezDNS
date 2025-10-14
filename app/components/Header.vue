@@ -104,6 +104,7 @@ const items = computed<NavigationMenuItem[]>(() => [
 
     <template #right>
       <USelectMenu v-if="route.path !== '/login'" v-model="optionSelected" :items="optionsConection" placeholder="Select a connection" size="sm" />
+
       <UTooltip text="Open on GitHub">
         <UButton color="neutral" variant="ghost" to="https://github.com/rafinhacuri/SanchezDNS" target="_blank" icon="i-simple-icons-github" aria-label="GitHub" />
       </UTooltip>

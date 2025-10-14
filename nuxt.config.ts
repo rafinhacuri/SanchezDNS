@@ -1,4 +1,7 @@
+import process from 'node:process'
 import { description, version } from './package.json'
+
+const { SITE_URL, DEV_URL, DEV_KEY, DEV_CERT } = process.env
 
 export default defineNuxtConfig({
   modules: ['@nuxt/image', '@nuxt/ui', '@nuxtjs/seo', '@vueuse/nuxt', 'nuxt-security'],
@@ -9,6 +12,7 @@ export default defineNuxtConfig({
   app: { head: { templateParams: { separator: '•' } } },
   css: ['~/assets/main.css'],
   site: {
+    url: SITE_URL,
     name: 'SanchezDNS',
     description,
   },
@@ -17,6 +21,10 @@ export default defineNuxtConfig({
   },
   routeRules: {
     '/server/**': { proxy: { to: 'http://localhost:8080/**' } },
+  },
+  devServer: {
+    host: DEV_URL,
+    https: DEV_KEY && DEV_CERT ? { key: DEV_KEY, cert: DEV_CERT } : undefined,
   },
   compatibilityDate: '2025-07-15',
   linkChecker: { enabled: false },
