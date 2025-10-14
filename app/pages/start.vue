@@ -36,7 +36,7 @@ async function createConnection(){
       Welcome to SanchezDNS
     </h1>
     <p class="text-lg">
-      Please select a DNS machine connection to get started <strong v-if="user.admin">or create a new one</strong>.
+      Please select a DNS connection to get started <strong v-if="user.admin">or create a new one</strong>.
     </p>
     <UButton v-if="user.admin" color="primary" variant="outline" @click="modal = true">
       Create Connection
