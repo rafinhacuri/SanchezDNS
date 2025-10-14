@@ -2,7 +2,8 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/rafinhacuri/SanchezDNS/controller"
+	"github.com/rafinhacuri/SanchezDNS/controllers"
+	"github.com/rafinhacuri/SanchezDNS/middleware"
 )
 
 func RegisterRoutes(server *gin.Engine) {
@@ -12,5 +13,12 @@ func RegisterRoutes(server *gin.Engine) {
 		})
 	})
 
-	server.GET("/healthcheck", controller.HealthCheck)
+	server.GET("/healthcheck", controllers.HealthCheck)
+
+	server.POST("/auth", controllers.Auth)
+
+	api := server.Group("/api", middleware.Authenticate)
+
+	api.POST("/logout", controllers.Logout)
+	api.POST("/user", controllers.InsertUser)
 }

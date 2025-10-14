@@ -2,16 +2,24 @@ package main
 
 import (
 	"io"
+	"log"
 	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"github.com/rafinhacuri/SanchezDNS/db"
 	"github.com/rafinhacuri/SanchezDNS/routes"
 )
 
-func main() {
+func init() {
 	godotenv.Load("../.env")
 
+	if err := db.InitDB(true, os.Getenv("MONGO_USERNAME"), os.Getenv("MONGO_URL"), os.Getenv("MONGO_PASSWORD"), os.Getenv("MONGO_DB_NAME")); err != nil {
+		log.Fatal("Error to connect to database:", err)
+	}
+}
+
+func main() {
 	key := os.Getenv("DEV_KEY")
 	cert := os.Getenv("DEV_CERT")
 
