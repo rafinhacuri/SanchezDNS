@@ -4,17 +4,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func AuthenticateAdmin(c *gin.Context) {
-	admin, exists := c.Get("admin")
+func AuthenticateAdmin(ctx *gin.Context) {
+	admin, exists := ctx.Get("admin")
 	if !exists || admin == nil {
-		c.AbortWithStatusJSON(401, gin.H{"message": "Unauthorized"})
+		ctx.AbortWithStatusJSON(401, gin.H{"message": "Unauthorized"})
 		return
 	}
 
 	if !admin.(bool) {
-		c.AbortWithStatusJSON(403, gin.H{"message": "Forbidden"})
+		ctx.AbortWithStatusJSON(403, gin.H{"message": "Forbidden"})
 		return
 	}
 
-	c.Next()
+	ctx.Next()
 }

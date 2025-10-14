@@ -1,16 +1,11 @@
 <script setup lang="ts">
-import type { NavigationMenuItem } from '@nuxt/ui'
+import type { DropdownMenuItem, NavigationMenuItem } from '@nuxt/ui'
 
 const route = useRoute()
 
-const { clearUserSession } = useUserSession()
+const { user, clearUserSession } = useUserSession()
 
 const { optionSelected, optionsConection } = useConection()
-
-async function clearUserSessionAndRedirect(){
-  clearUserSession()
-  await navigateTo('/')
-}
 
 const items = computed<NavigationMenuItem[]>(() => [
   {
@@ -98,6 +93,30 @@ const items = computed<NavigationMenuItem[]>(() => [
     active: route.path.startsWith('/logs'),
   },
 ])
+
+const itemsDropdown = ref<DropdownMenuItem[]>([
+  [
+    {
+      label: user.value?.username,
+      icon: 'i-lucide-user',
+    },
+    {
+      label: user.value?.admin ? 'admin' : 'user',
+      icon: 'i-lucide-shield',
+    },
+  ],
+  [{
+    label: 'Change Password',
+    icon: 'i-lucide-key',
+  }, {
+    label: 'Logout',
+    icon: 'i-lucide-log-out',
+    onClick: async () => {
+      clearUserSession()
+      await navigateTo('/login')
+    },
+  }],
+])
 </script>
 
 <template>
@@ -112,11 +131,11 @@ const items = computed<NavigationMenuItem[]>(() => [
     <template #right>
       <USelectMenu v-if="route.path !== '/login'" v-model="optionSelected" :items="optionsConection" placeholder="Select a connection" size="sm" />
 
+      <UDropdownMenu :items="itemsDropdown">
+        <UButton icon="i-lucide-user" class="rounded-full" color="neutral" variant="outline" size="sm" />
+      </UDropdownMenu>
       <UTooltip text="Open on GitHub">
         <UButton color="neutral" variant="ghost" to="https://github.com/rafinhacuri/SanchezDNS" target="_blank" icon="i-simple-icons-github" aria-label="GitHub" />
-      </UTooltip>
-      <UTooltip text="Logout">
-        <UButton color="neutral" variant="ghost" icon="i-lucide-log-out" aria-label="Logout" @click="clearUserSessionAndRedirect" />
       </UTooltip>
     </template>
 

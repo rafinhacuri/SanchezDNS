@@ -5,7 +5,7 @@ import (
 	"github.com/rafinhacuri/SanchezDNS/utils"
 )
 
-func Authenticate(ctx *gin.Context) {
+func CheckSession(ctx *gin.Context) {
 	token, err := ctx.Cookie("session")
 	if err != nil {
 		ctx.AbortWithStatusJSON(401, gin.H{"message": "Unauthorized"})
@@ -18,7 +18,5 @@ func Authenticate(ctx *gin.Context) {
 		return
 	}
 
-	ctx.Set("username", email)
-	ctx.Set("admin", adm)
-	ctx.Next()
+	ctx.JSON(200, gin.H{"username": email, "isAdmin": adm})
 }

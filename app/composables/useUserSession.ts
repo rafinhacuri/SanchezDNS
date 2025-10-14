@@ -2,7 +2,7 @@ export default createGlobalState(() => {
   const userInfo = ref({ username: '', admin: false })
   const sessionToken = useCookie('session')
 
-  const isLoggedIn = computed(() => !!userInfo.value.username)
+  const isLoggedIn = computed(() => userInfo.value.username !== '')
   const user = computed(() => ({
     username: userInfo.value.username,
     admin: userInfo.value.admin,
