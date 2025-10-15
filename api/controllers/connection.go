@@ -76,10 +76,7 @@ func AddUser(ctx *gin.Context) {
 		return
 	}
 
-	var request struct {
-		Email      string `json:"email"`
-		Connection string `json:"connection"`
-	}
+	var request models.AddUserRequest
 
 	if err := ctx.ShouldBindJSON(&request); err != nil {
 		ctx.JSON(400, gin.H{"message": "failed to bind JSON"})
@@ -138,10 +135,7 @@ func RemoveUser(ctx *gin.Context) {
 		return
 	}
 
-	var request struct {
-		Email      string `json:"email"`
-		Connection string `json:"connection"`
-	}
+	var request models.AddUserRequest
 
 	if err := ctx.ShouldBindJSON(&request); err != nil {
 		ctx.JSON(400, gin.H{"message": "failed to bind JSON"})

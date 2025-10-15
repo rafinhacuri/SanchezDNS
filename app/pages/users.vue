@@ -12,16 +12,21 @@ const { nameServer, usersServer, optionSelected, refreshConnections } = await us
 const { data } = await useFetch<{ _id: string, email: string }[]>('/server/api/users', { method: 'GET' })
 
 const modal = ref(false)
-const selectedUser = ref('')
+const stateAddUser = ref<AddUser>({ email: '', connection: '' })
 
 async function addUser(){
   start()
-  if(!selectedUser.value){
-    toast.add({ title: 'Please select a user', icon: 'i-lucide-shield-alert', color: 'error' })
+
+  stateAddUser.value.connection = optionSelected.value
+
+  const body = AddUserSchema.safeParse(stateAddUser.value)
+
+  if(!body.success){
+    for(const e of body.error.issues) toast.add({ title: e.message, icon: 'i-lucide-shield-alert', color: 'error' })
     return finish({ error: true })
   }
 
-  const res = await $fetch<{ message: string }>('/server/api/connection/user', { method: 'POST', body: { email: selectedUser.value, connection: optionSelected.value } })
+  const res = await $fetch<{ message: string }>('/server/api/connection/user', { method: 'POST', body: body.data })
     .catch(error => { toast.add({ title: error.data.message, icon: 'i-lucide-shield-alert', color: 'error' }) })
 
   if(!res) return finish({ error: true })
@@ -29,26 +34,30 @@ async function addUser(){
   toast.add({ title: res.message, icon: 'i-lucide-check-circle', color: 'success' })
   await refreshConnections()
   modal.value = false
-  selectedUser.value = ''
+  stateAddUser.value = { email: '', connection: '' }
   finish()
 }
 
-const selectedUserDelete = ref('')
 const modalDelete = ref(false)
 
 function openDeleteModal(user: string){
-  selectedUserDelete.value = user
+  stateAddUser.value.email = user
   modalDelete.value = true
 }
 
 async function deleteUser(){
   start()
-  if(!selectedUserDelete.value){
-    toast.add({ title: 'Please select a user', icon: 'i-lucide-shield-alert', color: 'error' })
+
+  stateAddUser.value.connection = optionSelected.value
+
+  const body = AddUserSchema.safeParse(stateAddUser.value)
+
+  if(!body.success){
+    for(const e of body.error.issues) toast.add({ title: e.message, icon: 'i-lucide-shield-alert', color: 'error' })
     return finish({ error: true })
   }
 
-  const res = await $fetch<{ message: string }>('/server/api/connection/user', { method: 'DELETE', body: { email: selectedUserDelete.value, connection: optionSelected.value } })
+  const res = await $fetch<{ message: string }>('/server/api/connection/user', { method: 'DELETE', body: body.data })
     .catch(error => { toast.add({ title: error.data.message, icon: 'i-lucide-shield-alert', color: 'error' }) })
 
   if(!res) return finish({ error: true })
@@ -56,7 +65,7 @@ async function deleteUser(){
   toast.add({ title: res.message, icon: 'i-lucide-check-circle', color: 'success' })
   await refreshConnections()
   modalDelete.value = false
-  selectedUserDelete.value = ''
+  stateAddUser.value = { email: '', connection: '' }
   finish()
 }
 </script>
@@ -94,7 +103,7 @@ async function deleteUser(){
 
     <UModal v-model:open="modal" title="Add User" description="Add a new user to the group" :ui="{ footer: 'justify-end' }">
       <template #body>
-        <USelectMenu v-model="selectedUser" :items="data" label-key="email" value-key="email" class="w-full" placeholder="Select a user" />
+        <USelectMenu v-model="stateAddUser.email" :items="data" label-key="email" value-key="email" class="w-full" placeholder="Select a user" />
       </template>
 
       <template #footer>
@@ -105,7 +114,7 @@ async function deleteUser(){
 
     <UModal v-model:open="modalDelete" title="Remove User" description="Remove a user from the group" :ui="{ footer: 'justify-end' }">
       <template #body>
-        <p>Are you sure you want to remove {{ selectedUserDelete }}?</p>
+        <p>Are you sure you want to remove {{ stateAddUser.email }}?</p>
       </template>
 
       <template #footer>

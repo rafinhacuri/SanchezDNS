@@ -68,3 +68,22 @@ func (u *ChangePasswordRequest) ValidateChangePasswordRequest() error {
 	}
 	return nil
 }
+
+type AddUserRequest struct {
+	Email      string `bson:"email" json:"email"`
+	Connection string `bson:"connection" json:"connection"`
+}
+
+func (u *AddUserRequest) ValidateAddUserRequest() error {
+	if strings.TrimSpace(u.Email) == "" {
+		return errors.New("the field 'email' is required")
+	}
+	if strings.TrimSpace(u.Connection) == "" {
+		return errors.New("the field 'connection' is required")
+	}
+	if err := utils.ValidateEmail(u.Email); err != nil {
+		return errors.New("invalid email format")
+	}
+
+	return nil
+}
