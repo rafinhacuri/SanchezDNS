@@ -9,14 +9,14 @@ import (
 )
 
 type Connection struct {
-	ID       primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	Name     string             `bson:"name" json:"name" binding:"required"`
-	Host     string             `bson:"host" json:"host" binding:"required"`
-	ApiKey   string             `bson:"apiKey" json:"apiKey" binding:"required"`
-	ServerId string             `bson:"serverId" json:"serverId" binding:"required"`
-	Users    []string           `bson:"users" json:"users" binding:"required"`
-	CreateAt time.Time          `bson:"createdAt" json:"createdAt"`
-	UpdateAt time.Time          `bson:"updatedAt" json:"updatedAt"`
+	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	Name      string             `bson:"name" json:"name" binding:"required"`
+	Host      string             `bson:"host" json:"host" binding:"required"`
+	ApiKey    string             `bson:"apiKey" json:"apiKey" binding:"required"`
+	ServerId  string             `bson:"serverId" json:"serverId" binding:"required"`
+	Users     []string           `bson:"users" json:"users" binding:"required"`
+	CreatedAt time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt time.Time          `bson:"updatedAt" json:"updatedAt"`
 }
 
 type ConnectionRequest struct {

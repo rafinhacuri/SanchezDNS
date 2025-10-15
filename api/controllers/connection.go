@@ -42,13 +42,13 @@ func InsertConnection(ctx *gin.Context) {
 	}
 
 	connection := &models.Connection{
-		Name:     request.Name,
-		Host:     request.Host,
-		ApiKey:   encryptedKey,
-		ServerId: request.ServerId,
-		Users:    request.Users,
-		CreateAt: time.Now(),
-		UpdateAt: time.Now(),
+		Name:      request.Name,
+		Host:      request.Host,
+		ApiKey:    encryptedKey,
+		ServerId:  request.ServerId,
+		Users:     request.Users,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 
 	ctxReq, cancel := context.WithTimeout(ctx.Request.Context(), 5*time.Second)
@@ -137,7 +137,7 @@ func AddUser(ctx *gin.Context) {
 
 	_, err = db.Database.Collection("connections").UpdateOne(ctxReq, bson.M{"_id": connectionID}, bson.M{
 		"$push": bson.M{"users": request.Email},
-		"$set":  bson.M{"updateAt": time.Now()},
+		"$set":  bson.M{"updatedAt": time.Now()},
 	})
 	if err != nil {
 		ctx.JSON(500, gin.H{"message": "failed to add user to connection"})
@@ -210,7 +210,7 @@ func RemoveUser(ctx *gin.Context) {
 
 	_, err = db.Database.Collection("connections").UpdateOne(ctxReq, bson.M{"_id": connectionID}, bson.M{
 		"$pull": bson.M{"users": request.Email},
-		"$set":  bson.M{"updateAt": time.Now()},
+		"$set":  bson.M{"updatedAt": time.Now()},
 	})
 	if err != nil {
 		ctx.JSON(500, gin.H{"message": "failed to remove user from connection"})
@@ -428,10 +428,10 @@ func EditConnection(ctx *gin.Context) {
 	}
 
 	update := bson.M{
-		"name":     request.Name,
-		"host":     request.Host,
-		"serverId": request.ServerId,
-		"updateAt": time.Now(),
+		"name":      request.Name,
+		"host":      request.Host,
+		"serverId":  request.ServerId,
+		"updatedAt": time.Now(),
 	}
 
 	ctxReq, cancel := context.WithTimeout(ctx.Request.Context(), 5*time.Second)

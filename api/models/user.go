@@ -10,12 +10,12 @@ import (
 )
 
 type User struct {
-	ID       primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	Email    string             `bson:"email" json:"email" binding:"required"`
-	Password string             `bson:"password" json:"password" binding:"required"`
-	Level    string             `bson:"level" json:"level" binding:"required,oneof=admin user"`
-	CreateAt time.Time          `bson:"createdAt" json:"createdAt"`
-	UpdateAt time.Time          `bson:"updatedAt" json:"updatedAt"`
+	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	Email     string             `bson:"email" json:"email" binding:"required"`
+	Password  string             `bson:"password" json:"password" binding:"required"`
+	Level     string             `bson:"level" json:"level" binding:"required,oneof=admin user"`
+	CreatedAt time.Time          `bson:"createdAt" json:"createdAt"`
+	UpdatedAt time.Time          `bson:"updatedAt" json:"updatedAt"`
 }
 
 type UserRequest struct {

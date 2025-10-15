@@ -31,11 +31,11 @@ func InsertUser(ctx *gin.Context) {
 	}
 
 	user := &models.User{
-		Email:    request.Email,
-		Password: passwordHash,
-		Level:    request.Level,
-		CreateAt: time.Now(),
-		UpdateAt: time.Now(),
+		Email:     request.Email,
+		Password:  passwordHash,
+		Level:     request.Level,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 
 	ctxReq, cancel := context.WithTimeout(ctx.Request.Context(), 5*time.Second)
