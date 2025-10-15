@@ -4,10 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"net/url"
 	"slices"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -15,6 +13,7 @@ import (
 	"github.com/rafinhacuri/SanchezDNS/db"
 	"github.com/rafinhacuri/SanchezDNS/models"
 	"github.com/rafinhacuri/SanchezDNS/passwords"
+	"github.com/rafinhacuri/SanchezDNS/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -58,24 +57,9 @@ type pdnsRRRecord struct {
 }
 
 type pdnsStat struct {
-	Name  string      `json:"name"`
-	Type  string      `json:"type"`
-	Value interface{} `json:"value"`
-}
-
-func normalizeBase(h string) string {
-	b := strings.TrimRight(h, "/")
-	if !strings.HasPrefix(b, "http://") && !strings.HasPrefix(b, "https://") {
-		b = "http://" + b
-	}
-	u, err := url.Parse(b)
-	if err != nil {
-		return b
-	}
-	if u.Port() == "" {
-		u.Host = u.Host + ":8081"
-	}
-	return u.String()
+	Name  string `json:"name"`
+	Type  string `json:"type"`
+	Value any    `json:"value"`
 }
 
 func GetStatistics(ctx *gin.Context) {
@@ -116,7 +100,7 @@ func GetStatistics(ctx *gin.Context) {
 		return
 	}
 
-	base := normalizeBase(connection.Host)
+	base := utils.NormalizeBase(connection.Host)
 
 	serverID := connection.ServerId
 	if serverID == "" {
@@ -137,7 +121,7 @@ func GetStatistics(ctx *gin.Context) {
 		return
 	}
 
-	statMap := make(map[string]interface{}, len(statsRaw))
+	statMap := make(map[string]any, len(statsRaw))
 	for _, s := range statsRaw {
 		statMap[s.Name] = s.Value
 	}
@@ -225,15 +209,4 @@ func startedAtFromNow(uptimeSec int) time.Time {
 		return time.Now().UTC()
 	}
 	return time.Now().UTC().Add(-time.Duration(uptimeSec) * time.Second)
-}
-
-func pickLatency(m map[string]interface{}, p int) string {
-	if p == 50 {
-		if v, ok := m["latency-avg"]; ok {
-			if f, ok := v.(float64); ok {
-				return fmt.Sprintf("%.1f ms", f)
-			}
-		}
-	}
-	return ""
 }
