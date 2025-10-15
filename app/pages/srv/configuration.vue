@@ -9,28 +9,28 @@ const { optionSelected, refreshConnections } = await useConnection()
 const toast = useToast()
 const { isLoading, start, finish } = useLoadingIndicator()
 
-const { data, refresh } = await useFetch<{ connection: { _id: string, name: string, host: string, serverId: string, createdAt: string, updatedAt: string }, server: { id: string, daemonType: string, backend: string, databasePath: string, listeningAddress: string, webserver: string, api: boolean } }>('/server/api/connection', { method: 'GET', query: { connection: optionSelected.value } })
+const { data, refresh } = await useFetch<{ _id: string, name: string, host: string, serverId: string, createdAt: string, updatedAt: string }>('/server/api/connection', { method: 'GET', query: { connection: optionSelected.value } })
 
 const isEditing = ref(false)
 
-const stateConnection = ref<EditConnectionType>({ name: data.value?.connection.name || '', host: data.value?.connection.host || '', serverId: data.value?.server.id || '' })
+const stateConnection = ref<EditConnectionType>({ name: data.value?.name || '', host: data.value?.host || '', serverId: data.value?.serverId || '' })
 
 function startEditing(){
   if(data.value){
-    stateConnection.value = { name: data.value.connection.name, host: data.value.connection.host, serverId: data.value.server.id }
+    stateConnection.value = { name: data.value.name, host: data.value.host, serverId: data.value.serverId }
     isEditing.value = true
   }
 }
 
 function cancelEditing(){
   isEditing.value = false
-  if(data.value) stateConnection.value = { name: data.value.connection.name, host: data.value.connection.host, serverId: data.value.server.id }
+  if(data.value) stateConnection.value = { name: data.value.name, host: data.value.host, serverId: data.value.serverId }
 }
 
 const modal = ref(false)
 
 function confirmEditing(){
-  if((stateConnection.value.host !== data.value?.connection.host) || (stateConnection.value.serverId !== data.value?.server.id)){
+  if((stateConnection.value.host !== data.value?.host) || (stateConnection.value.serverId !== data.value?.serverId)){
     return modal.value = true
   }
   editConnection()
@@ -66,7 +66,7 @@ const modalDelete = ref(false)
 async function deleteConnection(){
   start()
 
-  if(data.value && (confirmHost.value !== data.value.connection.host)){
+  if(data.value && (confirmHost.value !== data.value.host)){
     toast.add({ title: 'The host does not match', icon: 'i-lucide-shield-alert', color: 'error' })
     return finish({ error: true })
   }
@@ -100,74 +100,6 @@ watch(modalDelete, newVal => {
 
       <UCard>
         <template #header>
-          <h2 class="text-gray-200 font-medium">
-            Server Information
-          </h2>
-        </template>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div class="rounded-lg border border-[var(--ui-border)] p-4 bg-[var(--ui-bg-elevated)]">
-            <div class="text-xs text-[var(--ui-text-muted)]">
-              Server ID
-            </div>
-            <div class="mt-1 font-medium text-[var(--ui-text)]">
-              {{ data.server.id }}
-            </div>
-          </div>
-          <div class="rounded-lg border border-[var(--ui-border)] p-4 bg-[var(--ui-bg-elevated)]">
-            <div class="text-xs text-[var(--ui-text-muted)]">
-              Daemon Type
-            </div>
-            <div class="mt-1 font-medium text-[var(--ui-text)]">
-              {{ data.server.daemonType }}
-            </div>
-          </div>
-          <div class="rounded-lg border border-[var(--ui-border)] p-4 bg-[var(--ui-bg-elevated)]">
-            <div class="text-xs text-[var(--ui-text-muted)]">
-              Backend
-            </div>
-            <div class="mt-1 font-medium text-[var(--ui-text)]">
-              {{ data.server.backend }}
-            </div>
-          </div>
-          <div class="rounded-lg border border-[var(--ui-border)] p-4 bg-[var(--ui-bg-elevated)]">
-            <div class="text-xs text-[var(--ui-text-muted)]">
-              Database Path
-            </div>
-            <div class="mt-1 font-medium text-[var(--ui-text)] break-all">
-              {{ data.server.databasePath }}
-            </div>
-          </div>
-          <div class="rounded-lg border border-[var(--ui-border)] p-4 bg-[var(--ui-bg-elevated)]">
-            <div class="text-xs text-[var(--ui-text-muted)]">
-              Listening Address
-            </div>
-            <div class="mt-1 font-medium text-[var(--ui-text)]">
-              {{ data.server.listeningAddress }}
-            </div>
-          </div>
-          <div class="rounded-lg border border-[var(--ui-border)] p-4 bg-[var(--ui-bg-elevated)]">
-            <div class="text-xs text-[var(--ui-text-muted)]">
-              Webserver
-            </div>
-            <div class="mt-1 font-medium text-[var(--ui-text)]">
-              {{ data.server.webserver }}
-            </div>
-          </div>
-          <div class="rounded-lg border border-[var(--ui-border)] p-4 bg-[var(--ui-bg-elevated)]">
-            <div class="text-xs text-[var(--ui-text-muted)]">
-              API
-            </div>
-            <div class="mt-1">
-              <UBadge variant="soft">
-                {{ data.server.api ? 'Enabled' : 'Disabled' }}
-              </UBadge>
-            </div>
-          </div>
-        </div>
-      </UCard>
-
-      <UCard>
-        <template #header>
           <div class="flex items-center justify-between">
             <h2 class="text-gray-200 font-medium">
               Connection Information
@@ -198,13 +130,13 @@ watch(modalDelete, newVal => {
               <p class="text-gray-200 font-medium">
                 Created at
               </p>
-              <NuxtTime :datetime="data.connection.createdAt" day="2-digit" month="2-digit" year="2-digit" hour="2-digit" minute="2-digit" class="text-sm text-gray-500" />
+              <NuxtTime :datetime="data.createdAt" day="2-digit" month="2-digit" year="2-digit" hour="2-digit" minute="2-digit" class="text-sm text-gray-500" />
             </div>
             <div>
               <p class="text-gray-200 font-medium">
                 Last updated
               </p>
-              <NuxtTime :datetime="data.connection.updatedAt" day="2-digit" month="2-digit" year="2-digit" hour="2-digit" minute="2-digit" class="text-sm text-gray-500" />
+              <NuxtTime :datetime="data.updatedAt" day="2-digit" month="2-digit" year="2-digit" hour="2-digit" minute="2-digit" class="text-sm text-gray-500" />
             </div>
           </div>
         </template>
