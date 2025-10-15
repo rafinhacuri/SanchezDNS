@@ -46,30 +46,12 @@ const items = computed<NavigationMenuItem[]>(() => [
       {
         label: 'Configuration',
         icon: 'i-lucide-settings',
-        description: 'Manage server configuration.',
+        description: 'Manage server connection.',
         to: '/srv/configuration',
       },
     ],
   },
-  {
-    label: 'Configuration',
-    icon: 'i-lucide-settings',
-    active: route.path.startsWith('/config/dns-connections') || route.path.startsWith('/config/api-keys'),
-    children: [
-      {
-        label: 'DNS Connections',
-        icon: 'i-lucide-computer',
-        description: 'Manage DNS Connections connections.',
-        to: '/config/dns-connections',
-      },
-      {
-        label: 'API Keys',
-        icon: 'i-lucide-key',
-        description: 'Manage API keys.',
-        to: '/config/api-keys',
-      },
-    ],
-  },
+  ...(user.value?.admin ? [{ label: 'Connections', icon: 'i-lucide-wifi', active: route.path.startsWith('/config/dns-connections') || route.path.startsWith('/config/api-keys'), children: [{ label: 'DNS Connections', icon: 'i-lucide-computer', description: 'Manage DNS connections.', to: '/config/dns-connections' }, { label: 'API Keys', icon: 'i-lucide-key', description: 'Manage API keys.', to: '/config/api-keys' }] }] : []),
   ...(user.value?.admin ? [{ label: 'Users', icon: 'i-lucide-users', to: '/users', active: route.path.startsWith('/users') }] : []),
   {
     label: 'Logs',
@@ -235,7 +217,7 @@ async function changePassword(){
           <UFormField label="API Key" name="apiKey">
             <UInput v-model="state.apiKey" icon="i-lucide-key" class="w-full" />
           </UFormField>
-          <UFormField label="Server ID" name="serverId">
+          <UFormField label="Server ID (Default: 'localhost')" name="serverId">
             <UInput v-model="state.serverId" icon="i-lucide-hash" class="w-full" />
           </UFormField>
         </UForm>

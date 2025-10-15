@@ -20,7 +20,7 @@ export default defineNuxtRouteMiddleware(async to => {
   if(!isLoggedIn.value && to.fullPath !== '/') return navigateTo('/')
 
   // * logado tentando acessar rota admin
-  if(!user.value?.admin && to.fullPath.startsWith('/users')) return navigateTo('/zones/dashboard')
+  if(!user.value?.admin && (to.fullPath.startsWith('/users') || to.fullPath.startsWith('/config'))) return navigateTo('/zones/dashboard')
 
   // * nao selecionou conexao
   if(!optionSelected.value && !['/', '/start'].includes(to.fullPath) && isLoggedIn) return navigateTo('/start')

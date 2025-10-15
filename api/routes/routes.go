@@ -19,14 +19,17 @@ func RegisterRoutes(server *gin.Engine) {
 
 	api := server.Group("/api", middleware.Authenticate)
 	apiAdmin := api.Group("/", middleware.AuthenticateAdmin)
-
 	api.GET("/check-session", middleware.CheckSession)
-	api.GET("/connections", controllers.GetConnections)
+
 	api.PATCH("/user/password", controllers.ChangePassword)
 	api.GET("/statistics", controllers.GetStatistics)
+	api.GET("/connections", controllers.GetConnections)
+	api.GET("/connection", controllers.GetConnection)
+	api.PATCH("/connection", controllers.EditConnection)
+	api.DELETE("/connection", controllers.DeleteConnection)
 
-	apiAdmin.POST("/connections", controllers.InsertConnection)
 	apiAdmin.GET("/users", controllers.GetUsers)
+	apiAdmin.POST("/connections", controllers.InsertConnection)
 	apiAdmin.POST("/connection/user", controllers.AddUser)
 	apiAdmin.DELETE("/connection/user", controllers.RemoveUser)
 }

@@ -57,7 +57,7 @@ async function createConnection(){
           <UFormField label="API Key" name="apiKey">
             <UInput v-model="state.apiKey" icon="i-lucide-key" class="w-full" />
           </UFormField>
-          <UFormField label="Server ID" name="serverId">
+          <UFormField label="Server ID (Default: 'localhost')" name="serverId">
             <UInput v-model="state.serverId" icon="i-lucide-hash" class="w-full" />
           </UFormField>
         </UForm>

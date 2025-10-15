@@ -9,3 +9,7 @@ export const ConnectionSchema = z.object({
 })
 
 export type ConnectionType = z.infer<typeof ConnectionSchema>
+
+export const EditConnectionSchema = ConnectionSchema.omit({ users: true, apiKey: true })
+
+export type EditConnectionType = z.infer<typeof EditConnectionSchema>

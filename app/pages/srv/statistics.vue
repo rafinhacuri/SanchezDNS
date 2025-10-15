@@ -13,7 +13,7 @@ onNuxtReady(() => setInterval(refresh, 60000))
 </script>
 
 <template>
-  <UContainer class="max-w-7xl mx-auto">
+  <UContainer>
     <div v-if="data" class="space-y-8 py-8">
       <div class="flex items-center justify-between">
         <div>
