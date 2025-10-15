@@ -15,7 +15,6 @@ import (
 	"github.com/rafinhacuri/SanchezDNS/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func InsertConnection(ctx *gin.Context) {
@@ -213,9 +212,7 @@ func GetConnection(ctx *gin.Context) {
 		return
 	}
 
-	opts := options.FindOne().SetProjection(bson.M{"users": 0})
-
-	err = db.Database.Collection("connections").FindOne(ctx.Request.Context(), bson.M{"_id": id}, opts).Decode(&connection)
+	err = db.Database.Collection("connections").FindOne(ctx.Request.Context(), bson.M{"_id": id}).Decode(&connection)
 	if err != nil {
 		ctx.JSON(404, gin.H{"message": "connection not found"})
 		return
@@ -340,6 +337,7 @@ func GetConnection(ctx *gin.Context) {
 	}
 
 	connection.ApiKey = ""
+	connection.Users = nil
 
 	ctx.JSON(200, gin.H{"connection": connection, "server": serverInfo})
 }
