@@ -46,3 +46,23 @@ func (u *ConnectionRequest) ValidateConnectionRequest() error {
 
 	return nil
 }
+
+type ConnectingEditRequest struct {
+	Name     string `bson:"name" json:"name"`
+	Host     string `bson:"host" json:"host"`
+	ServerId string `bson:"serverId" json:"serverId"`
+}
+
+func (u *ConnectingEditRequest) ValidateConnectionEdit() error {
+	if strings.TrimSpace(u.Name) == "" {
+		return errors.New("the field 'name' is required")
+	}
+	if strings.TrimSpace(u.Host) == "" {
+		return errors.New("the field 'host' is required")
+	}
+	if strings.TrimSpace(u.ServerId) == "" {
+		u.ServerId = "localhost"
+	}
+
+	return nil
+}
