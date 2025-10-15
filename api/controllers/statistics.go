@@ -177,7 +177,6 @@ func GetStatistics(ctx *gin.Context) {
 		Users:      len(connection.Users),
 		Uptime:     humanUptime(uptimeSec),
 		Status:     "online",
-		QPS:        getInt("qps", "dns-queries-per-second", "queries-per-second"),
 		UDPQueries: getInt("udp-queries"),
 		TCPQueries: getInt("tcp-queries"),
 		ServerID:   serverID,

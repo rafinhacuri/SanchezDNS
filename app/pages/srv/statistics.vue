@@ -5,7 +5,7 @@ defineOgImageComponent('Techs', { title: 'Server statistics overview' })
 
 const { optionSelected } = await useConnection()
 
-const { data, error, refresh } = await useFetch<{ zones: number, records: number, uptime: string, users: number, status: string, qps: number, udpQueries: number, tcpQueries: number, serverId: string, startedAt: string }>('/server/api/statistics', { method: 'GET', query: { connection: optionSelected.value } })
+const { data, error, refresh } = await useFetch<{ zones: number, records: number, uptime: string, users: number, status: string, udpQueries: number, tcpQueries: number, serverId: string, startedAt: string }>('/server/api/statistics', { method: 'GET', query: { connection: optionSelected.value } })
 
 if(error.value) throw createError({ statusCode: 500, statusMessage: 'Failed to fetch statistics' })
 
@@ -97,14 +97,6 @@ onNuxtReady(() => setInterval(refresh, 60000))
         </template>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div>
-            <div class="text-sm text-gray-500">
-              QPS (req/s)
-            </div>
-            <div class="text-xl font-semibold">
-              {{ data.qps }}
-            </div>
-          </div>
           <div>
             <div class="text-sm text-gray-500">
               UDP Queries
