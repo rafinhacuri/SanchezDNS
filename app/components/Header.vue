@@ -12,53 +12,15 @@ const { optionSelected, optionsConnection, refreshConnections } = await useConne
 const toast = useToast()
 
 const items = computed<NavigationMenuItem[]>(() => [
-  {
-    label: 'Zones',
-    icon: 'i-lucide-database',
-    to: '/zones/dashboard',
-    active: route.path === '/zones/dashboard' || route.path.startsWith('/zones/templates'),
-    children: [
-      {
-        label: 'Dashboard',
-        icon: 'i-lucide-chart-pie',
-        description: 'View and manage all DNS zones.',
-        to: '/zones/dashboard',
-      },
-      {
-        label: 'Templates',
-        icon: 'i-lucide-file-text',
-        description: 'Manage DNS templates.',
-        to: '/zones/templates',
-      },
-    ],
-  },
-  {
-    label: 'Server',
-    icon: 'i-lucide-server',
-    active: route.path.startsWith('/srv/statistics') || route.path.startsWith('/srv/configuration'),
-    children: [
-      {
-        label: 'Statistics',
-        icon: 'i-lucide-bar-chart-3',
-        description: 'View server statistics.',
-        to: '/srv/statistics',
-      },
-      {
-        label: 'Configuration',
-        icon: 'i-lucide-settings',
-        description: 'Manage server connection.',
-        to: '/srv/configuration',
-      },
-    ],
-  },
+  { label: 'Zones', icon: 'i-lucide-database', to: '/zones', active: route.path.startsWith('/zones') },
+
+  ...(user.value?.admin ? [{ label: 'Server', icon: 'i-lucide-server', active: route.path.startsWith('/srv/statistics') || route.path.startsWith('/srv/configuration'), children: [{ label: 'Statistics', icon: 'i-lucide-bar-chart-3', description: 'View server statistics.', to: '/srv/statistics' }, { label: 'Configuration', icon: 'i-lucide-settings', description: 'Manage server connection.', to: '/srv/configuration' }] }] : [{ label: 'Statistics', icon: 'i-lucide-bar-chart-3', active: route.path.startsWith('/srv/statistics'), to: '/srv/statistics' }, { label: 'Configuration', icon: 'i-lucide-settings', active: route.path.startsWith('/srv/configuration'), to: '/srv/configuration' }]),
+
   ...(user.value?.admin ? [{ label: 'Connections', icon: 'i-lucide-wifi', active: route.path.startsWith('/config/dns-connections') || route.path.startsWith('/config/api-keys'), children: [{ label: 'DNS Connections', icon: 'i-lucide-computer', description: 'Manage DNS connections.', to: '/config/dns-connections' }, { label: 'API Keys', icon: 'i-lucide-key', description: 'Manage API keys.', to: '/config/api-keys' }] }] : []),
+
   ...(user.value?.admin ? [{ label: 'Users', icon: 'i-lucide-users', to: '/users', active: route.path.startsWith('/users') }] : []),
-  {
-    label: 'Logs',
-    icon: 'i-lucide-git-fork',
-    to: '/logs',
-    active: route.path.startsWith('/logs'),
-  },
+
+  { label: 'Logs', icon: 'i-lucide-git-fork', to: '/logs', active: route.path.startsWith('/logs') },
 ])
 
 const modal = ref(false)
