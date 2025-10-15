@@ -71,6 +71,20 @@ func InsertConnection(ctx *gin.Context) {
 		return
 	}
 
+	username := ctx.GetString("username")
+
+	log := &models.Log{
+		HostServer:   connection.Host,
+		Zone:         "",
+		IdConnection: "",
+		Username:     username,
+		Action:       "create_connection",
+		Details:      fmt.Sprintf("User %s created connection %s", username, connection.Name),
+		CreatedAt:    time.Now().Unix(),
+	}
+
+	_, _ = db.Database.Collection("logs").InsertOne(ctxReq, log)
+
 	ctx.JSON(201, gin.H{"message": "connection created successfully"})
 }
 
@@ -130,6 +144,20 @@ func AddUser(ctx *gin.Context) {
 		return
 	}
 
+	username := ctx.GetString("username")
+
+	log := &models.Log{
+		HostServer:   connection.Host,
+		IdConnection: request.Connection,
+		Zone:         "",
+		Username:     username,
+		Action:       "add_user_to_connection",
+		Details:      fmt.Sprintf("User %s added to connection %s", request.Email, connection.Name),
+		CreatedAt:    time.Now().Unix(),
+	}
+
+	_, _ = db.Database.Collection("logs").InsertOne(ctxReq, log)
+
 	ctx.JSON(200, gin.H{"message": "user added to connection successfully"})
 }
 
@@ -188,6 +216,20 @@ func RemoveUser(ctx *gin.Context) {
 		ctx.JSON(500, gin.H{"message": "failed to remove user from connection"})
 		return
 	}
+
+	username := ctx.GetString("username")
+
+	log := &models.Log{
+		HostServer:   connection.Host,
+		Zone:         "",
+		IdConnection: request.Connection,
+		Username:     username,
+		Action:       "remove_user_from_connection",
+		Details:      fmt.Sprintf("User %s removed from connection %s", request.Email, connection.Name),
+		CreatedAt:    time.Now().Unix(),
+	}
+
+	_, _ = db.Database.Collection("logs").InsertOne(ctxReq, log)
 
 	ctx.JSON(200, gin.H{"message": "user removed from connection successfully"})
 }
@@ -401,6 +443,34 @@ func EditConnection(ctx *gin.Context) {
 		return
 	}
 
+	changes := []string{}
+	if connection.Name != request.Name {
+		changes = append(changes, fmt.Sprintf("name: %s -> %s", connection.Name, request.Name))
+	}
+	if connection.Host != request.Host {
+		changes = append(changes, fmt.Sprintf("host: %s -> %s", connection.Host, request.Host))
+	}
+	if connection.ServerId != request.ServerId {
+		changes = append(changes, fmt.Sprintf("serverId: %s -> %s", connection.ServerId, request.ServerId))
+	}
+
+	changeDetails := "no fields changed"
+	if len(changes) > 0 {
+		changeDetails = strings.Join(changes, ", ")
+	}
+
+	log := &models.Log{
+		HostServer:   connection.Host,
+		IdConnection: primitiveId,
+		Zone:         "",
+		Username:     username,
+		Action:       "edit_connection",
+		Details:      fmt.Sprintf("User %s edited connection %s: %s", username, connection.Name, changeDetails),
+		CreatedAt:    time.Now().Unix(),
+	}
+
+	_, _ = db.Database.Collection("logs").InsertOne(ctxReq, log)
+
 	ctx.JSON(200, gin.H{"message": "connection updated successfully"})
 }
 
@@ -440,6 +510,18 @@ func DeleteConnection(ctx *gin.Context) {
 		ctx.JSON(500, gin.H{"message": err.Error()})
 		return
 	}
+
+	log := &models.Log{
+		HostServer:   connection.Host,
+		Zone:         "",
+		IdConnection: primitiveId,
+		Username:     username,
+		Action:       "delete_connection",
+		Details:      fmt.Sprintf("User %s deleted connection %s", username, connection.Name),
+		CreatedAt:    time.Now().Unix(),
+	}
+
+	_, _ = db.Database.Collection("logs").InsertOne(ctx.Request.Context(), log)
 
 	ctx.JSON(200, gin.H{"message": "connection deleted successfully"})
 }
