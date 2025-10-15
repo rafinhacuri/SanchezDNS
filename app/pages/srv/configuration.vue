@@ -94,7 +94,7 @@ watch(modalDelete, newVal => {
 <template>
   <UContainer>
     <div v-if="data" class="py-10 space-y-8">
-      <h1 class="text-2xl font-bold text-gray-100">
+      <h1 class="text-3xl font-bold text-gray-100">
         Server Configuration
       </h1>
 

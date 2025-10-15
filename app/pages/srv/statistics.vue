@@ -17,7 +17,7 @@ onNuxtReady(() => setInterval(refresh, 60000))
     <div v-if="data" class="space-y-8 py-8">
       <div class="flex items-center justify-between">
         <div>
-          <h1 class="text-2xl font-bold">
+          <h1 class="text-3xl font-bold">
             Server Statistics
           </h1>
           <p class="text-sm text-gray-500">
