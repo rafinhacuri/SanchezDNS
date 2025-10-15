@@ -23,6 +23,7 @@ func RegisterRoutes(server *gin.Engine) {
 	api.GET("/check-session", middleware.CheckSession)
 	api.GET("/connections", controllers.GetConnections)
 	api.PATCH("/user/password", controllers.ChangePassword)
+	api.GET("/statistics", controllers.GetStatistics)
 
 	apiAdmin.POST("/connections", controllers.InsertConnection)
 	apiAdmin.GET("/users", controllers.GetUsers)

@@ -7,6 +7,7 @@ const state = ref<ConnectionType>({ name: '', host: '', apiKey: '', serverId: ''
 
 const toast = useToast()
 const { isLoading, start, finish } = useLoadingIndicator()
+const { refreshConnections } = await useConnection()
 
 async function createConnection(){
   start()
@@ -25,6 +26,8 @@ async function createConnection(){
 
   finish({ force: true })
   toast.add({ title: res.message, icon: 'i-lucide-badge-check', color: 'success' })
+  await refreshConnections()
+  state.value = { name: '', host: '', apiKey: '', serverId: '', users: [] }
   modal.value = false
 }
 </script>

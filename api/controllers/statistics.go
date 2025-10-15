@@ -1,0 +1,239 @@
+package controllers
+
+import (
+	"context"
+	"fmt"
+	"net/http"
+	"net/url"
+	"slices"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-resty/resty/v2"
+	"github.com/rafinhacuri/SanchezDNS/db"
+	"github.com/rafinhacuri/SanchezDNS/models"
+	"github.com/rafinhacuri/SanchezDNS/passwords"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+type StatisticsResponse struct {
+	Zones      int    `json:"zones"`
+	Records    int    `json:"records"`
+	Users      int    `json:"users"`
+	Uptime     string `json:"uptime"`
+	Status     string `json:"status"`
+	QPS        int    `json:"qps"`
+	UDPQueries int    `json:"udpQueries"`
+	TCPQueries int    `json:"tcpQueries"`
+	ServerID   string `json:"serverId"`
+	StartedAt  string `json:"startedAt"`
+}
+
+type pdnsZone struct {
+	Name   string `json:"name"`
+	ID     string `json:"id"`
+	Kind   string `json:"kind"`
+	Serial int64  `json:"serial"`
+	URL    string `json:"url"`
+}
+
+type pdnsZoneDetails struct {
+	Name   string      `json:"name"`
+	RRsets []pdnsRRSet `json:"rrsets"`
+}
+
+type pdnsRRSet struct {
+	Name    string         `json:"name"`
+	Type    string         `json:"type"`
+	TTL     int            `json:"ttl"`
+	Records []pdnsRRRecord `json:"records"`
+}
+
+type pdnsRRRecord struct {
+	Content  string `json:"content"`
+	Disabled bool   `json:"disabled"`
+}
+
+type pdnsStat struct {
+	Name  string      `json:"name"`
+	Type  string      `json:"type"`
+	Value interface{} `json:"value"`
+}
+
+func normalizeBase(h string) string {
+	b := strings.TrimRight(h, "/")
+	if !strings.HasPrefix(b, "http://") && !strings.HasPrefix(b, "https://") {
+		b = "http://" + b
+	}
+	u, err := url.Parse(b)
+	if err != nil {
+		return b
+	}
+	if u.Port() == "" {
+		u.Host = u.Host + ":8081"
+	}
+	return u.String()
+}
+
+func GetStatistics(ctx *gin.Context) {
+	id := ctx.Query("connection")
+	username := ctx.GetString("username")
+	isAdmin := ctx.GetBool("admin")
+
+	if id == "" {
+		ctx.JSON(400, gin.H{"message": "connection ID is required"})
+		return
+	}
+
+	connectionID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		ctx.JSON(400, gin.H{"message": "invalid connection ID"})
+		return
+	}
+
+	var connection models.Connection
+
+	ctxReq, cancel := context.WithTimeout(ctx.Request.Context(), 8*time.Second)
+	defer cancel()
+
+	err = db.Database.Collection("connections").FindOne(ctxReq, bson.M{"_id": connectionID}).Decode(&connection)
+	if err != nil {
+		ctx.JSON(404, gin.H{"message": "connection not found"})
+		return
+	}
+
+	if !isAdmin && !slices.Contains(connection.Users, username) {
+		ctx.JSON(403, gin.H{"message": "forbidden"})
+		return
+	}
+
+	plainKey, err := passwords.Decrypt(connection.ApiKey)
+	if err != nil {
+		ctx.JSON(500, gin.H{"message": fmt.Sprintf("failed to decrypt api key: %v", err)})
+		return
+	}
+
+	base := normalizeBase(connection.Host)
+
+	serverID := connection.ServerId
+	if serverID == "" {
+		serverID = "localhost"
+	}
+
+	httpc := resty.New().SetBaseURL(base).SetHeader("X-API-Key", plainKey).SetHeader("Accept", "application/json").SetTimeout(6 * time.Second).SetRetryCount(2)
+
+	var statsRaw []pdnsStat
+	statResp, err := httpc.R().SetContext(ctxReq).SetResult(&statsRaw).Get(fmt.Sprintf("/api/v1/servers/%s/statistics", serverID))
+
+	if err != nil {
+		ctx.JSON(http.StatusBadGateway, gin.H{"message": fmt.Sprintf("failed to reach PowerDNS: %v", err)})
+		return
+	}
+	if statResp.IsError() {
+		ctx.JSON(statResp.StatusCode(), gin.H{"message": fmt.Sprintf("PowerDNS statistics error: %s", statResp.Status())})
+		return
+	}
+
+	statMap := make(map[string]interface{}, len(statsRaw))
+	for _, s := range statsRaw {
+		statMap[s.Name] = s.Value
+	}
+
+	getInt := func(keys ...string) int {
+		for _, k := range keys {
+			if v, ok := statMap[k]; ok {
+				switch t := v.(type) {
+				case float64:
+					return int(t)
+				case int:
+					return t
+				case int64:
+					return int(t)
+				case string:
+					if n, perr := strconv.Atoi(t); perr == nil {
+						return n
+					}
+				}
+			}
+		}
+		return 0
+	}
+
+	var zones []pdnsZone
+	zonesResp, err := httpc.R().SetContext(ctxReq).SetResult(&zones).Get(fmt.Sprintf("/api/v1/servers/%s/zones", serverID))
+
+	if err != nil {
+		ctx.JSON(http.StatusBadGateway, gin.H{"message": fmt.Sprintf("failed to fetch zones: %v", err)})
+		return
+	}
+	if zonesResp.IsError() {
+		ctx.JSON(zonesResp.StatusCode(), gin.H{"message": fmt.Sprintf("PowerDNS zones error: %s", zonesResp.Status())})
+		return
+	}
+
+	records := 0
+	for _, z := range zones {
+		var zd pdnsZoneDetails
+		zr, zerr := httpc.R().SetContext(ctxReq).SetResult(&zd).Get(fmt.Sprintf("/api/v1/servers/%s/zones/%s", serverID, z.ID))
+		if zerr != nil || zr.IsError() {
+			continue
+		}
+		for _, rr := range zd.RRsets {
+			records += len(rr.Records)
+		}
+	}
+
+	uptimeSec := getInt("uptime")
+	resp := StatisticsResponse{
+		Zones:      len(zones),
+		Records:    records,
+		Users:      len(connection.Users),
+		Uptime:     humanUptime(uptimeSec),
+		Status:     "online",
+		QPS:        getInt("qps", "dns-queries-per-second", "queries-per-second"),
+		UDPQueries: getInt("udp-queries"),
+		TCPQueries: getInt("tcp-queries"),
+		ServerID:   serverID,
+		StartedAt:  startedAtFromNow(uptimeSec).Format(time.RFC3339),
+	}
+
+	ctx.JSON(200, resp)
+}
+
+func humanUptime(sec int) string {
+	if sec <= 0 {
+		return "0s"
+	}
+	d := time.Duration(sec) * time.Second
+	days := int(d.Hours()) / 24
+	hours := int(d.Hours()) % 24
+	mins := int(d.Minutes()) % 60
+	if days > 0 {
+		return fmt.Sprintf("%dd %dh %dm", days, hours, mins)
+	}
+	if hours > 0 {
+		return fmt.Sprintf("%dh %dm", hours, mins)
+	}
+	return fmt.Sprintf("%dm", mins)
+}
+
+func startedAtFromNow(uptimeSec int) time.Time {
+	if uptimeSec <= 0 {
+		return time.Now().UTC()
+	}
+	return time.Now().UTC().Add(-time.Duration(uptimeSec) * time.Second)
+}
+
+func pickLatency(m map[string]interface{}, p int) string {
+	if p == 50 {
+		if v, ok := m["latency-avg"]; ok {
+			if f, ok := v.(float64); ok {
+				return fmt.Sprintf("%.1f ms", f)
+			}
+		}
+	}
+	return ""
+}
