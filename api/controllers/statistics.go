@@ -19,16 +19,16 @@ import (
 )
 
 type StatisticsResponse struct {
-	Zones      int    `json:"zones"`
-	Records    int    `json:"records"`
-	Users      int    `json:"users"`
-	Uptime     string `json:"uptime"`
-	Status     string `json:"status"`
-	QPS        int    `json:"qps"`
-	UDPQueries int    `json:"udpQueries"`
-	TCPQueries int    `json:"tcpQueries"`
-	ServerID   string `json:"serverId"`
-	StartedAt  string `json:"startedAt"`
+	Zones         int    `json:"zones"`
+	Records       int    `json:"records"`
+	Users         int    `json:"users"`
+	Uptime        string `json:"uptime"`
+	Status        string `json:"status"`
+	FailedQueries int    `json:"failedQueries"`
+	UDPQueries    int    `json:"udpQueries"`
+	TCPQueries    int    `json:"tcpQueries"`
+	ServerID      string `json:"serverId"`
+	StartedAt     string `json:"startedAt"`
 }
 
 type pdnsZone struct {
@@ -172,15 +172,16 @@ func GetStatistics(ctx *gin.Context) {
 
 	uptimeSec := getInt("uptime")
 	resp := StatisticsResponse{
-		Zones:      len(zones),
-		Records:    records,
-		Users:      len(connection.Users),
-		Uptime:     humanUptime(uptimeSec),
-		Status:     "online",
-		UDPQueries: getInt("udp-queries"),
-		TCPQueries: getInt("tcp-queries"),
-		ServerID:   serverID,
-		StartedAt:  startedAtFromNow(uptimeSec).Format(time.RFC3339),
+		Zones:         len(zones),
+		Records:       records,
+		Users:         len(connection.Users),
+		Uptime:        humanUptime(uptimeSec),
+		Status:        "online",
+		UDPQueries:    getInt("udp-queries"),
+		TCPQueries:    getInt("tcp-queries"),
+		FailedQueries: getInt("servfail-answers", "nxdomain-answers", "recursion-failures"),
+		ServerID:      serverID,
+		StartedAt:     startedAtFromNow(uptimeSec).Format(time.RFC3339),
 	}
 
 	ctx.JSON(200, resp)
