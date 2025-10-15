@@ -90,7 +90,7 @@ async function register(){
 </script>
 
 <template>
-  <section class="flex items-center justify-center h-screen">
+  <UContainer class="flex items-center justify-center h-screen">
     <div class="flex flex-col items-center gap-6 w-full max-w-md p-6">
       <div class="flex flex-col items-center ">
         <NuxtImg src="/logo.png" alt="SanchezDNS Logo" width="92" />
@@ -169,5 +169,5 @@ async function register(){
         <UButton label="Confirm" :loading="isLoading" @click="register" />
       </template>
     </UModal>
-  </section>
+  </UContainer>
 </template>

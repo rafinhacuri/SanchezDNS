@@ -33,7 +33,7 @@ async function createConnection(){
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center h-full text-center p-4 space-y-4">
+  <UContainer class="flex flex-col items-center justify-center h-full text-center p-4 space-y-4">
     <NuxtImg src="/logo.png" alt="SanchezDNS Logo" width="92" class="mt-16" />
     <h1 class="text-2xl font-bold">
       Welcome to SanchezDNS
@@ -68,5 +68,5 @@ async function createConnection(){
         <UButton label="Confirm" :loading="isLoading" @click="createConnection" />
       </template>
     </UModal>
-  </div>
+  </UContainer>
 </template>

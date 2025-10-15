@@ -7,5 +7,7 @@ defineOgImageComponent('Techs', { title: 'Configuration server page' })
 </script>
 
 <template>
-  <p>oi</p>
+  <UContainer class="space-y-8 py-8">
+    sad
+  </UContainer>
 </template>

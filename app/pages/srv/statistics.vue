@@ -13,8 +13,8 @@ onNuxtReady(() => setInterval(refresh, 60000))
 </script>
 
 <template>
-  <section>
-    <UContainer v-if="data" class="space-y-8 py-8">
+  <UContainer class="max-w-7xl mx-auto">
+    <div v-if="data" class="space-y-8 py-8">
       <div class="flex items-center justify-between">
         <div>
           <h1 class="text-2xl font-bold">
@@ -150,9 +150,9 @@ onNuxtReady(() => setInterval(refresh, 60000))
           </div>
         </div>
       </UCard>
-    </UContainer>
+    </div>
     <div v-else class="flex items-center justify-center h-64">
       <UProgress animation="carousel" />
     </div>
-  </section>
+  </UContainer>
 </template>
