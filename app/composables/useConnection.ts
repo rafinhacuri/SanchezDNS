@@ -6,9 +6,5 @@ export default createGlobalState(async () => {
   const nameServer = computed(() => optionsConnection.value?.find(option => option._id === optionSelected.value)?.name || '')
   const usersServer = computed(() => optionsConnection.value?.find(option => option._id === optionSelected.value)?.users || [])
 
-  watch(optionSelected, async () => {
-    await navigateTo('/zones/dashboard')
-  })
-
   return { optionsConnection, optionSelected, refreshConnections, nameServer, usersServer }
 })

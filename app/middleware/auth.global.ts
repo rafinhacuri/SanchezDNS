@@ -14,15 +14,15 @@ export default defineNuxtRouteMiddleware(async to => {
   setUserSession({ username: res.username, admin: res.isAdmin })
 
   // * Logado tentando acessar login
-  if(isLoggedIn.value && to.fullPath === '/') return navigateTo('/zones/dashboard')
+  if(isLoggedIn.value && to.fullPath === '/') return navigateTo('/zones')
 
   // * Não logado tentando qualquer rota exceto login
   if(!isLoggedIn.value && to.fullPath !== '/') return navigateTo('/')
 
   // * logado tentando acessar rota admin
-  if(!user.value?.admin && (to.fullPath.startsWith('/users') || to.fullPath.startsWith('/config'))) return navigateTo('/zones/dashboard')
+  if(!user.value?.admin && (to.fullPath.startsWith('/users') || to.fullPath.startsWith('/dns-connections') || to.fullPath.startsWith('/logs'))) return navigateTo('/zones')
 
   // * nao selecionou conexao
-  if(!optionSelected.value && !['/', '/start'].includes(to.fullPath) && isLoggedIn) return navigateTo('/start')
-  if(optionSelected.value && ['/start'].includes(to.fullPath) && isLoggedIn) return navigateTo('/zones/dashboard')
+  if(!optionSelected.value && !['/', '/dns-connections', '/start'].includes(to.fullPath) && isLoggedIn) return navigateTo('/start')
+  if(optionSelected.value && ['/start'].includes(to.fullPath) && isLoggedIn) return navigateTo('/zones')
 })

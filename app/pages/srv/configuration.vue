@@ -151,7 +151,7 @@ watch(modalDelete, newVal => {
 
         <div class="flex flex-wrap gap-3">
           <UButton :loading="isLoading" icon="i-lucide-bar-chart-3" color="neutral" to="/srv/statistics" label="View Statistics" />
-          <UButton :loading="isLoading" icon="i-lucide-globe" to="/zones/dashboard" label="View Zones" color="info" />
+          <UButton :loading="isLoading" icon="i-lucide-globe" to="/zones" label="View Zones" color="info" />
           <UButton :loading="isLoading" icon="i-lucide-pen" label="Edit Connection" :disabled="isEditing" @click="startEditing" />
           <UButton :loading="isLoading" icon="i-lucide-trash" label="Delete Connection" color="error" @click="modalDelete = true" />
         </div>

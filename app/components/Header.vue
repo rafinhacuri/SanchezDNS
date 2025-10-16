@@ -16,11 +16,13 @@ const items = computed<NavigationMenuItem[]>(() => [
 
   ...(user.value?.admin ? [{ label: 'Server', icon: 'i-lucide-server', active: route.path.startsWith('/srv/statistics') || route.path.startsWith('/srv/configuration'), children: [{ label: 'Statistics', icon: 'i-lucide-bar-chart-3', description: 'View server statistics.', to: '/srv/statistics' }, { label: 'Configuration', icon: 'i-lucide-settings', description: 'Manage server connection.', to: '/srv/configuration' }] }] : [{ label: 'Statistics', icon: 'i-lucide-bar-chart-3', active: route.path.startsWith('/srv/statistics'), to: '/srv/statistics' }, { label: 'Configuration', icon: 'i-lucide-settings', active: route.path.startsWith('/srv/configuration'), to: '/srv/configuration' }]),
 
-  ...(user.value?.admin ? [{ label: 'Connections', icon: 'i-lucide-wifi', active: route.path.startsWith('/config/dns-connections') || route.path.startsWith('/config/api-keys'), children: [{ label: 'DNS Connections', icon: 'i-lucide-computer', description: 'Manage DNS connections.', to: '/config/dns-connections' }, { label: 'API Keys', icon: 'i-lucide-key', description: 'Manage API keys.', to: '/config/api-keys' }] }] : []),
-
   ...(user.value?.admin ? [{ label: 'Users', icon: 'i-lucide-users', to: '/users', active: route.path.startsWith('/users') }] : []),
 
-  { label: 'Logs', icon: 'i-lucide-git-fork', to: '/logs', active: route.path.startsWith('/logs') },
+  ...(user.value?.admin ? [{ label: 'Logs', icon: 'i-lucide-git-fork', to: '/logs', active: route.path.startsWith('/logs') }] : []),
+])
+
+const itemsAdmin = computed<NavigationMenuItem[]>(() => [
+  ...(user.value?.admin ? [{ label: 'Connections', icon: 'i-lucide-wifi', active: route.path.startsWith('/dns-connections'), to: '/dns-connections' }] : []),
 ])
 
 const modal = ref(false)
@@ -44,6 +46,7 @@ const itemsDropdown = ref<DropdownMenuItem[]>([
       icon: 'i-lucide-radio-tower',
       onClick: () => {
         if(!user.value.admin) return toast.add({ title: 'Only admins can create new connections', icon: 'i-lucide-shield-alert', color: 'error' })
+        if(route.path.startsWith('/dns-connections')) return toast.add({ title: 'Create new connections on the page', icon: 'i-lucide-shield-alert', color: 'error' })
         modal.value = true
       },
     },
@@ -86,6 +89,10 @@ async function createConnection(){
   refreshConnections()
   modal.value = false
 }
+
+watch(modal, newVal => {
+  if(!newVal) state.value = { name: '', host: '', apiKey: '', serverId: '', users: [] }
+})
 
 const newPassword = ref('')
 const confirmPassword = ref('')
@@ -152,6 +159,7 @@ async function changePassword(){
     </template>
 
     <UNavigationMenu v-if="optionSelected" :items="items" />
+    <UNavigationMenu v-if="user.admin" :items="itemsAdmin" />
 
     <template #right>
       <USelectMenu v-model="optionSelected" :items="optionsConnection" label-key="name" value-key="_id" placeholder="Select a connection" size="sm" class="hidden md:block " />
@@ -165,6 +173,7 @@ async function changePassword(){
       <USelectMenu v-model="optionSelected" :items="optionsConnection" label-key="name" value-key="_id" placeholder="Select a connection" size="sm" />
 
       <UNavigationMenu :items="items" orientation="vertical" class="-mx-2.5" />
+      <UNavigationMenu v-if="user.admin" :items="itemsAdmin" orientation="vertical" class="-mx-2.5" />
     </template>
 
     <UModal v-model:open="modal" title="Create Connection" description="Create a new connection to an authoritative server" :ui="{ footer: 'justify-end' }">
