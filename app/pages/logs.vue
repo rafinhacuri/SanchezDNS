@@ -21,7 +21,9 @@ const itemsPerPage = ref(10)
 
 const globalFilter = ref('')
 
-const { data } = await useFetch<{ data: Log[], total: number }>('/server/api/logs', { method: 'GET', query: { page, limit: itemsPerPage, filter: globalFilter } })
+const { optionSelected } = await useConnection()
+
+const { data } = await useFetch<{ data: Log[], total: number }>('/server/api/logs', { method: 'GET', query: { page, limit: itemsPerPage, filter: globalFilter, connection: optionSelected } })
 
 const table = useTemplateRef('table')
 

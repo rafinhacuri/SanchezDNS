@@ -21,6 +21,8 @@ func GetLogs(ctx *gin.Context) {
 
 	skip := (page - 1) * limit
 
+	connectionID := ctx.Query("connection")
+
 	filter := bson.M{}
 
 	var orFilters []bson.M
@@ -37,6 +39,8 @@ func GetLogs(ctx *gin.Context) {
 	if len(orFilters) > 0 {
 		filter = bson.M{"$or": orFilters}
 	}
+
+	filter["idConnection"] = connectionID
 
 	total, _ := db.Database.Collection("logs").CountDocuments(ctx.Request.Context(), filter)
 
