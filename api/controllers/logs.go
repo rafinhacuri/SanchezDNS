@@ -10,7 +10,7 @@ import (
 )
 
 func GetLogs(ctx *gin.Context) {
-	if isAdmin := ctx.GetBool("admin"); isAdmin {
+	if isAdmin := ctx.GetBool("admin"); !isAdmin {
 		ctx.JSON(403, gin.H{"error": "forbidden"})
 		return
 	}
