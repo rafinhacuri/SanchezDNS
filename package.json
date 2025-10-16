@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "private": true,
   "packageManager": "bun@1.3.0",
-  "description": "Web interface for Powerdns administration",
+  "description": "🗄️ Web application to manage authoritative dns servers using PowerDNS",
   "author": {
     "name": "Rafael Curi",
     "email": "rafael@curi.dev.br",
