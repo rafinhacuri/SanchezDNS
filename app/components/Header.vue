@@ -14,14 +14,15 @@ const toast = useToast()
 const items = computed<NavigationMenuItem[]>(() => [
   { label: 'Zones', icon: 'i-lucide-database', to: '/zones', active: route.path.startsWith('/zones') },
 
-  ...(user.value?.admin ? [{ label: 'Server', icon: 'i-lucide-server', active: route.path.startsWith('/srv/statistics') || route.path.startsWith('/srv/configuration'), children: [{ label: 'Statistics', icon: 'i-lucide-bar-chart-3', description: 'View server statistics.', to: '/srv/statistics' }, { label: 'Configuration', icon: 'i-lucide-settings', description: 'Manage server connection.', to: '/srv/configuration' }] }] : [{ label: 'Statistics', icon: 'i-lucide-bar-chart-3', active: route.path.startsWith('/srv/statistics'), to: '/srv/statistics' }, { label: 'Configuration', icon: 'i-lucide-settings', active: route.path.startsWith('/srv/configuration'), to: '/srv/configuration' }]),
+  { label: 'Statistics', icon: 'i-lucide-bar-chart-3', active: route.path.startsWith('/srv/statistics'), to: '/srv/statistics' },
+  { label: 'Configuration', icon: 'i-lucide-settings', active: route.path.startsWith('/srv/configuration'), to: '/srv/configuration' },
 
   ...(user.value?.admin ? [{ label: 'Users', icon: 'i-lucide-users', to: '/users', active: route.path.startsWith('/users') }] : []),
 
-  ...(user.value?.admin ? [{ label: 'Logs', icon: 'i-lucide-git-fork', to: '/logs', active: route.path.startsWith('/logs') }] : []),
 ])
 
 const itemsAdmin = computed<NavigationMenuItem[]>(() => [
+  ...(user.value?.admin ? [{ label: 'Logs', icon: 'i-lucide-git-fork', to: '/logs', active: route.path.startsWith('/logs') }] : []),
   ...(user.value?.admin ? [{ label: 'Connections', icon: 'i-lucide-wifi', active: route.path.startsWith('/dns-connections'), to: '/dns-connections' }] : []),
 ])
 

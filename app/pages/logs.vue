@@ -67,7 +67,7 @@ const columns: TableColumn<Log>[] = [
       const isSorted = column.getIsSorted()
       return h(UButton, { color: 'neutral', variant: 'ghost', label: 'Created At', icon: isSorted ? isSorted === 'asc' ? 'i-heroicons-bars-arrow-up' : 'i-heroicons-bars-arrow-down' : 'i-heroicons-arrows-up-down', class: '-mx-2.5', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') })
     },
-    cell: ({ row }) => h(NuxtTime, { datatime: row.original.createdAt, day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }),
+    cell: ({ row }) => h(NuxtTime, { datatime: row.original.createdAt, day: '2-digit', month: '2-digit', year: '2-digit' }),
   },
 ]
 </script>

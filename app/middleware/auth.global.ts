@@ -23,6 +23,6 @@ export default defineNuxtRouteMiddleware(async to => {
   if(!user.value?.admin && (to.fullPath.startsWith('/users') || to.fullPath.startsWith('/dns-connections') || to.fullPath.startsWith('/logs'))) return navigateTo('/zones')
 
   // * nao selecionou conexao
-  if(!optionSelected.value && !['/', '/dns-connections', '/start'].includes(to.fullPath) && isLoggedIn) return navigateTo('/start')
+  if(!optionSelected.value && !['/', '/dns-connections', '/logs', '/start'].includes(to.fullPath) && isLoggedIn) return navigateTo('/start')
   if(optionSelected.value && ['/start'].includes(to.fullPath) && isLoggedIn) return navigateTo('/zones')
 })
