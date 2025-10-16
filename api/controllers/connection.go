@@ -3,14 +3,17 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"slices"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-resty/resty/v2"
 	"github.com/rafinhacuri/SanchezDNS/db"
 	"github.com/rafinhacuri/SanchezDNS/models"
 	"github.com/rafinhacuri/SanchezDNS/passwords"
+	"github.com/rafinhacuri/SanchezDNS/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -51,6 +54,21 @@ func InsertConnection(ctx *gin.Context) {
 
 	ctxReq, cancel := context.WithTimeout(ctx.Request.Context(), 5*time.Second)
 	defer cancel()
+
+	base := utils.NormalizeBase(connection.Host)
+
+	httpc := resty.New().SetBaseURL(base).SetHeader("X-API-Key", request.ApiKey).SetHeader("Accept", "application/json").SetTimeout(6 * time.Second).SetRetryCount(2)
+
+	resp, erro := httpc.R().SetContext(ctxReq).Get(fmt.Sprintf("/api/v1/servers/%s/statistics", connection.ServerId))
+	if erro != nil {
+		ctx.JSON(http.StatusBadGateway, gin.H{"message": fmt.Sprintf("failed to reach PowerDNS: %v", erro)})
+		return
+	}
+
+	if resp.StatusCode() != http.StatusOK {
+		ctx.JSON(http.StatusBadGateway, gin.H{"message": fmt.Sprintf("unexpected response from PowerDNS: %s", resp.Status())})
+		return
+	}
 
 	count, err := db.Database.Collection("connections").CountDocuments(ctxReq, bson.M{"name": connection.Name})
 	if err != nil {
