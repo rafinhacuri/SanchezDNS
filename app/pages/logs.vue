@@ -3,7 +3,7 @@ import type { TableColumn } from '@nuxt/ui'
 
 useHead({ title: 'Logs' })
 useSeoMeta({ description: 'Logs page' })
-defineOgImageComponent('Techs', { title: 'Logs page' })
+defineOgImageComponent('Logs', { title: 'Logs page' })
 
 interface Log{
   id: string,

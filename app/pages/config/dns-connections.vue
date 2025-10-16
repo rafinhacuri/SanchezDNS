@@ -3,9 +3,11 @@ useHead({ title: 'DNS Machines' })
 
 useSeoMeta({ description: 'DNS Machines page' })
 
-defineOgImageComponent('Techs', { title: 'DNS Machines page' })
+defineOgImageComponent('DNS Machines', { title: 'DNS Machines page' })
 </script>
 
 <template>
-  <p>oi</p>
+  <UContainer class="p-4">
+    sad
+  </UContainer>
 </template>

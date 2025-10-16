@@ -1,4 +1,8 @@
 <script setup lang="ts">
+useHead({ title: 'Start' })
+useSeoMeta({ description: 'Start page' })
+defineOgImageComponent('Start', { title: 'Start page' })
+
 const { user } = useUserSession()
 
 const modal = ref(false)

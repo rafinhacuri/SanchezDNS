@@ -1,9 +1,9 @@
 <script setup lang="ts">
-useHead({ title: 'Groups' })
+useHead({ title: 'Users' })
 
-useSeoMeta({ description: 'Groups page' })
+useSeoMeta({ description: 'Users page' })
 
-defineOgImageComponent('Techs', { title: 'Groups page' })
+defineOgImageComponent('Users', { title: 'Users page' })
 
 const toast = useToast()
 const { isLoading, start, finish } = useLoadingIndicator()

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 useHead({ title: 'Server Statistics' })
 useSeoMeta({ description: 'Server statistics overview' })
-defineOgImageComponent('Techs', { title: 'Server statistics overview' })
+defineOgImageComponent('Server Statistics', { title: 'Server statistics overview' })
 
 const { optionSelected } = await useConnection()
 

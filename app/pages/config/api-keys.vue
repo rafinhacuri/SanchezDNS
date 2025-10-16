@@ -7,5 +7,7 @@ defineOgImageComponent('Techs', { title: 'API Keys page' })
 </script>
 
 <template>
-  <p>oi</p>
+  <UContainer class="p-4">
+    sad
+  </UContainer>
 </template>

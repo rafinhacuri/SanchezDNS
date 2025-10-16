@@ -31,8 +31,8 @@ func VerifyBCrypt(password, hashed string) bool {
 
 func Encrypt(text string) (string, error) {
 	key := os.Getenv("CRYPT_KEY")
-	if len(key) != 16 && len(key) != 24 && len(key) != 32 {
-		return "", fmt.Errorf("invalid key length: must be 16, 24, or 32 bytes but got %d", len(key))
+	if len(key) < 32 {
+		return "", fmt.Errorf("invalid key length: must be greater than or equal to 32 bytes but got %d", len(key))
 	}
 
 	block, err := aes.NewCipher([]byte(key))
@@ -69,8 +69,8 @@ func Decrypt(encrypted string) (string, error) {
 	}
 
 	key := os.Getenv("CRYPT_KEY")
-	if len(key) != 16 && len(key) != 24 && len(key) != 32 {
-		return "", fmt.Errorf("invalid key length: must be 16, 24, or 32 bytes")
+	if len(key) < 32 {
+		return "", fmt.Errorf("invalid key length: must be greater than or equal to 32 bytes but got %d", len(key))
 	}
 
 	block, err := aes.NewCipher([]byte(key))

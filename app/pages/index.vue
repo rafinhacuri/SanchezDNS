@@ -6,7 +6,7 @@ useHead({ title: 'Login' })
 
 useSeoMeta({ description: 'Login page' })
 
-defineOgImageComponent('Techs', { title: 'Login page' })
+defineOgImageComponent('Login', { title: 'Login page' })
 
 const toast = useToast()
 const { isLoading, start, finish } = useLoadingIndicator()

@@ -3,7 +3,7 @@ useHead({ title: 'Configuration server' })
 
 useSeoMeta({ description: 'Configuration server page' })
 
-defineOgImageComponent('Techs', { title: 'Configuration server page' })
+defineOgImageComponent('Configuration server', { title: 'Configuration server page' })
 
 const { optionSelected, refreshConnections } = await useConnection()
 const toast = useToast()
