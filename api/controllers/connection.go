@@ -78,7 +78,7 @@ func InsertConnection(ctx *gin.Context) {
 		Username:     username,
 		Action:       "create_connection",
 		Details:      fmt.Sprintf("User %s created connection %s", username, connection.Name),
-		CreatedAt:    time.Now().Unix(),
+		CreatedAt:    time.Now(),
 	}
 
 	_, _ = db.Database.Collection("logs").InsertOne(ctxReq, log)
@@ -151,7 +151,7 @@ func AddUser(ctx *gin.Context) {
 		Username:     username,
 		Action:       "add_user_to_connection",
 		Details:      fmt.Sprintf("User %s added to connection %s", request.Email, connection.Name),
-		CreatedAt:    time.Now().Unix(),
+		CreatedAt:    time.Now(),
 	}
 
 	_, _ = db.Database.Collection("logs").InsertOne(ctxReq, log)
@@ -224,7 +224,7 @@ func RemoveUser(ctx *gin.Context) {
 		Username:     username,
 		Action:       "remove_user_from_connection",
 		Details:      fmt.Sprintf("User %s removed from connection %s", request.Email, connection.Name),
-		CreatedAt:    time.Now().Unix(),
+		CreatedAt:    time.Now(),
 	}
 
 	_, _ = db.Database.Collection("logs").InsertOne(ctxReq, log)
@@ -351,7 +351,7 @@ func EditConnection(ctx *gin.Context) {
 		Username:     username,
 		Action:       "edit_connection",
 		Details:      fmt.Sprintf("User %s edited connection %s: %s", username, connection.Name, changeDetails),
-		CreatedAt:    time.Now().Unix(),
+		CreatedAt:    time.Now(),
 	}
 
 	_, _ = db.Database.Collection("logs").InsertOne(ctxReq, log)
@@ -403,7 +403,7 @@ func DeleteConnection(ctx *gin.Context) {
 		Username:     username,
 		Action:       "delete_connection",
 		Details:      fmt.Sprintf("User %s deleted connection %s", username, connection.Name),
-		CreatedAt:    time.Now().Unix(),
+		CreatedAt:    time.Now(),
 	}
 
 	_, _ = db.Database.Collection("logs").InsertOne(ctx.Request.Context(), log)

@@ -36,7 +36,7 @@ async function createConnection(){
   <UContainer class="flex flex-col items-center justify-center h-full text-center p-4 space-y-4">
     <NuxtImg src="/logo.png" alt="SanchezDNS Logo" width="92" class="mt-16" />
     <h1 class="text-2xl font-bold">
-      Welcome to SanchezDNS
+      Welcome to Sanchez <span class="text-green-500">DNS</span>
     </h1>
     <p class="text-lg">
       Please select a DNS connection to get started <strong v-if="user.admin">or create a new one</strong>.
