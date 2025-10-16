@@ -68,6 +68,13 @@ async function deleteUser(){
   stateAddUser.value = { email: '', connection: '' }
   finish()
 }
+
+const globalFilter = ref('')
+
+const usersFiltered = computed(() => {
+  if(!globalFilter.value) return usersServer.value
+  return usersServer.value.filter(user => user.toLowerCase().includes(globalFilter.value.toLowerCase()))
+})
 </script>
 
 <template>
@@ -83,11 +90,14 @@ async function deleteUser(){
     </div>
 
     <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm">
-      <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
-        Members
-      </h2>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
+          Members
+        </h2>
+        <UInput v-model="globalFilter" placeholder="Search members..." class="mb-4" />
+      </div>
       <ul class="divide-y divide-gray-200 dark:divide-gray-700">
-        <li v-for="member in usersServer" :key="member" class="flex items-center justify-between py-3">
+        <li v-for="member in usersFiltered" :key="member" class="flex items-center justify-between py-3">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 flex items-center justify-center rounded-full text-white font-medium shadow-md" :style="{ backgroundColor: `hsl(${Math.random() * 360}, 70%, 55%)` }">
               {{ member.charAt(0).toUpperCase() }}
