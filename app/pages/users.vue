@@ -104,9 +104,9 @@ const usersFiltered = computed(() => {
             </div>
             <span class="text-gray-700 dark:text-gray-200">{{ member }}</span>
           </div>
-          <UButton icon="i-lucide-trash" variant="outline" color="error" @click="openDeleteModal(member)">
-            Remove Member
-          </UButton>
+          <UTooltip text="Remove Member" arrow>
+            <UButton icon="i-lucide-trash" variant="outline" color="error" @click="openDeleteModal(member)" />
+          </UTooltip>
         </li>
       </ul>
     </div>
