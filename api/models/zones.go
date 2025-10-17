@@ -2,55 +2,55 @@ package models
 
 import (
 	"fmt"
-	"net"
 	"strings"
 )
 
+type soa struct {
+	StartOfAuthority string `json:"startOfAuthority"`
+	Email            string `json:"email"`
+	Refresh          int    `json:"refresh"`
+	Retry            int    `json:"retry"`
+	Expire           int    `json:"expire"`
+	NegativeCacheTtl int    `json:"negativeCacheTtl"`
+}
+
+func (s *soa) Validate() error {
+	if s.StartOfAuthority == "" {
+		return fmt.Errorf("start of authority is required")
+	}
+	if s.Email == "" {
+		return fmt.Errorf("email is required")
+	}
+	if s.Refresh <= 0 {
+		return fmt.Errorf("refresh must be a positive integer")
+	}
+	if s.Retry <= 0 {
+		return fmt.Errorf("retry must be a positive integer")
+	}
+	if s.Expire <= 0 {
+		return fmt.Errorf("expire must be a positive integer")
+	}
+	if s.NegativeCacheTtl <= 0 {
+		return fmt.Errorf("negative cache ttl must be a positive integer")
+	}
+	return nil
+}
+
 type CreateZoneRequest struct {
-	Name       string   `json:"name" binding:"required"`
-	Kind       string   `json:"kind" binding:"required"`
-	Masters    []string `json:"masters,omitempty"`
-	AlsoNotify []string `json:"also_notify,omitempty"`
-	SoaEditApi string   `json:"soa_edit_api,omitempty"`
+	Domain string `json:"domain" binding:"required"`
+	Soa    soa    `json:"soa" binding:"required"`
 }
 
 func (req *CreateZoneRequest) Validate() error {
-	if req.Name == "" {
-		return fmt.Errorf("name is required")
+	if req.Domain == "" {
+		return fmt.Errorf("domain is required")
 	}
-	if !strings.HasSuffix(req.Name, ".") {
-		return fmt.Errorf("name must end with a dot")
-	}
-
-	validKinds := map[string]bool{"Native": true, "Primary": true, "Secondary": true}
-	if !validKinds[req.Kind] {
-		return fmt.Errorf("kind must be one of: Native, Primary, Secondary")
+	if !strings.HasSuffix(req.Domain, ".") {
+		req.Domain = req.Domain + "."
 	}
 
-	if req.Kind == "Secondary" {
-		if len(req.Masters) == 0 {
-			return fmt.Errorf("masters must contain at least one IP when kind is Secondary")
-		}
-		for _, ip := range req.Masters {
-			if net.ParseIP(ip) == nil {
-				return fmt.Errorf("masters contains invalid IP address: %s", ip)
-			}
-		}
-	}
-
-	if req.Kind == "Primary" && len(req.AlsoNotify) > 0 {
-		for _, ip := range req.AlsoNotify {
-			if net.ParseIP(ip) == nil {
-				return fmt.Errorf("also_notify contains invalid IP address: %s", ip)
-			}
-		}
-	}
-
-	if req.SoaEditApi != "" {
-		validSoaEditApis := map[string]bool{"DEFAULT": true, "INCREASE": true, "EPOCH": true, "OFF": true}
-		if !validSoaEditApis[req.SoaEditApi] {
-			return fmt.Errorf("soa_edit_api must be one of: DEFAULT, INCREASE, EPOCH, OFF")
-		}
+	if err := req.Soa.Validate(); err != nil {
+		return fmt.Errorf("soa: %w", err)
 	}
 
 	return nil

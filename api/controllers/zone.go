@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -28,6 +29,9 @@ func CreateZone(ctx *gin.Context) {
 		return
 	}
 
+	domain := strings.TrimSuffix(req.Domain, ".")
+	domainWithDot := domain + "."
+
 	plainKey, err := utils.Decrypt(connection.ApiKey)
 	if err != nil {
 		ctx.JSON(500, gin.H{"message": fmt.Sprintf("failed to decrypt api key: %v", err)})
@@ -42,16 +46,9 @@ func CreateZone(ctx *gin.Context) {
 	httpc := resty.New().SetBaseURL(base).SetHeader("X-API-Key", plainKey).SetHeader("Accept", "application/json").SetTimeout(6 * time.Second).SetRetryCount(2)
 
 	zonePayload := map[string]any{
-		"name":         req.Name,
-		"kind":         req.Kind,
-		"soa_edit_api": req.SoaEditApi,
-	}
-
-	if len(req.Masters) > 0 {
-		zonePayload["masters"] = req.Masters
-	}
-	if len(req.AlsoNotify) > 0 {
-		zonePayload["also_notify"] = req.AlsoNotify
+		"name":         domainWithDot,
+		"kind":         "Native",
+		"soa_edit_api": "DEFAULT",
 	}
 
 	resp, err := httpc.R().SetContext(ctxReq).SetBody(zonePayload).Post(fmt.Sprintf("/api/v1/servers/%s/zones", connection.ServerId))
@@ -64,6 +61,33 @@ func CreateZone(ctx *gin.Context) {
 	if resp.IsError() {
 		ctx.JSON(resp.StatusCode(), gin.H{"message": fmt.Sprintf("PowerDNS error: %v", resp.String())})
 		return
+	}
+
+	rrsets := []map[string]any{
+		{
+			"name":       domainWithDot,
+			"type":       "SOA",
+			"ttl":        3600,
+			"changetype": "REPLACE",
+			"records": []map[string]any{
+				{
+					"content":  fmt.Sprintf("%s. %s. 1 %d %d %d %d", req.Soa.StartOfAuthority, req.Soa.Email, req.Soa.Refresh, req.Soa.Retry, req.Soa.Expire, req.Soa.NegativeCacheTtl),
+					"disabled": false,
+				},
+			},
+		},
+	}
+
+	body := map[string]any{
+		"rrsets": rrsets,
+	}
+
+	respPatch, err := httpc.R().SetContext(ctxReq).SetBody(body).Patch(fmt.Sprintf("/api/v1/servers/%s/zones/%s", connection.ServerId, domainWithDot))
+	if err != nil {
+		fmt.Printf("failed to create mandatory records for zone %s: %v\n", domain, err)
+	}
+	if respPatch.IsError() {
+		fmt.Printf("PowerDNS PATCH error: status=%d, body=%s\n", respPatch.StatusCode(), respPatch.String())
 	}
 
 	ctx.JSON(201, gin.H{"message": "zone created successfully"})

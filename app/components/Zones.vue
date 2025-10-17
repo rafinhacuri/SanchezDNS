@@ -9,11 +9,8 @@ const { isLoading, start, finish } = useLoadingIndicator()
 
 interface Zones{
   name: string,
-  kind: string,
   id: string,
   serial: number,
-  url: string,
-  soa_edit_api: string,
 }
 
 const { data, refresh } = await useFetch<{ zones: Zones[], message: string }>('/server/api/zones', { method: 'GET', query: { connection: optionSelected } })
@@ -42,31 +39,10 @@ const columns: TableColumn<Zones>[] = [
     },
   },
   {
-    accessorKey: 'kind',
-    header: ({ column }) => {
-      const isSorted = column.getIsSorted()
-      return h(UButton, { color: 'neutral', variant: 'ghost', label: 'Kind', icon: isSorted ? isSorted === 'asc' ? 'i-heroicons-bars-arrow-up' : 'i-heroicons-bars-arrow-down' : 'i-heroicons-arrows-up-down', class: '-mx-2.5', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') })
-    },
-  },
-  {
     accessorKey: 'serial',
     header: ({ column }) => {
       const isSorted = column.getIsSorted()
       return h(UButton, { color: 'neutral', variant: 'ghost', label: 'Serial', icon: isSorted ? isSorted === 'asc' ? 'i-heroicons-bars-arrow-up' : 'i-heroicons-bars-arrow-down' : 'i-heroicons-arrows-up-down', class: '-mx-2.5', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') })
-    },
-  },
-  {
-    accessorKey: 'url',
-    header: ({ column }) => {
-      const isSorted = column.getIsSorted()
-      return h(UButton, { color: 'neutral', variant: 'ghost', label: 'URL', icon: isSorted ? isSorted === 'asc' ? 'i-heroicons-bars-arrow-up' : 'i-heroicons-bars-arrow-down' : 'i-heroicons-arrows-up-down', class: '-mx-2.5', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') })
-    },
-  },
-  {
-    accessorKey: 'soa_edit_api',
-    header: ({ column }) => {
-      const isSorted = column.getIsSorted()
-      return h(UButton, { color: 'neutral', variant: 'ghost', label: 'SOA Edit API', icon: isSorted ? isSorted === 'asc' ? 'i-heroicons-bars-arrow-up' : 'i-heroicons-bars-arrow-down' : 'i-heroicons-arrows-up-down', class: '-mx-2.5', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') })
     },
   },
   {
@@ -95,42 +71,11 @@ function getRowItems(row: Row<Zones>){
 
 const modal = ref(false)
 
-const types = ['Native', 'Primary', 'Secondary']
-const soaEditApis = ['DEFAULT', 'INCREASE', 'EPOCH', 'OFF']
-
-const state = ref<ZoneSchemaType>({ domain: '', kind: 'Native', soa_edit_api: 'DEFAULT', masters: [], also_notify: [] })
-
-const typeDetails = computed(() => {
-  switch (state.value.kind){
-    case 'Native':
-      return 'Native - SanchezDNS will not perform any special handling for this zone type Primary or Secondary zone functions.'
-    case 'Primary':
-      return 'Primary - SanchezDNS will serve as the Primary and will send zone transfers (AXFRs) to other servers configured as Secondaries.'
-    case 'Secondary':
-      return 'Secondary - SanchezDNS will serve as the Secondary and will request and receive zone transfers (AXFRs) from other servers configured as Primaries.'
-    default:
-      return ''
-  }
-})
-
-const soaDetails = computed(() => {
-  switch (state.value.soa_edit_api){
-    case 'DEFAULT':
-      return 'DEFAULT - Generate a SOA serial of YYYYMMDD01. If the current serial is lower than the generated serial, use the generated serial. If the current serial is higher or equal to the generated serial, increase the current serial by 1.'
-    case 'INCREASE':
-      return 'INCREASE - Increase the current serial by 1.'
-    case 'EPOCH':
-      return 'EPOCH - Change the serial to the number of seconds since the EPOCH (Unix time).'
-    case 'OFF':
-      return 'OFF - Disable automatic updates of the SOA serial.'
-    default:
-      return ''
-  }
-})
+const state = ref<ZoneSchemaType>({ domain: '', soa: { startOfAuthority: '', email: '', refresh: 3600, retry: 600, expire: 604800, negativeCacheTtl: 86400 } })
 
 watch(modal, nv => {
   if(!nv){
-    state.value = { domain: '', kind: 'Native', soa_edit_api: 'DEFAULT', masters: [], also_notify: [] }
+    state.value = { domain: '', soa: { startOfAuthority: '', email: '', refresh: 3600, retry: 600, expire: 604800, negativeCacheTtl: 86400 } }
   }
 })
 
@@ -144,10 +89,18 @@ async function createZone(){
     return finish({ error: true })
   }
 
-  const res = await $fetch<{ message: string }>('/server/api/zone', { method: 'PUT', body: body.data, query: { connection: optionSelected } })
-    .catch(error => { toast.add({ title: error.data.message, icon: 'i-lucide-shield-alert', color: 'error' }) })
+  const res = await $fetch<{ message: string }>('/server/api/zone', { method: 'PUT', body: body.data, query: { connection: optionSelected.value } })
+    .catch(error => {
+      console.error(error)
+      toast.add({ title: error.data.message, icon: 'i-lucide-shield-alert', color: 'error' })
+    })
 
   if(!res) return finish({ error: true })
+
+  if(!res.message){
+    toast.add({ title: 'An unknown error occurred', icon: 'i-lucide-shield-alert', color: 'error' })
+    return finish({ error: true })
+  }
 
   finish({ force: true })
   refresh()
@@ -179,40 +132,24 @@ async function createZone(){
         <UFormField label="Domain" name="domain">
           <UInput v-model="state.domain" icon="i-lucide-computer" class="w-full" placeholder="Ex: example.com" />
         </UFormField>
-        <UFormField label="Kind" name="kind">
-          <div class="flex items-center gap-2">
-            <USelect v-model="state.kind" icon="i-lucide-tag" :items="types" class="w-full" />
-            <UPopover arrow>
-              <UButton icon="i-lucide-info" color="neutral" variant="subtle" class="rounded-full" />
 
-              <template #content>
-                <p class="max-w-xs text-sm break-words">
-                  {{ typeDetails }}
-                </p>
-              </template>
-            </UPopover>
-          </div>
+        <UFormField label="Start of Authority" name="soa.startOfAuthority">
+          <UInput v-model="state.soa.startOfAuthority" icon="i-lucide-shield-check" class="w-full" placeholder="Ex: ns1.example.com" />
         </UFormField>
-        <UFormField v-if="state.kind === 'Secondary'" label="Masters" name="masters">
-          <UInputTags v-model="state.masters" icon="i-lucide-server" class="w-full" placeholder="Ex: 192.168.1.10, 192.168.1.11" />
+        <UFormField label="Email" name="soa.email">
+          <UInput v-model="state.soa.email" icon="i-lucide-mail" class="w-full" placeholder="Ex: hostmaster.example.com" />
         </UFormField>
-
-        <UFormField v-if="state.kind === 'Primary'" label="Also Notify" name="also_notify">
-          <UInputTags v-model="state.also_notify" icon="i-lucide-server" class="w-full" placeholder="Ex: 10.0.0.5, 10.0.0.6" />
+        <UFormField label="Refresh" name="soa.refresh">
+          <UInput v-model="state.soa.refresh" type="number" icon="i-lucide-refresh-cw" class="w-full" placeholder="Ex: 3600" />
         </UFormField>
-        <UFormField label="SOA Edit API" name="soa_edit_api">
-          <div class="flex items-center gap-2">
-            <USelect v-model="state.soa_edit_api" icon="i-lucide-server-cog" :items="soaEditApis" class="w-full" />
-            <UPopover arrow>
-              <UButton icon="i-lucide-info" color="neutral" variant="subtle" class="rounded-full" />
-
-              <template #content>
-                <p class="max-w-xs text-sm break-words">
-                  {{ soaDetails }}
-                </p>
-              </template>
-            </UPopover>
-          </div>
+        <UFormField label="Retry" name="soa.retry">
+          <UInput v-model="state.soa.retry" type="number" icon="i-lucide-clock" class="w-full" placeholder="Ex: 600" />
+        </UFormField>
+        <UFormField label="Expire" name="soa.expire">
+          <UInput v-model="state.soa.expire" type="number" icon="i-lucide-hourglass" class="w-full" placeholder="Ex: 604800" />
+        </UFormField>
+        <UFormField label="Negative Cache TTL" name="soa.negativeCacheTtl">
+          <UInput v-model="state.soa.negativeCacheTtl" type="number" icon="i-lucide-timer" class="w-full" placeholder="Ex: 3600" />
         </UFormField>
       </UForm>
     </template>
