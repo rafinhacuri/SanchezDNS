@@ -166,6 +166,7 @@ async function changePassword(){
       <UDropdownMenu :items="itemsDropdown">
         <UButton icon="i-lucide-user" class="rounded-full" color="neutral" variant="outline" size="sm" />
       </UDropdownMenu>
+      <UColorModeSwitch />
     </template>
 
     <template #body>
