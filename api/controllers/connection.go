@@ -12,7 +12,6 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/rafinhacuri/SanchezDNS/db"
 	"github.com/rafinhacuri/SanchezDNS/models"
-	"github.com/rafinhacuri/SanchezDNS/passwords"
 	"github.com/rafinhacuri/SanchezDNS/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -36,7 +35,7 @@ func InsertConnection(ctx *gin.Context) {
 		return
 	}
 
-	encryptedKey, err := passwords.Encrypt(request.ApiKey)
+	encryptedKey, err := utils.Encrypt(request.ApiKey)
 	if err != nil {
 		ctx.JSON(500, gin.H{"message": err.Error()})
 		return

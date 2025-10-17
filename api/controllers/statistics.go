@@ -12,7 +12,6 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/rafinhacuri/SanchezDNS/db"
 	"github.com/rafinhacuri/SanchezDNS/models"
-	"github.com/rafinhacuri/SanchezDNS/passwords"
 	"github.com/rafinhacuri/SanchezDNS/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -94,7 +93,7 @@ func GetStatistics(ctx *gin.Context) {
 		return
 	}
 
-	plainKey, err := passwords.Decrypt(connection.ApiKey)
+	plainKey, err := utils.Decrypt(connection.ApiKey)
 	if err != nil {
 		ctx.JSON(500, gin.H{"message": fmt.Sprintf("failed to decrypt api key: %v", err)})
 		return
