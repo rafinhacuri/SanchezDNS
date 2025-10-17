@@ -1,53 +1,47 @@
 package controllers
 
 import (
-	"slices"
+	"context"
+	"fmt"
+	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/rafinhacuri/SanchezDNS/db"
+	"github.com/go-resty/resty/v2"
 	"github.com/rafinhacuri/SanchezDNS/models"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"github.com/rafinhacuri/SanchezDNS/utils"
 )
 
-func permission(ctx *gin.Context) bool {
-	primitiveId := ctx.Query("connection")
-
-	username := ctx.GetString("username")
-	isAdmin := ctx.GetBool("admin")
-
-	if primitiveId == "" {
-		ctx.JSON(400, gin.H{"message": "connection ID is required"})
-		return false
-	}
-
-	var connection models.Connection
-
-	id, err := primitive.ObjectIDFromHex(primitiveId)
-
-	if err != nil {
-		ctx.JSON(400, gin.H{"message": "invalid connection ID"})
-		return false
-	}
-
-	err = db.Database.Collection("connections").FindOne(ctx.Request.Context(), bson.M{"_id": id}).Decode(&connection)
-	if err != nil {
-		ctx.JSON(404, gin.H{"message": "connection not found"})
-		return false
-	}
-
-	if !isAdmin && !slices.Contains(connection.Users, username) {
-		ctx.JSON(403, gin.H{"message": "forbidden"})
-		return false
-	}
-
-	return true
-}
-
 func GetZones(ctx *gin.Context) {
-	if !permission(ctx) {
+	allowed, connection := permission(ctx)
+	if !allowed {
 		return
 	}
 
-	ctx.JSON(200, gin.H{"zones": []string{"example.com", "test.com"}})
+	plainKey, err := utils.Decrypt(connection.ApiKey)
+	if err != nil {
+		ctx.JSON(500, gin.H{"message": fmt.Sprintf("failed to decrypt api key: %v", err)})
+		return
+	}
+
+	ctxReq, cancel := context.WithTimeout(ctx.Request.Context(), 8*time.Second)
+	defer cancel()
+
+	base := utils.NormalizeBase(connection.Host)
+
+	httpc := resty.New().SetBaseURL(base).SetHeader("X-API-Key", plainKey).SetHeader("Accept", "application/json").SetTimeout(6 * time.Second).SetRetryCount(2)
+
+	var zones []models.PdnsZone
+	zonesResp, err := httpc.R().SetContext(ctxReq).SetResult(&zones).Get(fmt.Sprintf("/api/v1/servers/%s/zones", connection.ServerId))
+
+	if err != nil {
+		ctx.JSON(http.StatusBadGateway, gin.H{"message": fmt.Sprintf("failed to fetch zones: %v", err)})
+		return
+	}
+	if zonesResp.IsError() {
+		ctx.JSON(zonesResp.StatusCode(), gin.H{"message": fmt.Sprintf("PowerDNS zones error: %s", zonesResp.Status())})
+		return
+	}
+
+	ctx.JSON(200, gin.H{"zones": zones})
 }

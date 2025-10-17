@@ -7,7 +7,7 @@ defineOgImageComponent('Techs', { title: 'Dashboard zones page' })
 </script>
 
 <template>
-  <section class="max-w-7xl mx-auto p-4 w-full">
-    <p>sdfsdf</p>
-  </section>
+  <UContainer class="p-4">
+    <Zones />
+  </UContainer>
 </template>
