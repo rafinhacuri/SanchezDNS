@@ -89,6 +89,33 @@ watch(modal, newVal => {
 watch(modalDelete, newVal => {
   if(!newVal) confirmHost.value = ''
 })
+
+const modalKey = ref(false)
+
+const newApiKey = ref('')
+
+async function updateApiKey(){
+  start()
+
+  if(newApiKey.value.length < 16){
+    toast.add({ title: 'The API-KEY must be at least 16 characters long', icon: 'i-lucide-shield-alert', color: 'error' })
+    return finish({ error: true })
+  }
+
+  const res = await $fetch<{ message: string }>('/server/api/connection/apikey', { method: 'PATCH', body: { apiKey: newApiKey.value }, query: { connection: optionSelected.value } })
+    .catch(error => { toast.add({ title: error.data.message, icon: 'i-lucide-shield-alert', color: 'error' }) })
+
+  if(!res) return finish({ error: true })
+
+  finish({ force: true })
+  toast.add({ title: res.message, icon: 'i-lucide-badge-check', color: 'success' })
+  newApiKey.value = ''
+  modalKey.value = false
+}
+
+watch(modalKey, newVal => {
+  if(!newVal) newApiKey.value = ''
+})
 </script>
 
 <template>
@@ -154,6 +181,7 @@ watch(modalDelete, newVal => {
           <UButton :loading="isLoading" icon="i-lucide-globe" to="/zones" label="View Zones" color="info" />
           <UButton :loading="isLoading" icon="i-lucide-pen" label="Edit Connection" :disabled="isEditing" @click="startEditing" />
           <UButton :loading="isLoading" icon="i-lucide-trash" label="Delete Connection" color="error" @click="modalDelete = true" />
+          <UButton :loading="isLoading" icon="i-lucide-key" label="Update API-KEY" color="warning" @click="modalKey = true" />
         </div>
       </UCard>
     </div>
@@ -192,6 +220,20 @@ watch(modalDelete, newVal => {
       <template #footer>
         <UButton label="Cancel" :loading="isLoading" variant="outline" @click="modalDelete = false" />
         <UButton label="Confirm" color="error" :loading="isLoading" :disabled="confirmHost !== stateConnection.host" @click="deleteConnection" />
+      </template>
+    </UModal>
+
+    <UModal v-model:open="modalKey" title="Update API-KEY" description="You are about to update your API-KEY." :ui="{ footer: 'justify-end' }">
+      <template #body>
+        <p class="text-gray-200">
+          If you are sure you want to continue, write the new API-KEY below.
+        </p>
+        <UInput v-model="newApiKey" class="mt-2 w-full" color="error" placeholder="New API-KEY" />
+      </template>
+
+      <template #footer>
+        <UButton label="Cancel" :loading="isLoading" variant="outline" @click="modalKey = false" />
+        <UButton label="Confirm" color="error" :loading="isLoading" :disabled="newApiKey === ''" @click="updateApiKey" />
       </template>
     </UModal>
   </UContainer>

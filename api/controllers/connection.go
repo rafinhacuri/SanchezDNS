@@ -427,3 +427,57 @@ func DeleteConnection(ctx *gin.Context) {
 
 	ctx.JSON(200, gin.H{"message": "connection deleted successfully"})
 }
+
+func EditConnectionApiKey(ctx *gin.Context) {
+	allowed, connection := permission(ctx)
+	if !allowed {
+		return
+	}
+
+	var req struct {
+		ApiKey string `json:"apiKey"`
+	}
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(400, gin.H{"message": fmt.Sprintf("invalid request body: %v", err)})
+		return
+	}
+
+	if req.ApiKey == "" {
+		ctx.JSON(400, gin.H{"message": "apiKey is required"})
+		return
+	}
+
+	encryptedKey, err := utils.Encrypt(req.ApiKey)
+	if err != nil {
+		ctx.JSON(500, gin.H{"message": fmt.Sprintf("failed to encrypt api key: %v", err)})
+		return
+	}
+
+	_, err = db.Database.Collection("connections").UpdateOne(ctx.Request.Context(), bson.M{"_id": connection.ID}, bson.M{
+		"$set": bson.M{
+			"apiKey":    encryptedKey,
+			"updatedAt": time.Now(),
+		},
+	})
+	if err != nil {
+		ctx.JSON(500, gin.H{"message": fmt.Sprintf("failed to update api key: %v", err)})
+		return
+	}
+
+	username := ctx.GetString("username")
+
+	log := &models.Log{
+		HostServer:   connection.Host,
+		Zone:         "",
+		IdConnection: connection.ID.Hex(),
+		Username:     username,
+		Action:       "edit_connection_apikey",
+		Details:      fmt.Sprintf("User %s updated API key for connection %s", username, connection.Name),
+		CreatedAt:    time.Now(),
+	}
+
+	_, _ = db.Database.Collection("logs").InsertOne(ctx.Request.Context(), log)
+
+	ctx.JSON(200, gin.H{"message": "API key updated successfully"})
+}
