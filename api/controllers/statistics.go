@@ -30,37 +30,6 @@ type StatisticsResponse struct {
 	StartedAt     string `json:"startedAt"`
 }
 
-type pdnsZone struct {
-	Name   string `json:"name"`
-	ID     string `json:"id"`
-	Kind   string `json:"kind"`
-	Serial int64  `json:"serial"`
-	URL    string `json:"url"`
-}
-
-type pdnsZoneDetails struct {
-	Name   string      `json:"name"`
-	RRsets []pdnsRRSet `json:"rrsets"`
-}
-
-type pdnsRRSet struct {
-	Name    string         `json:"name"`
-	Type    string         `json:"type"`
-	TTL     int            `json:"ttl"`
-	Records []pdnsRRRecord `json:"records"`
-}
-
-type pdnsRRRecord struct {
-	Content  string `json:"content"`
-	Disabled bool   `json:"disabled"`
-}
-
-type pdnsStat struct {
-	Name  string `json:"name"`
-	Type  string `json:"type"`
-	Value any    `json:"value"`
-}
-
 func GetStatistics(ctx *gin.Context) {
 	id := ctx.Query("connection")
 	username := ctx.GetString("username")
@@ -108,7 +77,7 @@ func GetStatistics(ctx *gin.Context) {
 
 	httpc := resty.New().SetBaseURL(base).SetHeader("X-API-Key", plainKey).SetHeader("Accept", "application/json").SetTimeout(6 * time.Second).SetRetryCount(2)
 
-	var statsRaw []pdnsStat
+	var statsRaw []models.PdnsStat
 	statResp, err := httpc.R().SetContext(ctxReq).SetResult(&statsRaw).Get(fmt.Sprintf("/api/v1/servers/%s/statistics", serverID))
 
 	if err != nil {
@@ -145,7 +114,7 @@ func GetStatistics(ctx *gin.Context) {
 		return 0
 	}
 
-	var zones []pdnsZone
+	var zones []models.PdnsZone
 	zonesResp, err := httpc.R().SetContext(ctxReq).SetResult(&zones).Get(fmt.Sprintf("/api/v1/servers/%s/zones", serverID))
 
 	if err != nil {
@@ -159,7 +128,7 @@ func GetStatistics(ctx *gin.Context) {
 
 	records := 0
 	for _, z := range zones {
-		var zd pdnsZoneDetails
+		var zd models.PdnsZoneDetails
 		zr, zerr := httpc.R().SetContext(ctxReq).SetResult(&zd).Get(fmt.Sprintf("/api/v1/servers/%s/zones/%s", serverID, z.ID))
 		if zerr != nil || zr.IsError() {
 			continue
