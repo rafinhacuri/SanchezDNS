@@ -28,6 +28,7 @@ func RegisterRoutes(server *gin.Engine) {
 	api.PATCH("/connection", controllers.EditConnection)
 	api.DELETE("/connection", controllers.DeleteConnection)
 	api.GET("/zones", controllers.GetZones)
+	api.PUT("/zone", controllers.CreateZone)
 
 	apiAdmin.GET("/users", controllers.GetUsers)
 	apiAdmin.GET("/logs", controllers.GetLogs)
