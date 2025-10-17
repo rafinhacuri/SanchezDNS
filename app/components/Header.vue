@@ -78,7 +78,7 @@ async function createConnection(){
     return finish({ error: true })
   }
 
-  const res = await $fetch<{ message: string }>('/server/api/connections', { method: 'post', body: body.data })
+  const res = await $fetch<{ message: string }>('/server/api/connections', { method: 'PUT', body: body.data })
     .catch(error => { toast.add({ title: error.data.message, icon: 'i-lucide-shield-alert', color: 'error' }) })
 
   if(!res) return finish({ error: true })

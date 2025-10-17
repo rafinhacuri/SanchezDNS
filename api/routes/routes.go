@@ -15,7 +15,7 @@ func RegisterRoutes(server *gin.Engine) {
 
 	server.GET("/healthcheck", controllers.HealthCheck)
 	server.POST("/login", controllers.Auth)
-	server.POST("/api/user", controllers.InsertUser)
+	server.PUT("/api/user", controllers.InsertUser)
 
 	api := server.Group("/api", middleware.Authenticate)
 	apiAdmin := api.Group("/", middleware.AuthenticateAdmin)
@@ -27,10 +27,11 @@ func RegisterRoutes(server *gin.Engine) {
 	api.GET("/connection", controllers.GetConnection)
 	api.PATCH("/connection", controllers.EditConnection)
 	api.DELETE("/connection", controllers.DeleteConnection)
+	api.GET("/zones", controllers.GetZones)
 
 	apiAdmin.GET("/users", controllers.GetUsers)
 	apiAdmin.GET("/logs", controllers.GetLogs)
-	apiAdmin.POST("/connections", controllers.InsertConnection)
+	apiAdmin.PUT("/connections", controllers.InsertConnection)
 	apiAdmin.GET("/full-connections", controllers.GetFullConnections)
 	apiAdmin.POST("/connection/user", controllers.AddUser)
 	apiAdmin.DELETE("/connection/user", controllers.RemoveUser)

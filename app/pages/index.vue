@@ -78,7 +78,7 @@ async function register(){
     return finish({ error: true })
   }
 
-  const res = await $fetch<{ message: string }>('/server/api/user', { method: 'post', body: { ...body.data, level: 'user' } })
+  const res = await $fetch<{ message: string }>('/server/api/user', { method: 'PUT', body: { ...body.data, level: 'user' } })
     .catch(error => { toast.add({ title: error.data.message, icon: 'i-lucide-shield-alert', color: 'error' }) })
 
   if(!res) return finish({ error: true })
