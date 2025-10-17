@@ -16,7 +16,7 @@ interface Zones{
   soa_edit_api: string,
 }
 
-const { data } = await useFetch<{ zones: Zones[], message: string }>('/server/api/zones', { method: 'GET', query: { connection: optionSelected } })
+const { data, refresh } = await useFetch<{ zones: Zones[], message: string }>('/server/api/zones', { method: 'GET', query: { connection: optionSelected } })
 
 if(data.value?.message) throw createError({ statusCode: 500, statusMessage: data.value.message })
 
@@ -150,6 +150,7 @@ async function createZone(){
   if(!res) return finish({ error: true })
 
   finish({ force: true })
+  refresh()
   toast.add({ title: res.message, icon: 'i-lucide-badge-check', color: 'success' })
   modal.value = false
 }
