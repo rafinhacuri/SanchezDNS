@@ -3,6 +3,7 @@ import type { TableColumn } from '@nuxt/ui'
 import type { Row } from '@tanstack/vue-table'
 import { getPaginationRowModel } from '@tanstack/vue-table'
 
+const model = defineModel<string>('zoneId', { default: '' })
 const { optionSelected, nameServer } = await useConnection()
 const toast = useToast()
 const { isLoading, start, finish } = useLoadingIndicator()
@@ -69,7 +70,9 @@ function getRowItems(row: Row<Zones>){
       },
     },
     { type: 'separator' },
-    { label: 'View zone', icon: 'i-lucide-eye' },
+    { label: 'View zone', icon: 'i-lucide-eye', onSelect: () => {
+      model.value = row.original.id
+    } },
     { label: 'Delete zone', icon: 'i-lucide-trash', color: 'error', onSelect: () => {
       idDelete.value = row.original.id
       modalDelete.value = true
@@ -169,7 +172,7 @@ async function createZone(){
 
   <UTable ref="table" v-model:global-filter="globalFilter" v-model:pagination="pagination" :pagination-options="{ getPaginationRowModel: getPaginationRowModel()}" :data="data?.zones" :columns="columns" />
 
-  <div class="border-default flex justify-center border-t pt-4">
+  <div v-if="data?.zones && data.zones.length > pagination.pageSize" class="border-default flex justify-center border-t pt-4">
     <UPagination :default-page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1" :items-per-page="table?.tableApi?.getState().pagination.pageSize" :total="table?.tableApi?.getFilteredRowModel().rows.length" @update:page="(p) => table?.tableApi?.setPageIndex(p - 1)" />
   </div>
 
