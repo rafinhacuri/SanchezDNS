@@ -51,6 +51,10 @@ const columns: TableColumn<Zones>[] = [
   },
 ]
 
+const modalDelete = ref(false)
+const idDelete = ref('')
+const confirmIdDelete = ref('')
+
 const { copy } = useClipboard()
 
 function getRowItems(row: Row<Zones>){
@@ -66,9 +70,50 @@ function getRowItems(row: Row<Zones>){
     },
     { type: 'separator' },
     { label: 'View zone', icon: 'i-lucide-eye' },
-    { label: 'Edit zone', icon: 'i-lucide-pencil' },
-    { label: 'Delete zone', icon: 'i-lucide-trash', color: 'error' },
+    { label: 'Delete zone', icon: 'i-lucide-trash', color: 'error', onSelect: () => {
+      idDelete.value = row.original.id
+      modalDelete.value = true
+    } },
   ]
+}
+
+watch(modalDelete, nv => {
+  if(!nv){
+    idDelete.value = ''
+    confirmIdDelete.value = ''
+  }
+})
+
+async function deleteZone(){
+  start()
+
+  if(confirmIdDelete.value !== idDelete.value){
+    toast.add({ title: 'The zone ID entered does not match.', icon: 'i-lucide-shield-alert', color: 'error' })
+    return finish({ error: true })
+  }
+
+  if(idDelete.value === ''){
+    toast.add({ title: 'Zone ID is required.', icon: 'i-lucide-shield-alert', color: 'error' })
+    return finish({ error: true })
+  }
+
+  const res = await $fetch<{ message: string }>('/server/api/zone', { method: 'DELETE', query: { connection: optionSelected.value, id: idDelete.value } })
+    .catch(error => {
+      console.error(error)
+      toast.add({ title: error.data.message, icon: 'i-lucide-shield-alert', color: 'error' })
+    })
+
+  if(!res) return finish({ error: true })
+
+  if(!res.message){
+    toast.add({ title: 'An unknown error occurred', icon: 'i-lucide-shield-alert', color: 'error' })
+    return finish({ error: true })
+  }
+
+  finish({ force: true })
+  refresh()
+  toast.add({ title: res.message, icon: 'i-lucide-badge-check', color: 'success' })
+  modalDelete.value = false
 }
 
 const modal = ref(false)
@@ -161,6 +206,20 @@ async function createZone(){
     <template #footer>
       <UButton label="Cancel" :loading="isLoading" variant="outline" @click="modal = false" />
       <UButton label="Confirm" :loading="isLoading" @click="createZone" />
+    </template>
+  </UModal>
+
+  <UModal v-model:open="modalDelete" title="Danger" description="You are about to delete a zone, this action cannot be undone." :ui="{ footer: 'justify-end' }">
+    <template #body>
+      <p class="text-gray-200">
+        If you are sure you want to continue, write the ID of the zone below <span class="font-bold">'{{ idDelete }}'</span>.
+      </p>
+      <UInput v-model="confirmIdDelete" class="mt-2 w-full" color="error" placeholder="Zone ID" />
+    </template>
+
+    <template #footer>
+      <UButton label="Cancel" :loading="isLoading" variant="outline" @click="modalDelete = false" />
+      <UButton label="Confirm" color="error" :loading="isLoading" :disabled="confirmIdDelete !== idDelete" @click="deleteZone" />
     </template>
   </UModal>
 </template>
