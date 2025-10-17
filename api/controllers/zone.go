@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
+	"github.com/rafinhacuri/SanchezDNS/db"
 	"github.com/rafinhacuri/SanchezDNS/models"
 	"github.com/rafinhacuri/SanchezDNS/utils"
 )
@@ -88,6 +89,23 @@ func CreateZone(ctx *gin.Context) {
 	}
 	if respPatch.IsError() {
 		fmt.Printf("PowerDNS PATCH error: status=%d, body=%s\n", respPatch.StatusCode(), respPatch.String())
+	}
+
+	log := &models.Log{
+		Username:     ctx.GetString("username"),
+		IdConnection: ctx.Query("connection"),
+		Action:       "create_zone",
+		Details:      fmt.Sprintf("Created zone %s", domain),
+		Zone:         domain,
+		HostServer:   connection.Host,
+		CreatedAt:    time.Now(),
+	}
+
+	_, err = db.Database.Collection("logs").InsertOne(ctx.Request.Context(), log)
+
+	if err != nil {
+		ctx.JSON(500, gin.H{"message": fmt.Sprintf("failed to log zone creation: %v", err)})
+		return
 	}
 
 	ctx.JSON(201, gin.H{"message": "zone created successfully"})

@@ -477,7 +477,12 @@ func EditConnectionApiKey(ctx *gin.Context) {
 		CreatedAt:    time.Now(),
 	}
 
-	_, _ = db.Database.Collection("logs").InsertOne(ctx.Request.Context(), log)
+	_, err = db.Database.Collection("logs").InsertOne(ctx.Request.Context(), log)
+
+	if err != nil {
+		ctx.JSON(500, gin.H{"message": fmt.Sprintf("failed to log api key update: %v", err)})
+		return
+	}
 
 	ctx.JSON(200, gin.H{"message": "API key updated successfully"})
 }
