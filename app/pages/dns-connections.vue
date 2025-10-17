@@ -126,7 +126,7 @@ watch(modal, newVal => {
                 {{ c.host }}
               </p>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
               <UButton :loading="isLoading" label="Editar" size="sm" color="info" variant="soft" @click.stop="editConnection(c._id)" />
               <UButton :loading="isLoading" label="Excluir" size="sm" color="error" variant="outline" @click.stop="openDelete(c._id)" />
               <UButton :loading="isLoading" label="Ver detalhes" size="sm" variant="soft" @click.stop="openDetails(c._id)" />

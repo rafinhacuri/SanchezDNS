@@ -161,7 +161,7 @@ async function createZone(){
     <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100">
       Zones
     </h1>
-    <div class="flex items-center gap-4">
+    <div class="grid grid-cols-1 gap-2 md:flex md:items-center md:gap-4">
       <UButton label="Create Zone" icon="i-lucide-plus" variant="soft" @click="modal = true" />
       <UInput v-model="globalFilter" placeholder="Search zones..." />
     </div>

@@ -170,7 +170,7 @@ async function changePassword(){
     </template>
 
     <template #body>
-      <USelectMenu v-model="optionSelected" :items="optionsConnection" label-key="name" value-key="_id" placeholder="Select a connection" size="sm" />
+      <USelectMenu v-model="optionSelected" :items="optionsConnection" label-key="name" value-key="_id" placeholder="Select a connection" size="sm" class="w-full mb-2" />
 
       <UNavigationMenu :items="items" orientation="vertical" class="-mx-2.5" />
       <UNavigationMenu v-if="user.admin" :items="itemsAdmin" orientation="vertical" class="-mx-2.5" />
