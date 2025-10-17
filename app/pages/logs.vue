@@ -25,8 +25,6 @@ const { optionSelected } = await useConnection()
 
 const { data } = await useFetch<{ data: Log[], total: number }>('/server/api/logs', { method: 'GET', query: { page, limit: itemsPerPage, filter: globalFilter, connection: optionSelected } })
 
-const table = useTemplateRef('table')
-
 watch(globalFilter, () => {
   page.value = 1
 })
@@ -88,7 +86,7 @@ const columns: TableColumn<Log>[] = [
       <UInput v-model="globalFilter" placeholder="Search logs..." class="mb-4" />
     </div>
 
-    <UTable ref="table" :data="data?.data" :columns="columns" />
+    <UTable :data="data?.data" :columns="columns" />
 
     <div v-if="data" class="border-default flex justify-center border-t pt-4">
       <UPagination v-if="data.total > itemsPerPage" v-model:page="page" active-color="primary" active-variant="subtle" :total="data.total" :items-per-page="itemsPerPage" />
