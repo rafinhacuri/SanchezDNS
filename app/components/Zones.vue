@@ -58,14 +58,16 @@ function getRowItems(row: Row<Zones>){
     { type: 'label', label: `${row.original.id} actions` },
     {
       label: 'Copy zone ID',
+      icon: 'i-lucide-copy',
       onSelect(){
         copy(row.original.id)
         toast.add({ title: 'Zone ID copied to clipboard!', color: 'success', icon: 'i-lucide-circle-check' })
       },
     },
     { type: 'separator' },
-    { label: 'Edit zone' },
-    { label: 'View zone' },
+    { label: 'View zone', icon: 'i-lucide-eye' },
+    { label: 'Edit zone', icon: 'i-lucide-pencil' },
+    { label: 'Delete zone', icon: 'i-lucide-trash', color: 'error' },
   ]
 }
 
@@ -132,6 +134,8 @@ async function createZone(){
         <UFormField label="Domain" name="domain">
           <UInput v-model="state.domain" icon="i-lucide-computer" class="w-full" placeholder="Ex: example.com" />
         </UFormField>
+
+        <USeparator label="Start of Authority (SOA) Record Settings" />
 
         <UFormField label="Start of Authority" name="soa.startOfAuthority">
           <UInput v-model="state.soa.startOfAuthority" icon="i-lucide-shield-check" class="w-full" placeholder="Ex: ns1.example.com" />
