@@ -121,14 +121,14 @@ watch(modalKey, newVal => {
 <template>
   <UContainer>
     <div v-if="data" class="py-10 space-y-8">
-      <h1 class="text-3xl font-bold text-gray-100">
+      <h1 class="text-3xl font-bold ">
         Server Configuration
       </h1>
 
       <UCard>
         <template #header>
           <div class="flex items-center justify-between">
-            <h2 class="text-gray-200 font-medium">
+            <h2 class=" font-medium">
               Connection Information
             </h2>
             <div class="flex items-center gap-2">
@@ -154,13 +154,13 @@ watch(modalKey, newVal => {
         <template #footer>
           <div class="flex items-center gap-10">
             <div>
-              <p class="text-gray-200 font-medium">
+              <p class="font-medium">
                 Created at
               </p>
               <NuxtTime :datetime="data.createdAt" day="2-digit" month="2-digit" year="2-digit" hour="2-digit" minute="2-digit" class="text-sm text-gray-500" />
             </div>
             <div>
-              <p class="text-gray-200 font-medium">
+              <p class="font-medium">
                 Last updated
               </p>
               <NuxtTime :datetime="data.updatedAt" day="2-digit" month="2-digit" year="2-digit" hour="2-digit" minute="2-digit" class="text-sm text-gray-500" />
@@ -171,7 +171,7 @@ watch(modalKey, newVal => {
 
       <UCard>
         <template #header>
-          <h2 class="text-gray-200 font-medium">
+          <h2 class="font-medium">
             Server Actions
           </h2>
         </template>

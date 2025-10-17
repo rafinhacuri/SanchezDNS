@@ -84,7 +84,7 @@ const usersFiltered = computed(() => {
         {{ nameServer }} Members
       </h1>
 
-      <UButton icon="i-lucide-user-plus" class="text-white" variant="soft" color="primary" @click="modal = true">
+      <UButton icon="i-lucide-user-plus" variant="soft" @click="modal = true">
         Add Member
       </UButton>
     </div>

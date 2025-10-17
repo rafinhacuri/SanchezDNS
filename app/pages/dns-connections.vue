@@ -115,10 +115,10 @@ watch(modal, newVal => {
 
     <div v-if="data">
       <div v-for="c of data" :key="c._id" class="mb-8">
-        <button class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] w-full text-left" @click="openConnection(c._id)">
+        <button class="bg-gradient-to-br dark:from-gray-800 dark:to-gray-900 to-gray-200 from-gray-100 rounded-xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] w-full text-left" @click="openConnection(c._id)">
           <div class="flex items-center justify-between mb-4">
             <div>
-              <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+              <h2 class="text-lg font-semibold  flex items-center gap-2">
                 <UIcon name="i-heroicons-server" class="text-blue-400" />
                 {{ c.name }}
               </h2>
