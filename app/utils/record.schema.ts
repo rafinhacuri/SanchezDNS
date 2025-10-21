@@ -36,7 +36,6 @@ export const RecordSchema = z.object({
   port: z.number().optional(),
   target: z.string().optional(),
   priority: z.number().optional(),
-  updatedAt: z.string().optional(),
 })
   .refine(data => data.type === 'HTTPS' || data.type === 'SRV' || (data.vl && data.vl.trim() !== ''), {
     message: 'Value is required for this record type',

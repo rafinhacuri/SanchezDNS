@@ -62,13 +62,6 @@ const columns: TableColumn<RecordForm>[] = [
     },
   },
   {
-    accessorKey: 'updatedAt',
-    header: ({ column }) => {
-      const isSorted = column.getIsSorted()
-      return h(UButton, { color: 'neutral', variant: 'ghost', label: 'Updated At', icon: isSorted ? isSorted === 'asc' ? 'i-heroicons-bars-arrow-up' : 'i-heroicons-bars-arrow-down' : 'i-heroicons-arrows-up-down', class: '-mx-2.5', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') })
-    },
-  },
-  {
     accessorKey: 'comment',
     header: ({ column }) => {
       const isSorted = column.getIsSorted()

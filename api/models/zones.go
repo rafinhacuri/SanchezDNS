@@ -83,7 +83,6 @@ type Simplified struct {
 	VL          string  `json:"vl"`
 	TTL         int     `json:"ttl"`
 	Comment     string  `json:"comment,omitempty"`
-	UpdatedAt   string  `json:"updatedAt,omitempty"`
 	SVCPriority *int    `json:"svcPriority,omitempty"`
 	TargetName  *string `json:"targetName,omitempty"`
 	SVCParams   *string `json:"svcParams,omitempty"`

@@ -35,6 +35,9 @@ func CreateZone(ctx *gin.Context) {
 	domain := strings.TrimSuffix(req.Domain, ".")
 	domainWithDot := domain + "."
 
+	soaMname := strings.TrimSuffix(req.Soa.StartOfAuthority, ".")
+	soaRname := strings.TrimSuffix(req.Soa.Email, ".")
+
 	plainKey, err := utils.Decrypt(connection.ApiKey)
 	if err != nil {
 		ctx.JSON(500, gin.H{"message": fmt.Sprintf("failed to decrypt api key: %v", err)})
@@ -74,7 +77,7 @@ func CreateZone(ctx *gin.Context) {
 			"changetype": "REPLACE",
 			"records": []map[string]any{
 				{
-					"content":  fmt.Sprintf("%s. %s. 1 %d %d %d %d", req.Soa.StartOfAuthority, req.Soa.Email, req.Soa.Refresh, req.Soa.Retry, req.Soa.Expire, req.Soa.NegativeCacheTtl),
+					"content":  fmt.Sprintf("%s. %s. 1 %d %d %d %d", soaMname, soaRname, req.Soa.Refresh, req.Soa.Retry, req.Soa.Expire, req.Soa.NegativeCacheTtl),
 					"disabled": false,
 				},
 			},
@@ -213,7 +216,6 @@ func GetRecords(ctx *gin.Context) {
 	}
 
 	var records []models.Simplified
-
 	var soa *models.Soa
 
 	for _, rr := range z.RRSets {
@@ -242,33 +244,16 @@ func GetRecords(ctx *gin.Context) {
 			comment = rr.Comments[0]
 		}
 
-		var content string
-		if len(rr.Records) > 0 {
-			content = rr.Records[0].Content
+		for _, rec := range rr.Records {
+			records = append(records, models.Simplified{
+				Zone:    z.Name,
+				Type:    rr.Type,
+				Name:    rr.Name,
+				VL:      rec.Content,
+				TTL:     rr.TTL,
+				Comment: comment,
+			})
 		}
-
-		var date string
-		serialStr := fmt.Sprintf("%d", z.EditedSerial)
-		if len(serialStr) >= 8 {
-			createdAt, err := time.Parse("20060102", serialStr[:8])
-			if err == nil {
-				date = createdAt.Format("2006/01/02")
-			} else {
-				date = "unknown"
-			}
-		} else {
-			date = "unknown"
-		}
-
-		records = append(records, models.Simplified{
-			Zone:      z.Name,
-			Type:      rr.Type,
-			Name:      rr.Name,
-			VL:        content,
-			TTL:       rr.TTL,
-			Comment:   comment,
-			UpdatedAt: date,
-		})
 	}
 
 	ctx.JSON(200, gin.H{"record": records, "soa": soa})
