@@ -196,16 +196,16 @@ async function createZone(){
           <UInput v-model="state.soa.email" icon="i-lucide-mail" class="w-full" placeholder="Ex: hostmaster.example.com" />
         </UFormField>
         <UFormField label="Refresh" name="soa.refresh">
-          <UInput v-model="state.soa.refresh" type="number" icon="i-lucide-refresh-cw" class="w-full" placeholder="Ex: 3600" />
+          <UInputNumber v-model="state.soa.refresh" :min="0" icon="i-lucide-refresh-cw" class="w-full" placeholder="3600" />
         </UFormField>
         <UFormField label="Retry" name="soa.retry">
-          <UInput v-model="state.soa.retry" type="number" icon="i-lucide-clock" class="w-full" placeholder="Ex: 600" />
+          <UInputNumber v-model="state.soa.retry" :min="0" icon="i-lucide-clock" class="w-full" placeholder="600" />
         </UFormField>
         <UFormField label="Expire" name="soa.expire">
-          <UInput v-model="state.soa.expire" type="number" icon="i-lucide-hourglass" class="w-full" placeholder="Ex: 604800" />
+          <UInputNumber v-model="state.soa.expire" :min="0" icon="i-lucide-hourglass" class="w-full" placeholder="604800" />
         </UFormField>
         <UFormField label="Negative Cache TTL" name="soa.negativeCacheTtl">
-          <UInput v-model="state.soa.negativeCacheTtl" type="number" icon="i-lucide-timer" class="w-full" placeholder="Ex: 3600" />
+          <UInputNumber v-model="state.soa.negativeCacheTtl" :min="0" icon="i-lucide-timer" class="w-full" placeholder="3600" />
         </UFormField>
       </UForm>
     </template>
