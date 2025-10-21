@@ -4,18 +4,15 @@ import type { Row } from '@tanstack/vue-table'
 import { getPaginationRowModel } from '@tanstack/vue-table'
 
 const toast = useToast()
+const { optionSelected } = await useConnection()
 
 const model = defineModel<string>('zoneId', { default: '' })
+
+const { data } = await useFetch<RecordFetchType[]>('/server/api/zone/records', { method: 'GET', query: { connection: optionSelected, zone: model } })
 
 const UButton = resolveComponent('UButton')
 const UDropdownMenu = resolveComponent('UDropdownMenu')
 const UTooltip = resolveComponent('UTooltip')
-
-const data: RecordForm[] = [
-  { name: 'www', type: 'A', vl: '192.0.2.1', ttl: 3600, priority: 10, comment: 'Example record', zone: 'teste' },
-  { name: 'mail', type: 'MX', vl: 'mail.example.com', ttl: 7200, priority: 5, comment: '', zone: 'teste' },
-  { name: 'blog', type: 'CNAME', vl: 'blogs.example.com', ttl: 3600, priority: undefined, comment: 'Blog subdomain', zone: 'teste' },
-]
 
 const globalFilter = ref('')
 
@@ -27,7 +24,7 @@ watch(globalFilter, () => {
   pagination.value.pageIndex = 0
 })
 
-const columns: TableColumn<RecordForm>[] = [
+const columns: TableColumn<RecordFetchType>[] = [
   {
     accessorKey: 'name',
     header: ({ column }) => {
@@ -43,7 +40,7 @@ const columns: TableColumn<RecordForm>[] = [
     },
   },
   {
-    accessorKey: 'value',
+    accessorKey: 'vl',
     header: ({ column }) => {
       const isSorted = column.getIsSorted()
       return h(UButton, { color: 'neutral', variant: 'ghost', label: 'Value', icon: isSorted ? isSorted === 'asc' ? 'i-heroicons-bars-arrow-up' : 'i-heroicons-bars-arrow-down' : 'i-heroicons-arrows-up-down', class: '-mx-2.5', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') })
@@ -64,10 +61,10 @@ const columns: TableColumn<RecordForm>[] = [
     },
   },
   {
-    id: 'age',
+    accessorKey: 'updatedAt',
     header: ({ column }) => {
       const isSorted = column.getIsSorted()
-      return h(UButton, { color: 'neutral', variant: 'ghost', label: 'Age', icon: isSorted ? isSorted === 'asc' ? 'i-heroicons-bars-arrow-up' : 'i-heroicons-bars-arrow-down' : 'i-heroicons-arrows-up-down', class: '-mx-2.5', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') })
+      return h(UButton, { color: 'neutral', variant: 'ghost', label: 'Updated At', icon: isSorted ? isSorted === 'asc' ? 'i-heroicons-bars-arrow-up' : 'i-heroicons-bars-arrow-down' : 'i-heroicons-arrows-up-down', class: '-mx-2.5', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') })
     },
   },
   {

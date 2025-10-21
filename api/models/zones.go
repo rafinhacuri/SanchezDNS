@@ -55,3 +55,40 @@ func (req *CreateZoneRequest) Validate() error {
 
 	return nil
 }
+
+type Record struct {
+	Content  string `json:"content"`
+	Disabled bool   `json:"disabled"`
+}
+
+type rrsetRecord struct {
+	Name     string   `json:"name"`
+	Type     string   `json:"type"`
+	TTL      int      `json:"ttl"`
+	Comments []string `json:"comments"`
+	Records  []Record `json:"records"`
+}
+
+type Zone struct {
+	Name         string        `json:"name"`
+	RRSets       []rrsetRecord `json:"rrsets"`
+	Serial       int64         `json:"serial"`
+	EditedSerial int64         `json:"edited_serial"`
+}
+
+type Simplified struct {
+	Zone        string  `json:"zone"`
+	Type        string  `json:"type"`
+	Name        string  `json:"name"`
+	VL          string  `json:"vl"`
+	TTL         int     `json:"ttl"`
+	Comment     string  `json:"comment,omitempty"`
+	UpdatedAt   string  `json:"updatedAt,omitempty"`
+	SVCPriority *int    `json:"svcPriority,omitempty"`
+	TargetName  *string `json:"targetName,omitempty"`
+	SVCParams   *string `json:"svcParams,omitempty"`
+	Weight      *int    `json:"weight,omitempty"`
+	Port        *int    `json:"port,omitempty"`
+	Target      *string `json:"target,omitempty"`
+	Priority    *int    `json:"priority,omitempty"`
+}

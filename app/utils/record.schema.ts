@@ -60,3 +60,9 @@ export const RecordSchema = z.object({
   })
 
 export type RecordForm = z.infer<typeof RecordSchema>
+
+export const RecordFetchSchema = RecordSchema.extend({
+  updatedAt: z.string().optional(),
+})
+
+export type RecordFetchType = z.infer<typeof RecordFetchSchema>
