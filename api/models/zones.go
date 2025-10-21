@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-type soa struct {
+type Soa struct {
 	StartOfAuthority string `json:"startOfAuthority"`
 	Email            string `json:"email"`
 	Refresh          int    `json:"refresh"`
@@ -14,7 +14,7 @@ type soa struct {
 	NegativeCacheTtl int    `json:"negativeCacheTtl"`
 }
 
-func (s *soa) Validate() error {
+func (s *Soa) Validate() error {
 	if s.StartOfAuthority == "" {
 		return fmt.Errorf("start of authority is required")
 	}
@@ -38,7 +38,7 @@ func (s *soa) Validate() error {
 
 type CreateZoneRequest struct {
 	Domain string `json:"domain" binding:"required"`
-	Soa    soa    `json:"soa" binding:"required"`
+	Soa    Soa    `json:"soa" binding:"required"`
 }
 
 func (req *CreateZoneRequest) Validate() error {

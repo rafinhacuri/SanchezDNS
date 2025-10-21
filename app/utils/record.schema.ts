@@ -1,5 +1,16 @@
 import { z } from 'zod'
 
+export const EditSOASchema = z.object({
+  startOfAuthority: z.string().min(1, 'Start of Authority is required'),
+  email: z.string().min(1, 'Email is required'),
+  refresh: z.number().int().positive('Refresh must be a positive integer'),
+  retry: z.number().int().positive('Retry must be a positive integer'),
+  expire: z.number().int().positive('Expire must be a positive integer'),
+  negativeCacheTtl: z.number().int().positive('Negative Cache TTL must be a positive integer'),
+})
+
+export type EditSOASchemaType = z.infer<typeof EditSOASchema>
+
 export const RecordSchema = z.object({
   zone: z.string().min(1, 'Zone ID is required'),
   type: z.enum([

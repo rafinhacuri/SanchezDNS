@@ -62,7 +62,7 @@ async function deleteUser(){
 
   if(!res) return finish({ error: true })
 
-  toast.add({ title: res.message, icon: 'i-lucide-check-circle', color: 'success' })
+  toast.add({ title: res.message, icon: 'i-lucide-badge-check', color: 'success' })
   await refreshConnections()
   modalDelete.value = false
   stateAddUser.value = { email: '', connection: '' }

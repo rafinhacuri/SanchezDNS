@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -213,8 +214,26 @@ func GetRecords(ctx *gin.Context) {
 
 	var records []models.Simplified
 
+	var soa *models.Soa
+
 	for _, rr := range z.RRSets {
-		if rr.Type == "SOA" {
+		if rr.Type == "SOA" && len(rr.Records) > 0 {
+			parts := strings.Fields(rr.Records[0].Content)
+			if len(parts) >= 7 {
+				refresh, _ := strconv.Atoi(parts[3])
+				retry, _ := strconv.Atoi(parts[4])
+				expire, _ := strconv.Atoi(parts[5])
+				negTTL, _ := strconv.Atoi(parts[6])
+
+				soa = &models.Soa{
+					StartOfAuthority: parts[0],
+					Email:            parts[1],
+					Refresh:          refresh,
+					Retry:            retry,
+					Expire:           expire,
+					NegativeCacheTtl: negTTL,
+				}
+			}
 			continue
 		}
 
@@ -252,5 +271,95 @@ func GetRecords(ctx *gin.Context) {
 		})
 	}
 
-	ctx.JSON(200, records)
+	ctx.JSON(200, gin.H{"record": records, "soa": soa})
+}
+
+func UpdateSOA(ctx *gin.Context) {
+	allowed, connection := permission(ctx)
+	if !allowed {
+		return
+	}
+
+	zoneID := ctx.Query("zone")
+	if zoneID == "" {
+		ctx.JSON(400, gin.H{"message": "zone ID is required"})
+		return
+	}
+
+	var req models.Soa
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(400, gin.H{"message": fmt.Sprintf("invalid request body: %v", err)})
+		return
+	}
+
+	if err := req.Validate(); err != nil {
+		ctx.JSON(400, gin.H{"message": fmt.Sprintf("validation error: %v", err)})
+		return
+	}
+
+	plainKey, err := utils.Decrypt(connection.ApiKey)
+	if err != nil {
+		ctx.JSON(500, gin.H{"message": fmt.Sprintf("failed to decrypt api key: %v", err)})
+		return
+	}
+
+	ctxReq, cancel := context.WithTimeout(ctx.Request.Context(), 8*time.Second)
+	defer cancel()
+
+	base := utils.NormalizeBase(connection.Host)
+
+	httpc := resty.New().SetBaseURL(base).SetHeader("X-API-Key", plainKey).SetHeader("Accept", "application/json").SetTimeout(6 * time.Second).SetRetryCount(2)
+
+	soaName := strings.TrimSuffix(req.StartOfAuthority, ".")
+	soaEmail := strings.TrimSuffix(req.Email, ".")
+
+	rrsets := []map[string]any{
+		{
+			"name":       zoneID,
+			"type":       "SOA",
+			"ttl":        3600,
+			"changetype": "REPLACE",
+			"records": []map[string]any{
+				{
+					"content":  fmt.Sprintf("%s. %s. 1 %d %d %d %d", soaName, soaEmail, req.Refresh, req.Retry, req.Expire, req.NegativeCacheTtl),
+					"disabled": false,
+				},
+			},
+		},
+	}
+
+	body := map[string]any{
+		"rrsets": rrsets,
+	}
+
+	resp, err := httpc.R().SetContext(ctxReq).SetBody(body).Patch(fmt.Sprintf("/api/v1/servers/%s/zones/%s", connection.ServerId, zoneID))
+
+	if err != nil {
+		ctx.JSON(502, gin.H{"message": fmt.Sprintf("failed to update SOA record: %v", err)})
+		return
+	}
+
+	if resp.IsError() {
+		ctx.JSON(resp.StatusCode(), gin.H{"message": fmt.Sprintf("PowerDNS error: %v", resp.String())})
+		return
+	}
+
+	log := &models.Log{
+		Username:     ctx.GetString("username"),
+		IdConnection: ctx.Query("connection"),
+		Action:       "update_soa",
+		Details:      fmt.Sprintf("Updated SOA for zone %s", zoneID),
+		Zone:         zoneID,
+		HostServer:   connection.Host,
+		CreatedAt:    time.Now(),
+	}
+
+	_, err = db.Database.Collection("logs").InsertOne(ctx.Request.Context(), log)
+
+	if err != nil {
+		ctx.JSON(500, gin.H{"message": fmt.Sprintf("failed to log SOA update: %v", err)})
+		return
+	}
+
+	ctx.JSON(200, gin.H{"message": "SOA record updated successfully"})
 }

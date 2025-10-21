@@ -5,10 +5,11 @@ import { getPaginationRowModel } from '@tanstack/vue-table'
 
 const toast = useToast()
 const { optionSelected } = await useConnection()
+const { isLoading, start, finish } = useLoadingIndicator()
 
 const model = defineModel<string>('zoneId', { default: '' })
 
-const { data } = await useFetch<RecordForm[]>('/server/api/zone/records', { method: 'GET', query: { connection: optionSelected, zone: model } })
+const { data, refresh } = await useFetch<{ record: RecordForm[], soa: EditSOASchemaType }>('/server/api/zone/records', { method: 'GET', query: { connection: optionSelected, zone: model } })
 
 const UButton = resolveComponent('UButton')
 const UDropdownMenu = resolveComponent('UDropdownMenu')
@@ -125,6 +126,42 @@ const placeholder = computed(() => {
       return ''
   }
 })
+
+const modalEditSOA = ref(false)
+
+const stateSOA = ref<EditSOASchemaType>({
+  startOfAuthority: data.value?.soa.startOfAuthority || '',
+  email: data.value?.soa.email || '',
+  refresh: data.value?.soa.refresh || 0,
+  retry: data.value?.soa.retry || 0,
+  expire: data.value?.soa.expire || 0,
+  negativeCacheTtl: data.value?.soa.negativeCacheTtl || 0,
+})
+
+async function updateSOA(){
+  start()
+
+  const body = EditSOASchema.safeParse(stateSOA.value)
+
+  if(!body.success){
+    for(const e of body.error.issues) toast.add({ title: e.message, icon: 'i-lucide-shield-alert', color: 'error' })
+    return finish({ error: true })
+  }
+
+  const res = await $fetch<{ message: string }>('/server/api/zone/soa', { method: 'PATCH', body: body.data, query: { connection: optionSelected.value, zone: model.value } })
+    .catch(error => { toast.add({ title: error?.data?.message || error?.message || 'Error updating SOA record', icon: 'i-lucide-shield-alert', color: 'error' }) })
+
+  if(!res) return finish({ error: true })
+
+  toast.add({ title: res.message, icon: 'i-lucide-badge-check', color: 'success' })
+  await refresh()
+  modalEditSOA.value = false
+  finish()
+}
+
+watch(modalEditSOA, nv => {
+  if(nv) stateSOA.value = { startOfAuthority: data.value?.soa.startOfAuthority || '', email: data.value?.soa.email || '', refresh: data.value?.soa.refresh || 0, retry: data.value?.soa.retry || 0, expire: data.value?.soa.expire || 0, negativeCacheTtl: data.value?.soa.negativeCacheTtl || 0 }
+})
 </script>
 
 <template>
@@ -139,7 +176,7 @@ const placeholder = computed(() => {
         Manage DNS records for this zone
       </p>
     </div>
-    <UButton variant="outline" icon="i-lucide-pen" label="Edit SOA" />
+    <UButton variant="outline" icon="i-lucide-pen" label="Edit SOA" @click="modalEditSOA = true" />
   </div>
 
   <UForm :schema="RecordSchema" :state="state" class="mt-6 space-y-4 p-5 rounded-lg bg-slate-950/40">
@@ -186,15 +223,45 @@ const placeholder = computed(() => {
     </div>
 
     <UFormField label="Comment" name="comment">
-      <UTextarea v-model="state.comment" icon="i-lucide-comment" class="w-full" placeholder="Optional comment" />
+      <UTextarea v-model="state.comment" class="w-full" placeholder="Optional comment" />
     </UFormField>
 
     <UButton variant="outline" class="mt-5 w-full flex justify-center" icon="i-lucide-plus" label="Add Record" />
   </UForm>
 
-  <UTable ref="table" v-model:global-filter="globalFilter" v-model:pagination="pagination" :pagination-options="{ getPaginationRowModel: getPaginationRowModel()}" :data="data" :columns="columns" />
+  <UTable ref="table" v-model:global-filter="globalFilter" v-model:pagination="pagination" :pagination-options="{ getPaginationRowModel: getPaginationRowModel()}" :data="data?.record" :columns="columns" />
 
-  <div v-if="data && data.length > pagination.pageSize" class="border-default flex justify-center border-t pt-4">
+  <div v-if="data?.record && data.record.length > pagination.pageSize" class="border-default flex justify-center border-t pt-4">
     <UPagination :default-page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1" :items-per-page="table?.tableApi?.getState().pagination.pageSize" :total="table?.tableApi?.getFilteredRowModel().rows.length" @update:page="(p) => table?.tableApi?.setPageIndex(p - 1)" />
   </div>
+
+  <UModal v-model:open="modalEditSOA" title="Edit SOA" :description="`Edit the SOA record for ${model}`" :ui="{ footer: 'justify-end' }">
+    <template #body>
+      <UForm :schema="EditSOASchema" :state="stateSOA" class="space-y-4">
+        <UFormField label="Start of Authority" name="startOfAuthority">
+          <UInput v-model="stateSOA.startOfAuthority" icon="i-lucide-shield-check" class="w-full" placeholder="Ex: ns1.example.com" />
+        </UFormField>
+        <UFormField label="Email" name="email">
+          <UInput v-model="stateSOA.email" icon="i-lucide-mail" class="w-full" placeholder="Ex: hostmaster.example.com" />
+        </UFormField>
+        <UFormField label="Refresh" name="refresh">
+          <UInputNumber v-model="stateSOA.refresh" :min="0" icon="i-lucide-refresh-cw" class="w-full" placeholder="3600" />
+        </UFormField>
+        <UFormField label="Retry" name="retry">
+          <UInputNumber v-model="stateSOA.retry" :min="0" icon="i-lucide-clock" class="w-full" placeholder="600" />
+        </UFormField>
+        <UFormField label="Expire" name="expire">
+          <UInputNumber v-model="stateSOA.expire" :min="0" icon="i-lucide-hourglass" class="w-full" placeholder="604800" />
+        </UFormField>
+        <UFormField label="Negative Cache TTL" name="negativeCacheTtl">
+          <UInputNumber v-model="stateSOA.negativeCacheTtl" :min="0" icon="i-lucide-timer" class="w-full" placeholder="3600" />
+        </UFormField>
+      </UForm>
+    </template>
+
+    <template #footer>
+      <UButton label="Cancel" :loading="isLoading" variant="outline" @click="modalEditSOA = false" />
+      <UButton label="Confirm" :loading="isLoading" @click="updateSOA" />
+    </template>
+  </UModal>
 </template>
