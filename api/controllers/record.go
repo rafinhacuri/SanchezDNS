@@ -105,6 +105,70 @@ func GetRecords(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{"record": records, "soa": soa})
 }
 
+func normalizeRecordValue(req *models.AddRecordRequest) {
+	if req.Type == "TXT" && req.VL != "" && !strings.HasPrefix(req.VL, "\"") {
+		req.VL = fmt.Sprintf("\"%s\"", req.VL)
+	}
+
+	if (req.Type == "CNAME" || req.Type == "NS" || req.Type == "ALIAS" || req.Type == "MX") && req.VL != "" {
+		if !strings.HasSuffix(req.VL, ".") {
+			req.VL = req.VL + "."
+		}
+	}
+
+	if req.Type == "MX" && req.Priority != nil {
+		req.VL = fmt.Sprintf("%d %s", *req.Priority, req.VL)
+	}
+
+	if req.Type == "CAA" && req.VL != "" && !strings.Contains(req.VL, "issue") && !strings.Contains(req.VL, "iodef") {
+		req.VL = fmt.Sprintf("0 issue \"%s\"", req.VL)
+	}
+
+	if req.Type == "SRV" {
+		priority := 0
+		weight := 0
+		port := 0
+		target := req.Target
+
+		if req.Priority != nil {
+			priority = *req.Priority
+		}
+		if req.Weight != nil {
+			weight = *req.Weight
+		}
+		if req.Port != nil {
+			port = *req.Port
+		}
+
+		if target != "" && !strings.HasSuffix(target, ".") {
+			target += "."
+		}
+
+		req.VL = fmt.Sprintf("%d %d %d %s", priority, weight, port, target)
+	}
+
+	if req.Type == "HTTPS" {
+		svcPriority := 0
+		targetName := "."
+		svcParams := req.SvcParams
+
+		if req.SvcPriority != nil {
+			svcPriority = *req.SvcPriority
+		}
+		if req.TargetName != "" {
+			targetName = req.TargetName
+			if !strings.HasSuffix(targetName, ".") {
+				targetName += "."
+			}
+		}
+		if svcParams == "" {
+			svcParams = "alpn=\"h2\""
+		}
+
+		req.VL = fmt.Sprintf("%d %s %s", svcPriority, targetName, svcParams)
+	}
+}
+
 func InsertRecord(ctx *gin.Context) {
 	allowed, connection := permission(ctx)
 	if !allowed {
@@ -130,66 +194,65 @@ func InsertRecord(ctx *gin.Context) {
 
 	httpc := resty.New().SetBaseURL(base).SetHeader("X-API-Key", plainKey).SetHeader("Accept", "application/json").SetTimeout(6 * time.Second).SetRetryCount(2)
 
-	if request.Type != "HTTPS" && request.Type != "SRV" {
-		if request.VL == "" {
-			ctx.JSON(400, gin.H{"message": "value is required for this record type"})
-			return
-		}
-
-		if request.Type == "TXT" && !strings.HasPrefix(request.VL, "\"") {
-			request.VL = fmt.Sprintf("\"%s\"", request.VL)
-		}
-
-		zone := strings.TrimSuffix(request.Zone, ".")
-		name := request.Name
-
-		if !strings.HasSuffix(name, ".") {
-			if !strings.HasSuffix(name, zone) {
-				name = fmt.Sprintf("%s.%s.", name, zone)
-			} else {
-				name = name + "."
-			}
-		}
-
-		resp, err := httpc.R().SetContext(ctxReq).SetBody(map[string]any{
-			"rrsets": []map[string]any{
-				{
-					"name":       name,
-					"type":       request.Type,
-					"ttl":        request.TTL,
-					"changetype": "REPLACE",
-					"records": []map[string]any{
-						{
-							"content":  request.VL,
-							"disabled": false,
-						},
-					},
-					"comments": func() []map[string]string {
-						if request.Comment != "" {
-							return []map[string]string{
-								{
-									"content": request.Comment,
-									"account": ctx.GetString("username"),
-								},
-							}
-						}
-						return nil
-					}(),
-				},
-			},
-		}).Patch(fmt.Sprintf("/api/v1/servers/%s/zones/%s", connection.ServerId, request.Zone))
-
-		if err != nil {
-			ctx.JSON(502, gin.H{"message": fmt.Sprintf("failed to insert record: %v", err)})
-			return
-		}
-
-		if resp.StatusCode() != 204 && resp.StatusCode() != 201 {
-			ctx.JSON(resp.StatusCode(), gin.H{"message": fmt.Sprintf("failed to insert record: %s", resp.String())})
-			return
-		}
-
-		ctx.JSON(201, gin.H{"message": "record inserted successfully"})
+	if request.VL == "" {
+		ctx.JSON(400, gin.H{"message": "value is required for this record type"})
 		return
 	}
+
+	normalizeRecordValue(&request)
+
+	if request.Type == "TXT" && !strings.HasPrefix(request.VL, "\"") {
+		request.VL = fmt.Sprintf("\"%s\"", request.VL)
+	}
+
+	zone := strings.TrimSuffix(request.Zone, ".")
+	name := request.Name
+
+	if !strings.HasSuffix(name, ".") {
+		if !strings.HasSuffix(name, zone) {
+			name = fmt.Sprintf("%s.%s.", name, zone)
+		} else {
+			name = name + "."
+		}
+	}
+
+	resp, err := httpc.R().SetContext(ctxReq).SetBody(map[string]any{
+		"rrsets": []map[string]any{
+			{
+				"name":       name,
+				"type":       request.Type,
+				"ttl":        request.TTL,
+				"changetype": "REPLACE",
+				"records": []map[string]any{
+					{
+						"content":  request.VL,
+						"disabled": false,
+					},
+				},
+				"comments": func() []map[string]string {
+					if request.Comment != "" {
+						return []map[string]string{
+							{
+								"content": request.Comment,
+								"account": ctx.GetString("username"),
+							},
+						}
+					}
+					return nil
+				}(),
+			},
+		},
+	}).Patch(fmt.Sprintf("/api/v1/servers/%s/zones/%s", connection.ServerId, request.Zone))
+
+	if err != nil {
+		ctx.JSON(502, gin.H{"message": fmt.Sprintf("failed to insert record: %v", err)})
+		return
+	}
+
+	if resp.StatusCode() != 204 && resp.StatusCode() != 201 {
+		ctx.JSON(resp.StatusCode(), gin.H{"message": fmt.Sprintf("failed to insert record: %s", resp.String())})
+		return
+	}
+
+	ctx.JSON(201, gin.H{"message": "record inserted successfully"})
 }
