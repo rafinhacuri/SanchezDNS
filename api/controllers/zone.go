@@ -2,9 +2,7 @@ package controllers
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -170,93 +168,6 @@ func DeleteZone(ctx *gin.Context) {
 	}
 
 	ctx.JSON(200, gin.H{"message": "zone deleted successfully"})
-}
-
-func GetRecords(ctx *gin.Context) {
-	allowed, connection := permission(ctx)
-	if !allowed {
-		return
-	}
-
-	zoneID := ctx.Query("zone")
-	if zoneID == "" {
-		ctx.JSON(400, gin.H{"message": "zone ID is required"})
-		return
-	}
-
-	plainKey, err := utils.Decrypt(connection.ApiKey)
-	if err != nil {
-		ctx.JSON(500, gin.H{"message": fmt.Sprintf("failed to decrypt api key: %v", err)})
-		return
-	}
-
-	ctxReq, cancel := context.WithTimeout(ctx.Request.Context(), 8*time.Second)
-	defer cancel()
-
-	base := utils.NormalizeBase(connection.Host)
-
-	httpc := resty.New().SetBaseURL(base).SetHeader("X-API-Key", plainKey).SetHeader("Accept", "application/json").SetTimeout(6 * time.Second).SetRetryCount(2)
-
-	resp, err := httpc.R().SetContext(ctxReq).Get(fmt.Sprintf("/api/v1/servers/%s/zones/%s", connection.ServerId, zoneID))
-
-	if err != nil {
-		ctx.JSON(502, gin.H{"message": fmt.Sprintf("failed to fetch records: %v", err)})
-		return
-	}
-
-	if resp.IsError() {
-		ctx.JSON(resp.StatusCode(), gin.H{"message": fmt.Sprintf("PowerDNS error: %v", resp.String())})
-		return
-	}
-
-	var z models.Zone
-	if err := json.Unmarshal(resp.Body(), &z); err != nil {
-		ctx.JSON(500, gin.H{"message": fmt.Sprintf("failed to parse PowerDNS response: %v", err)})
-		return
-	}
-
-	var records []models.Simplified
-	var soa *models.Soa
-
-	for _, rr := range z.RRSets {
-		if rr.Type == "SOA" && len(rr.Records) > 0 {
-			parts := strings.Fields(rr.Records[0].Content)
-			if len(parts) >= 7 {
-				refresh, _ := strconv.Atoi(parts[3])
-				retry, _ := strconv.Atoi(parts[4])
-				expire, _ := strconv.Atoi(parts[5])
-				negTTL, _ := strconv.Atoi(parts[6])
-
-				soa = &models.Soa{
-					StartOfAuthority: parts[0],
-					Email:            parts[1],
-					Refresh:          refresh,
-					Retry:            retry,
-					Expire:           expire,
-					NegativeCacheTtl: negTTL,
-				}
-			}
-			continue
-		}
-
-		var comment string
-		if len(rr.Comments) > 0 {
-			comment = rr.Comments[0]
-		}
-
-		for _, rec := range rr.Records {
-			records = append(records, models.Simplified{
-				Zone:    z.Name,
-				Type:    rr.Type,
-				Name:    rr.Name,
-				VL:      rec.Content,
-				TTL:     rr.TTL,
-				Comment: comment,
-			})
-		}
-	}
-
-	ctx.JSON(200, gin.H{"record": records, "soa": soa})
 }
 
 func UpdateSOA(ctx *gin.Context) {

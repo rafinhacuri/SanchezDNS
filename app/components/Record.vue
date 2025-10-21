@@ -96,10 +96,10 @@ function getRowItems(row: Row<RecordForm>){
 
 const recordsOpts = ['A', 'AAAA', 'ALIAS', 'CAA', 'CNAME', 'HTTPS', 'MX', 'NS', 'TXT', 'SRV']
 
-const state = reactive<RecordForm>({ zone: '', name: '', type: 'A', vl: '', ttl: 60, priority: undefined, svcPriority: undefined, targetName: '', comment: '', port: undefined, weight: undefined, target: '', svcParams: '' })
+const state = ref<RecordForm>({ zone: '', name: '', type: 'A', vl: '', ttl: 60, priority: undefined, svcPriority: undefined, targetName: '', comment: '', port: undefined, weight: undefined, target: '', svcParams: '' })
 
 const placeholder = computed(() => {
-  switch (state.type){
+  switch (state.value.type){
     case 'A':
       return '192.0.2.1'
     case 'AAAA':
@@ -119,6 +119,29 @@ const placeholder = computed(() => {
       return ''
   }
 })
+
+async function addRecord(){
+  start()
+
+  state.value.zone = model.value
+
+  const body = RecordSchema.safeParse(state.value)
+
+  if(!body.success){
+    for(const e of body.error.issues) toast.add({ title: e.message, icon: 'i-lucide-shield-alert', color: 'error' })
+    return finish({ error: true })
+  }
+
+  const res = await $fetch<{ message: string }>('/server/api/zone/records', { method: 'PUT', body: body.data, query: { connection: optionSelected.value } })
+    .catch(error => { toast.add({ title: error?.data?.message || error?.message || 'Error updating SOA record', icon: 'i-lucide-shield-alert', color: 'error' }) })
+
+  if(!res) return finish({ error: true })
+
+  toast.add({ title: res.message, icon: 'i-lucide-badge-check', color: 'success' })
+  await refresh()
+  state.value = { zone: '', name: '', type: 'A', vl: '', ttl: 60, priority: undefined, svcPriority: undefined, targetName: '', comment: '', port: undefined, weight: undefined, target: '', svcParams: '' }
+  finish()
+}
 
 const modalEditSOA = ref(false)
 
@@ -169,7 +192,7 @@ watch(modalEditSOA, nv => {
         Manage DNS records for this zone
       </p>
     </div>
-    <UButton variant="outline" icon="i-lucide-pen" label="Edit SOA" @click="modalEditSOA = true" />
+    <UButton variant="outline" icon="i-lucide-pen" label="Edit SOA" :loading="isLoading" @click="modalEditSOA = true" />
   </div>
 
   <UForm :schema="RecordSchema" :state="state" class="mt-6 space-y-4 p-5 rounded-lg bg-slate-950/40">
@@ -219,7 +242,7 @@ watch(modalEditSOA, nv => {
       <UTextarea v-model="state.comment" class="w-full" placeholder="Optional comment" />
     </UFormField>
 
-    <UButton variant="outline" class="mt-5 w-full flex justify-center" icon="i-lucide-plus" label="Add Record" />
+    <UButton variant="outline" class="mt-5 w-full flex justify-center" icon="i-lucide-plus" label="Add Record" :loading="isLoading" @click="addRecord" />
   </UForm>
 
   <UTable ref="table" v-model:global-filter="globalFilter" v-model:pagination="pagination" :pagination-options="{ getPaginationRowModel: getPaginationRowModel()}" :data="data?.record" :columns="columns" />

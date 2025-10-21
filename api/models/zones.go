@@ -61,14 +61,19 @@ type Record struct {
 	Disabled bool   `json:"disabled"`
 }
 
-type rrsetRecord struct {
-	Name     string   `json:"name"`
-	Type     string   `json:"type"`
-	TTL      int      `json:"ttl"`
-	Comments []string `json:"comments"`
-	Records  []Record `json:"records"`
+type Comment struct {
+	Content    string `json:"content"`
+	Account    string `json:"account"`
+	ModifiedAt int64  `json:"modified_at,omitempty"`
 }
 
+type rrsetRecord struct {
+	Name     string    `json:"name"`
+	Type     string    `json:"type"`
+	TTL      int       `json:"ttl"`
+	Comments []Comment `json:"comments"`
+	Records  []Record  `json:"records"`
+}
 type Zone struct {
 	Name         string        `json:"name"`
 	RRSets       []rrsetRecord `json:"rrsets"`
