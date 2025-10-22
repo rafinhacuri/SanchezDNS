@@ -91,7 +91,7 @@ function getRowItems(row: Row<RecordForm>){
     },
     { type: 'separator' },
     { label: 'Edit Record', icon: 'i-lucide-pencil' },
-    { label: 'Delete Record', icon: 'i-lucide-trash', color: 'error' },
+    { label: 'Delete Record', icon: 'i-lucide-trash', color: 'error', onSelect: () => openDeleteModal(row.original) },
   ]
 }
 
@@ -185,6 +185,57 @@ async function updateSOA(){
 
 watch(modalEditSOA, nv => {
   if(nv) stateSOA.value = { startOfAuthority: data.value?.soa.startOfAuthority || '', email: data.value?.soa.email || '', refresh: data.value?.soa.refresh || 0, retry: data.value?.soa.retry || 0, expire: data.value?.soa.expire || 0, negativeCacheTtl: data.value?.soa.negativeCacheTtl || 0 }
+})
+
+const modalDelete = ref(false)
+const confirmDelete = ref('')
+const stateDelete = ref<RecordForm>({ zone: '', name: '', type: 'A', vl: '', ttl: 60, priority: undefined, svcPriority: undefined, targetName: '', comment: '', port: undefined, weight: undefined, target: '', svcParams: '' })
+
+function openDeleteModal(record: RecordForm){
+  stateDelete.value = record
+  modalDelete.value = true
+}
+
+async function removeRecord(){
+  start()
+
+  if(confirmDelete.value !== stateDelete.value.name){
+    toast.add({ title: 'Record name confirmation does not match', icon: 'i-lucide-shield-alert', color: 'error' })
+    return finish({ error: true })
+  }
+
+  state.value.zone = model.value
+
+  if(!state.value.name || state.value.name === ''){
+    state.value.name = model.value
+  }
+  else if(!state.value.name.endsWith(`.${model.value}`)){
+    state.value.name = `${state.value.name}.${model.value}`
+  }
+
+  const body = RecordSchema.safeParse(stateDelete.value)
+
+  if(!body.success){
+    for(const e of body.error.issues) toast.add({ title: e.message, icon: 'i-lucide-shield-alert', color: 'error' })
+    return finish({ error: true })
+  }
+
+  const res = await $fetch<{ message: string }>('/server/api/zone/records', { method: 'DELETE', body: body.data, query: { connection: optionSelected.value } })
+    .catch(error => { toast.add({ title: error?.data?.message || error?.message || 'Error updating SOA record', icon: 'i-lucide-shield-alert', color: 'error' }) })
+
+  if(!res) return finish({ error: true })
+
+  toast.add({ title: res.message, icon: 'i-lucide-badge-check', color: 'success' })
+  await refresh()
+  finish()
+  modalDelete.value = false
+}
+
+watch(modalDelete, nv => {
+  if(!nv){
+    stateDelete.value = { zone: '', name: '', type: 'A', vl: '', ttl: 60, priority: undefined, svcPriority: undefined, targetName: '', comment: '', port: undefined, weight: undefined, target: '', svcParams: '' }
+    confirmDelete.value = ''
+  }
 })
 </script>
 
@@ -288,6 +339,20 @@ watch(modalEditSOA, nv => {
     <template #footer>
       <UButton label="Cancel" :loading="isLoading" variant="outline" @click="modalEditSOA = false" />
       <UButton label="Confirm" :loading="isLoading" @click="updateSOA" />
+    </template>
+  </UModal>
+
+  <UModal v-model:open="modalDelete" title="Danger" description="You are about to delete a record, this action cannot be undone." :ui="{ footer: 'justify-end' }">
+    <template #body>
+      <p class="text-gray-200">
+        If you are sure you want to continue, write the name of your record below <span class="font-bold">'{{ stateDelete.name }}'</span>.
+      </p>
+      <UInput v-model="confirmDelete" class="mt-2 w-full" color="error" placeholder="Record Name" />
+    </template>
+
+    <template #footer>
+      <UButton label="Cancel" :loading="isLoading" variant="outline" @click="modalDelete = false" />
+      <UButton label="Confirm" color="error" :loading="isLoading" :disabled="confirmDelete !== stateDelete.name" @click="removeRecord" />
     </template>
   </UModal>
 </template>

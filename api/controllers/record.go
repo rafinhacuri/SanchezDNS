@@ -423,3 +423,155 @@ func InsertRecord(ctx *gin.Context) {
 
 	ctx.JSON(201, gin.H{"message": "record inserted successfully"})
 }
+
+func DeleteRecord(ctx *gin.Context) {
+	allowed, connection := permission(ctx)
+	if !allowed {
+		return
+	}
+
+	var request models.AddRecordRequest
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		ctx.JSON(400, gin.H{"message": fmt.Sprintf("invalid request body: %v", err)})
+		return
+	}
+
+	plainKey, err := utils.Decrypt(connection.ApiKey)
+	if err != nil {
+		ctx.JSON(500, gin.H{"message": fmt.Sprintf("failed to decrypt api key: %v", err)})
+		return
+	}
+
+	ctxReq, cancel := context.WithTimeout(ctx.Request.Context(), 8*time.Second)
+	defer cancel()
+
+	base := utils.NormalizeBase(connection.Host)
+	httpc := resty.New().SetBaseURL(base).
+		SetHeader("X-API-Key", plainKey).
+		SetHeader("Accept", "application/json").
+		SetTimeout(6 * time.Second).
+		SetRetryCount(2)
+
+	normalizeRecordValue(&request)
+
+	zone := strings.TrimSuffix(request.Zone, ".")
+	name := request.Name
+	if !strings.HasSuffix(name, ".") {
+		if !strings.HasSuffix(name, zone) {
+			name = fmt.Sprintf("%s.%s.", name, zone)
+		} else {
+			name = name + "."
+		}
+	}
+
+	getResp, err := httpc.R().SetContext(ctxReq).
+		Get(fmt.Sprintf("/api/v1/servers/%s/zones/%s", connection.ServerId, request.Zone))
+	if err != nil {
+		ctx.JSON(502, gin.H{"message": fmt.Sprintf("failed to fetch existing records: %v", err)})
+		return
+	}
+
+	var zoneData models.Zone
+	if err := json.Unmarshal(getResp.Body(), &zoneData); err != nil {
+		ctx.JSON(500, gin.H{"message": "failed to parse PowerDNS response"})
+		return
+	}
+
+	var remainingRecords []map[string]any
+	var allComments []string
+
+	for _, rr := range zoneData.RRSets {
+		if rr.Type == request.Type && rr.Name == name {
+			var comments []string
+			if len(rr.Comments) > 0 && rr.Comments[0].Content != "" {
+				comments = strings.Split(rr.Comments[0].Content, " | ")
+			}
+
+			for i, rec := range rr.Records {
+				if rec.Content != request.VL {
+					remainingRecords = append(remainingRecords, map[string]any{
+						"content":  rec.Content,
+						"disabled": rec.Disabled,
+					})
+
+					if i < len(comments) {
+						allComments = append(allComments, comments[i])
+					} else {
+						allComments = append(allComments, "Added via SanchezDNS")
+					}
+				}
+			}
+		}
+	}
+
+	if len(remainingRecords) == 0 {
+		resp, err := httpc.R().SetContext(ctxReq).
+			SetBody(map[string]any{
+				"rrsets": []map[string]any{
+					{
+						"name":       name,
+						"type":       request.Type,
+						"changetype": "DELETE",
+					},
+				},
+			}).Patch(fmt.Sprintf("/api/v1/servers/%s/zones/%s", connection.ServerId, request.Zone))
+
+		if err != nil {
+			ctx.JSON(502, gin.H{"message": fmt.Sprintf("failed to delete record: %v", err)})
+			return
+		}
+
+		if resp.StatusCode() != 204 && resp.StatusCode() != 201 {
+			ctx.JSON(resp.StatusCode(), gin.H{"message": fmt.Sprintf("failed to delete record: %s", resp.String())})
+			return
+		}
+
+		ctx.JSON(200, gin.H{"message": "record deleted successfully"})
+		return
+	}
+
+	uniqueComments := map[string]bool{}
+	var filteredComments []string
+	for _, c := range allComments {
+		if !uniqueComments[c] {
+			uniqueComments[c] = true
+			filteredComments = append(filteredComments, c)
+		}
+	}
+	commentJoined := strings.Join(filteredComments, " | ")
+	if commentJoined == "" {
+		commentJoined = " "
+	}
+	mergedComments := []map[string]any{
+		{
+			"content": commentJoined,
+			"account": ctx.GetString("username"),
+		},
+	}
+
+	resp, err := httpc.R().SetContext(ctxReq).
+		SetBody(map[string]any{
+			"rrsets": []map[string]any{
+				{
+					"name":       name,
+					"type":       request.Type,
+					"ttl":        request.TTL,
+					"changetype": "REPLACE",
+					"records":    remainingRecords,
+					"comments":   mergedComments,
+				},
+			},
+		}).Patch(fmt.Sprintf("/api/v1/servers/%s/zones/%s", connection.ServerId, request.Zone))
+
+	if err != nil {
+		ctx.JSON(502, gin.H{"message": fmt.Sprintf("failed to delete record: %v", err)})
+		return
+	}
+
+	if resp.StatusCode() != 204 && resp.StatusCode() != 201 {
+		ctx.JSON(resp.StatusCode(), gin.H{"message": fmt.Sprintf("failed to delete record: %s", resp.String())})
+		return
+	}
+
+	ctx.JSON(200, gin.H{"message": "record deleted successfully"})
+}
