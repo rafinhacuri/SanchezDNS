@@ -97,7 +97,7 @@ func GetRecords(ctx *gin.Context) {
 			}
 
 			switch rr.Type {
-			case "MX", "SRV":
+			case "MX":
 				parts := strings.Fields(rec.Content)
 				if len(parts) >= 2 {
 					if p, err := strconv.Atoi(parts[0]); err == nil {
@@ -109,19 +109,78 @@ func GetRecords(ctx *gin.Context) {
 				} else {
 					value = rec.Content
 				}
+
+			case "SRV":
+				parts := strings.Fields(rec.Content)
+				if len(parts) >= 4 {
+					p, _ := strconv.Atoi(parts[0])
+					w, _ := strconv.Atoi(parts[1])
+					port, _ := strconv.Atoi(parts[2])
+					t := parts[3]
+					if !strings.HasSuffix(t, ".") {
+						t += "."
+					}
+					priority = &p
+					weight := w
+					portVal := port
+					target := t
+					value = rec.Content
+					records = append(records, models.Simplified{
+						Zone:     z.Name,
+						Type:     rr.Type,
+						Name:     rr.Name,
+						VL:       value,
+						TTL:      rr.TTL,
+						Comment:  comment,
+						Priority: priority,
+						Weight:   &weight,
+						Port:     &portVal,
+						Target:   &target,
+					})
+					continue
+				}
+				value = rec.Content
+
+			case "HTTPS":
+				parts := strings.Fields(rec.Content)
+				if len(parts) >= 3 {
+					svcP, _ := strconv.Atoi(parts[0])
+					target := parts[1]
+					params := strings.Join(parts[2:], " ")
+					if !strings.HasSuffix(target, ".") {
+						target += "."
+					}
+					svcPriority := svcP
+					targetName := target
+					svcParams := params
+					value = rec.Content
+					records = append(records, models.Simplified{
+						Zone:        z.Name,
+						Type:        rr.Type,
+						Name:        rr.Name,
+						VL:          value,
+						TTL:         rr.TTL,
+						Comment:     comment,
+						SVCPriority: &svcPriority,
+						TargetName:  &targetName,
+						SVCParams:   &svcParams,
+					})
+					continue
+				}
+				value = rec.Content
+
 			default:
 				value = rec.Content
+				records = append(records, models.Simplified{
+					Zone:     z.Name,
+					Type:     rr.Type,
+					Name:     rr.Name,
+					VL:       value,
+					TTL:      rr.TTL,
+					Comment:  comment,
+					Priority: priority,
+				})
 			}
-
-			records = append(records, models.Simplified{
-				Zone:     z.Name,
-				Type:     rr.Type,
-				Name:     rr.Name,
-				VL:       value,
-				TTL:      rr.TTL,
-				Comment:  comment,
-				Priority: priority,
-			})
 		}
 
 	}
