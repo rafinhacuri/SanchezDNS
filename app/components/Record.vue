@@ -32,7 +32,7 @@ const columns: TableColumn<RecordForm>[] = [
       const isSorted = column.getIsSorted()
       return h(UButton, { color: 'neutral', variant: 'ghost', label: 'Name', icon: isSorted ? isSorted === 'asc' ? 'i-heroicons-bars-arrow-up' : 'i-heroicons-bars-arrow-down' : 'i-heroicons-arrows-up-down', class: '-mx-2.5', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') })
     },
-    cell: ({ row }) => row.original.name.split(`.${model.value}`)[0] || model.value,
+    cell: ({ row }) => row.original.name ? row.original.name.split(model.value)[0]?.split('.')?.[0] || '@' : '@',
   },
   {
     accessorKey: 'type',
@@ -125,6 +125,13 @@ async function addRecord(){
   start()
 
   state.value.zone = model.value
+
+  if(!state.value.name || state.value.name === ''){
+    state.value.name = model.value
+  }
+  else if(!state.value.name.endsWith(`.${model.value}`)){
+    state.value.name = `${state.value.name}.${model.value}`
+  }
 
   const body = RecordSchema.safeParse(state.value)
 
@@ -245,6 +252,8 @@ watch(modalEditSOA, nv => {
 
     <UButton variant="outline" class="mt-5 w-full flex justify-center" icon="i-lucide-plus" label="Add Record" :loading="isLoading" @click="addRecord" />
   </UForm>
+
+  <UInput v-model="globalFilter" class="mt-10 mb-4" placeholder="Search records..." icon="i-lucide-search" />
 
   <UTable ref="table" v-model:global-filter="globalFilter" v-model:pagination="pagination" :pagination-options="{ getPaginationRowModel: getPaginationRowModel()}" :data="data?.record" :columns="columns" />
 

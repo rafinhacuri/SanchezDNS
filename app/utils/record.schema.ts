@@ -25,7 +25,7 @@ export const RecordSchema = z.object({
     'TXT',
     'SRV',
   ]),
-  name: z.string().min(1, 'Name is required'),
+  name: z.string().optional(),
   vl: z.string().optional(),
   ttl: z.number().min(60, 'TTL must be at least 60 seconds'),
   comment: z.string().optional(),
