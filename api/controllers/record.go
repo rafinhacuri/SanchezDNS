@@ -110,6 +110,21 @@ func GetRecords(ctx *gin.Context) {
 					value = rec.Content
 				}
 
+				if !strings.HasSuffix(value, ".") {
+					value += "."
+				}
+
+				records = append(records, models.Simplified{
+					Zone:     z.Name,
+					Type:     rr.Type,
+					Name:     rr.Name,
+					VL:       value,
+					TTL:      rr.TTL,
+					Comment:  comment,
+					Priority: priority,
+				})
+				continue
+
 			case "SRV":
 				parts := strings.Fields(rec.Content)
 				if len(parts) >= 4 {

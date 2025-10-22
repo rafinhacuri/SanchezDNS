@@ -25,8 +25,6 @@ func main() {
 
 	server := gin.Default()
 
-	server.Use(gin.LoggerWithWriter(os.Stdout, "/healthcheck"))
-
 	server.SetTrustedProxies([]string{"127.0.0.1", "::1"})
 
 	routes.RegisterRoutes(server)

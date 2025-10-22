@@ -13,7 +13,6 @@ func RegisterRoutes(server *gin.Engine) {
 		})
 	})
 
-	server.GET("/healthcheck", controllers.HealthCheck)
 	server.POST("/login", controllers.Auth)
 	server.PUT("/api/user", controllers.InsertUser)
 
