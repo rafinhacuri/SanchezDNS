@@ -82,14 +82,19 @@ func GetRecords(ctx *gin.Context) {
 			continue
 		}
 
-		var comment string
+		var comments []string
 		if len(rr.Comments) > 0 {
-			comment = rr.Comments[0].Content
+			comments = strings.Split(rr.Comments[0].Content, " | ")
 		}
 
-		for _, rec := range rr.Records {
+		for i, rec := range rr.Records {
 			var priority *int
 			var value string
+			var comment string
+
+			if i < len(comments) {
+				comment = comments[i]
+			}
 
 			switch rr.Type {
 			case "MX", "SRV":
@@ -203,6 +208,10 @@ func InsertRecord(ctx *gin.Context) {
 		return
 	}
 
+	if request.Comment == "" {
+		request.Comment = "Added via SanchezDNS"
+	}
+
 	plainKey, err := utils.Decrypt(connection.ApiKey)
 	if err != nil {
 		ctx.JSON(500, gin.H{"message": fmt.Sprintf("failed to decrypt api key: %v", err)})
@@ -238,6 +247,98 @@ func InsertRecord(ctx *gin.Context) {
 		}
 	}
 
+	getResp, err := httpc.R().SetContext(ctxReq).Get(fmt.Sprintf("/api/v1/servers/%s/zones/%s", connection.ServerId, request.Zone))
+	if err != nil {
+		ctx.JSON(502, gin.H{"message": fmt.Sprintf("failed to fetch existing records: %v", err)})
+		return
+	}
+
+	var zoneData models.Zone
+	if err := json.Unmarshal(getResp.Body(), &zoneData); err != nil {
+		ctx.JSON(500, gin.H{"message": "failed to parse PowerDNS response"})
+		return
+	}
+
+	var existingRecords []struct {
+		Content  string
+		Disabled bool
+		Comment  *string
+	}
+
+	for _, rr := range zoneData.RRSets {
+		if rr.Type == request.Type && rr.Name == name {
+			var comment *string
+			if len(rr.Comments) > 0 {
+				comment = &rr.Comments[0].Content
+			}
+
+			for _, rec := range rr.Records {
+				existingRecords = append(existingRecords, struct {
+					Content  string
+					Disabled bool
+					Comment  *string
+				}{
+					Content:  rec.Content,
+					Disabled: rec.Disabled,
+					Comment:  comment,
+				})
+			}
+		}
+	}
+
+	existingRecords = append(existingRecords, struct {
+		Content  string
+		Disabled bool
+		Comment  *string
+	}{
+		Content:  request.VL,
+		Disabled: false,
+		Comment: func() *string {
+			if request.Comment != "" {
+				c := request.Comment
+				return &c
+			}
+			return nil
+		}(),
+	})
+
+	sort.SliceStable(existingRecords, func(i, j int) bool {
+		return existingRecords[i].Content < existingRecords[j].Content
+	})
+
+	var mergedRecords []map[string]any
+	var allComments []string
+
+	for _, rec := range existingRecords {
+		mergedRecords = append(mergedRecords, map[string]any{
+			"content":  rec.Content,
+			"disabled": rec.Disabled,
+		})
+
+		if rec.Comment != nil && *rec.Comment != "" {
+			allComments = append(allComments, *rec.Comment)
+		} else if request.Comment != "" {
+			allComments = append(allComments, request.Comment)
+		} else {
+			allComments = append(allComments, "Added via SanchezDNS")
+		}
+	}
+	uniqueComments := map[string]bool{}
+	var filteredComments []string
+	for _, c := range allComments {
+		if !uniqueComments[c] {
+			uniqueComments[c] = true
+			filteredComments = append(filteredComments, c)
+		}
+	}
+	commentJoined := strings.Join(filteredComments, " | ")
+	mergedComments := []map[string]any{
+		{
+			"content": commentJoined,
+			"account": ctx.GetString("username"),
+		},
+	}
+
 	resp, err := httpc.R().SetContext(ctxReq).SetBody(map[string]any{
 		"rrsets": []map[string]any{
 			{
@@ -245,23 +346,8 @@ func InsertRecord(ctx *gin.Context) {
 				"type":       request.Type,
 				"ttl":        request.TTL,
 				"changetype": "REPLACE",
-				"records": []map[string]any{
-					{
-						"content":  request.VL,
-						"disabled": false,
-					},
-				},
-				"comments": func() []map[string]string {
-					if request.Comment != "" {
-						return []map[string]string{
-							{
-								"content": request.Comment,
-								"account": ctx.GetString("username"),
-							},
-						}
-					}
-					return nil
-				}(),
+				"records":    mergedRecords,
+				"comments":   mergedComments,
 			},
 		},
 	}).Patch(fmt.Sprintf("/api/v1/servers/%s/zones/%s", connection.ServerId, request.Zone))
