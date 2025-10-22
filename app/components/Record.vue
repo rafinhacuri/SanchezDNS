@@ -32,6 +32,7 @@ const columns: TableColumn<RecordForm>[] = [
       const isSorted = column.getIsSorted()
       return h(UButton, { color: 'neutral', variant: 'ghost', label: 'Name', icon: isSorted ? isSorted === 'asc' ? 'i-heroicons-bars-arrow-up' : 'i-heroicons-bars-arrow-down' : 'i-heroicons-arrows-up-down', class: '-mx-2.5', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') })
     },
+    cell: ({ row }) => row.original.name.split(`.${model.value}`)[0] || model.value,
   },
   {
     accessorKey: 'type',

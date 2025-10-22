@@ -88,15 +88,37 @@ func GetRecords(ctx *gin.Context) {
 		}
 
 		for _, rec := range rr.Records {
+			var priority *int
+			var value string
+
+			switch rr.Type {
+			case "MX", "SRV":
+				parts := strings.Fields(rec.Content)
+				if len(parts) >= 2 {
+					if p, err := strconv.Atoi(parts[0]); err == nil {
+						priority = &p
+						value = strings.Join(parts[1:], " ")
+					} else {
+						value = rec.Content
+					}
+				} else {
+					value = rec.Content
+				}
+			default:
+				value = rec.Content
+			}
+
 			records = append(records, models.Simplified{
-				Zone:    z.Name,
-				Type:    rr.Type,
-				Name:    rr.Name,
-				VL:      rec.Content,
-				TTL:     rr.TTL,
-				Comment: comment,
+				Zone:     z.Name,
+				Type:     rr.Type,
+				Name:     rr.Name,
+				VL:       value,
+				TTL:      rr.TTL,
+				Comment:  comment,
+				Priority: priority,
 			})
 		}
+
 	}
 
 	sort.Slice(records, func(i, j int) bool {
