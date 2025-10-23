@@ -67,6 +67,19 @@ func CreateZone(ctx *gin.Context) {
 		return
 	}
 
+	dnssecPayload := map[string]any{
+		"dnssec": true,
+	}
+
+	respDNSSEC, err := httpc.R().SetContext(ctxReq).SetBody(dnssecPayload).Patch(fmt.Sprintf("/api/v1/servers/%s/zones/%s", connection.ServerId, domainWithDot))
+
+	if err != nil {
+		fmt.Printf("failed to enable DNSSEC for zone %s: %v\n", domain, err)
+	}
+	if respDNSSEC.IsError() {
+		fmt.Printf("PowerDNS DNSSEC PATCH error: status=%d, body=%s\n", respDNSSEC.StatusCode(), respDNSSEC.String())
+	}
+
 	rrsets := []map[string]any{
 		{
 			"name":       domainWithDot,
