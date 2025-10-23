@@ -67,7 +67,7 @@ The heart of SanchezDNS — manage your **DNS zones** and all related records (A
 Easily create, edit, and delete zones with full PowerDNS API synchronization.
 
 <p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=venom&height=300&color=2FC851&text=SanchezDNS&section=header&fontColor=ffffff"/>
+  <img src="https://github.com/rafinhacuri/SanchezDNS/blob/main/public/system.png"/>
 </p>
 
 ### 📊 **Statistics**
