@@ -66,6 +66,10 @@ SanchezDNS provides a clean, modular interface — each page designed for precis
 The heart of SanchezDNS — manage your **DNS zones** and all related records (A, AAAA, MX, TXT, SRV, etc.).  
 Easily create, edit, and delete zones with full PowerDNS API synchronization.
 
+<p align="center">
+  <img src="https://capsule-render.vercel.app/api?type=venom&height=300&color=2FC851&text=SanchezDNS&section=header&fontColor=ffffff"/>
+</p>
+
 ### 📊 **Statistics**
 Real-time overview of your DNS infrastructure, including:
 - Number of zones, records, and users
