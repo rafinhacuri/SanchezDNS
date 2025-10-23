@@ -111,7 +111,7 @@ watch(modal, newVal => {
 
 <template>
   <UContainer class="p-4">
-    <UButton :loading="isLoading" label="Crie uma nova conexão" variant="outline" class="mb-4" icon="i-lucide-radio-tower" @click="modal = true" />
+    <UButton :loading="isLoading" label="Create Connection" variant="outline" class="mb-4" icon="i-lucide-radio-tower" @click="modal = true" />
 
     <div v-if="data">
       <div v-for="c of data" :key="c._id" class="mb-8">
@@ -127,15 +127,15 @@ watch(modal, newVal => {
               </p>
             </div>
             <div class="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
-              <UButton :loading="isLoading" label="Editar" size="sm" color="info" variant="soft" @click.stop="editConnection(c._id)" />
-              <UButton :loading="isLoading" label="Excluir" size="sm" color="error" variant="outline" @click.stop="openDelete(c._id)" />
-              <UButton :loading="isLoading" label="Ver detalhes" size="sm" variant="soft" @click.stop="openDetails(c._id)" />
+              <UButton :loading="isLoading" label="Edit" size="sm" color="info" variant="soft" @click.stop="editConnection(c._id)" />
+              <UButton :loading="isLoading" label="Delete" size="sm" color="error" variant="outline" @click.stop="openDelete(c._id)" />
+              <UButton :loading="isLoading" label="View Details" size="sm" variant="soft" @click.stop="openDetails(c._id)" />
             </div>
           </div>
 
           <div class="border-t border-gray-700 pt-4">
             <p class="text-sm text-gray-500 mb-2">
-              Usuários vinculados:
+              Users linked:
             </p>
             <UAvatarGroup :max="6">
               <UAvatar v-for="user in c.users" :key="user" :alt="user" :style="{ backgroundColor: `hsl(${Math.random() * 360}, 70%, 55%)` }" />
