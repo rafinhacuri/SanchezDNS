@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/logo.png" alt="SanchezDNS Logo" width="180">
+  <img src="https://github.com/rafinhacuri/SanchezDNS/blob/main/public/logo.png" alt="SanchezDNS Logo" width="180">
 </p>
 
 
