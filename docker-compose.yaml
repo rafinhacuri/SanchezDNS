@@ -1,0 +1,16 @@
+services:
+  sanchezdns:
+    image: mizle/sanchezdns:latest
+    container_name: sanchezdns
+    platform: linux/amd64
+    ports:
+      - 4000:3000
+    environment:
+      - MONGO_URL=${MONGO_URL}
+      - MONGO_USERNAME=${MONGO_USERNAME}
+      - MONGO_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_DB_NAME=${MONGO_DB_NAME}
+      - JWT_SECRET=${JWT_SECRET}
+      - CRYPT_KEY=${CRYPT_KEY}
+      - SITE_URL=${SITE_URL}
+    restart: unless-stopped

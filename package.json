@@ -32,8 +32,8 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "prerelease": "bun lint && bun typecheck",
-    "docker:build": "docker build --platform=linux/amd64 -t rafinhacuri/sanchezdns:latest -t rafinhacuri/sanchezdns:$(node -p \"require('./package.json').version\") .",
-    "release": "bun prerelease && bumpp && bun docker:build && docker push rafinhacuri/sanchezdns:latest && docker push rafinhacuri/sanchezdns:$(node -p \"require('./package.json').version\")"
+    "docker:build": "docker build --platform=linux/amd64 -t mizle/sanchezdns:latest -t mizle/sanchezdns:$(node -p \"require('./package.json').version\") .",
+    "release": "bun prerelease && bumpp && bun docker:build && docker push mizle/sanchezdns:latest && docker push mizle/sanchezdns:$(node -p \"require('./package.json').version\")"
   },
   "dependencies": {
     "@iconify-json/heroicons": "^1.2.3",
