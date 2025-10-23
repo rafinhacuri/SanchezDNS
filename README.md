@@ -1,4 +1,9 @@
 <p align="center">
+  <img src="public/logo.png" alt="SanchezDNS Logo" width="180">
+</p>
+
+
+<p align="center">
   <img src="https://capsule-render.vercel.app/api?type=venom&height=300&color=2FC851&text=SanchezDNS&section=header&fontColor=ffffff"/>
 </p>
 
