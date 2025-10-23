@@ -299,8 +299,8 @@ func InsertRecord(ctx *gin.Context) {
 
 	httpc := resty.New().SetBaseURL(base).SetHeader("X-API-Key", plainKey).SetHeader("Accept", "application/json").SetTimeout(6 * time.Second).SetRetryCount(2)
 
-	if request.VL == "" {
-		ctx.JSON(400, gin.H{"message": "value is required for this record type"})
+	if !(request.Type == "HTTPS" || request.Type == "SRV" || (request.VL != "" && strings.TrimSpace(request.VL) != "")) {
+		ctx.JSON(400, gin.H{"message": "Value is required for this record type"})
 		return
 	}
 

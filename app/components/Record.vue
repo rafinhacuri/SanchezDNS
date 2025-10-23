@@ -77,6 +77,9 @@ const columns: TableColumn<RecordForm>[] = [
 ]
 
 const { copy } = useClipboard()
+const destiny = useTemplateRef<HTMLElement>('destiny')
+
+const { y } = useWindowScroll({ behavior: 'smooth' })
 
 function getRowItems(row: Row<RecordForm>){
   return [
@@ -90,7 +93,11 @@ function getRowItems(row: Row<RecordForm>){
       },
     },
     { type: 'separator' },
-    { label: 'Edit Record', icon: 'i-lucide-pencil' },
+    { label: 'Edit Record', icon: 'i-lucide-pencil', onSelect: () => {
+      isEditing.value = true
+      state.value = { ...row.original, name: row.original.name === model.value ? '' : row.original.name?.split(`.${model.value}`)[0] }
+      if(destiny.value) y.value = destiny.value.scrollHeight
+    } },
     { label: 'Delete Record', icon: 'i-lucide-trash', color: 'error', onSelect: () => openDeleteModal(row.original) },
   ]
 }
@@ -98,6 +105,13 @@ function getRowItems(row: Row<RecordForm>){
 const recordsOpts = ['A', 'AAAA', 'ALIAS', 'CAA', 'CNAME', 'HTTPS', 'MX', 'NS', 'TXT', 'SRV']
 
 const state = ref<RecordForm>({ zone: '', name: '', type: 'A', vl: '', ttl: 60, priority: undefined, svcPriority: undefined, targetName: '', comment: '', port: undefined, weight: undefined, target: '', svcParams: '' })
+
+const isEditing = ref(false)
+
+function cancelEdit(){
+  isEditing.value = false
+  state.value = { zone: '', name: '', type: 'A', vl: '', ttl: 60, priority: undefined, svcPriority: undefined, targetName: '', comment: '', port: undefined, weight: undefined, target: '', svcParams: '' }
+}
 
 const placeholder = computed(() => {
   switch (state.value.type){
@@ -254,7 +268,9 @@ watch(modalDelete, nv => {
     <UButton variant="outline" icon="i-lucide-pen" label="Edit SOA" :loading="isLoading" @click="modalEditSOA = true" />
   </div>
 
-  <UForm :schema="RecordSchema" :state="state" class="mt-6 space-y-4 p-5 rounded-lg bg-slate-950/40">
+  <div ref="destiny" />
+
+  <UForm :schema="RecordSchema" :state="state" class="mt-6 space-y-4 p-5 rounded-lg bg-slate-950/40" @submit="isEditing ? modalEditSOA = true : addRecord">
     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
       <UFormField label="Name" name="name">
         <UInput v-model="state.name" icon="i-lucide-computer" class="w-full " placeholder="subdomain" />
@@ -301,12 +317,16 @@ watch(modalDelete, nv => {
       <UTextarea v-model="state.comment" class="w-full" placeholder="Optional comment" />
     </UFormField>
 
-    <UButton variant="outline" class="mt-5 w-full flex justify-center" icon="i-lucide-plus" label="Add Record" :loading="isLoading" @click="addRecord" />
+    <div v-if="isEditing" class="flex items-center w-full gap-2">
+      <UButton variant="outline" color="info" class="mt-5 w-full flex justify-center" icon="i-lucide-pen" label="Edit Record" :loading="isLoading" />
+      <UButton variant="outline" color="error" class="mt-5 w-full flex justify-center max-w-32" icon="i-lucide-x" label="Cancel" :loading="isLoading" @click="cancelEdit" />
+    </div>
+    <UButton v-else variant="outline" class="mt-5 w-full flex justify-center" icon="i-lucide-plus" label="Add Record" :loading="isLoading" @click="addRecord" />
   </UForm>
 
   <UInput v-model="globalFilter" class="mt-10 mb-4" placeholder="Search records..." icon="i-lucide-search" />
 
-  <UTable ref="table" v-model:global-filter="globalFilter" v-model:pagination="pagination" :pagination-options="{ getPaginationRowModel: getPaginationRowModel()}" :data="data?.record" :columns="columns" />
+  <UTable ref="table" v-model:global-filter="globalFilter" v-model:pagination="pagination" class="mb-10" :pagination-options="{ getPaginationRowModel: getPaginationRowModel()}" :data="data?.record" :columns="columns" />
 
   <div v-if="data?.record && data.record.length > pagination.pageSize" class="border-default flex justify-center border-t pt-4">
     <UPagination :default-page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1" :items-per-page="table?.tableApi?.getState().pagination.pageSize" :total="table?.tableApi?.getFilteredRowModel().rows.length" @update:page="(p) => table?.tableApi?.setPageIndex(p - 1)" />

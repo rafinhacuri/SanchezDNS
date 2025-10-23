@@ -37,7 +37,7 @@ export const RecordSchema = z.object({
   target: z.string().optional(),
   priority: z.number().optional(),
 })
-  .refine(data => data.type === 'HTTPS' || data.type === 'SRV' || (data.vl && data.vl.trim() !== ''), {
+  .refine(data => ['HTTPS', 'SRV'].includes(data.type) || (data.vl && data.vl.trim() !== ''), {
     message: 'Value is required for this record type',
     path: ['vl'],
   })
@@ -71,3 +71,10 @@ export const RecordSchema = z.object({
   })
 
 export type RecordForm = z.infer<typeof RecordSchema>
+
+export const EditRecordSchema = z.object({
+  oldValue: RecordSchema,
+  newValue: RecordSchema,
+})
+
+export type EditRecordForm = z.infer<typeof EditRecordSchema>
