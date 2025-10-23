@@ -84,6 +84,7 @@ Customize system behavior and connection parameters:
 - Adjust operational preferences without restarting services
 
 ### 👥 **Users**
+(Administrator only)  
 Manage user access within the system:
 - Add or remove users with defined roles
 - Control permissions and visibility across zones and records
