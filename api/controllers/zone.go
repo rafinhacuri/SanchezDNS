@@ -68,10 +68,11 @@ func CreateZone(ctx *gin.Context) {
 	}
 
 	dnssecPayload := map[string]any{
-		"dnssec": true,
+		"active":  true,
+		"keytype": "ksk",
 	}
 
-	respDNSSEC, err := httpc.R().SetContext(ctxReq).SetBody(dnssecPayload).Patch(fmt.Sprintf("/api/v1/servers/%s/zones/%s", connection.ServerId, domainWithDot))
+	respDNSSEC, err := httpc.R().SetContext(ctxReq).SetBody(dnssecPayload).Post(fmt.Sprintf("/api/v1/servers/%s/zones/%s/cryptokeys", connection.ServerId, domainWithDot))
 
 	if err != nil {
 		fmt.Printf("failed to enable DNSSEC for zone %s: %v\n", domain, err)
