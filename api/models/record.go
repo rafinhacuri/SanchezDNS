@@ -15,3 +15,8 @@ type AddRecordRequest struct {
 	Target      string `json:"target,omitempty"`
 	Priority    *int   `json:"priority,omitempty"`
 }
+
+type EditRecordRequest struct {
+	OldValue AddRecordRequest `json:"oldValue"`
+	NewValue AddRecordRequest `json:"newValue"`
+}

@@ -32,7 +32,7 @@ const columns: TableColumn<RecordForm>[] = [
       const isSorted = column.getIsSorted()
       return h(UButton, { color: 'neutral', variant: 'ghost', label: 'Name', icon: isSorted ? isSorted === 'asc' ? 'i-heroicons-bars-arrow-up' : 'i-heroicons-bars-arrow-down' : 'i-heroicons-arrows-up-down', class: '-mx-2.5', onClick: () => column.toggleSorting(column.getIsSorted() === 'asc') })
     },
-    cell: ({ row }) => row.original.name ? row.original.name.split(model.value)[0]?.split('.')?.[0] || '@' : '@',
+    cell: ({ row }) => row.original.name?.split(model.value)[0] === '' ? '@' : row.original.name?.split(`.${model.value}`)[0],
   },
   {
     accessorKey: 'type',
@@ -96,6 +96,7 @@ function getRowItems(row: Row<RecordForm>){
     { label: 'Edit Record', icon: 'i-lucide-pencil', onSelect: () => {
       isEditing.value = true
       state.value = { ...row.original, name: row.original.name === model.value ? '' : row.original.name?.split(`.${model.value}`)[0] }
+      oldState.value = { ...row.original, name: row.original.name === model.value ? '' : row.original.name?.split(`.${model.value}`)[0] }
       if(destiny.value) y.value = destiny.value.scrollHeight
     } },
     { label: 'Delete Record', icon: 'i-lucide-trash', color: 'error', onSelect: () => openDeleteModal(row.original) },
@@ -107,10 +108,12 @@ const recordsOpts = ['A', 'AAAA', 'ALIAS', 'CAA', 'CNAME', 'HTTPS', 'MX', 'NS', 
 const state = ref<RecordForm>({ zone: '', name: '', type: 'A', vl: '', ttl: 60, priority: undefined, svcPriority: undefined, targetName: '', comment: '', port: undefined, weight: undefined, target: '', svcParams: '' })
 
 const isEditing = ref(false)
+const oldState = ref<RecordForm>({ zone: '', name: '', type: 'A', vl: '', ttl: 60, priority: undefined, svcPriority: undefined, targetName: '', comment: '', port: undefined, weight: undefined, target: '', svcParams: '' })
 
 function cancelEdit(){
   isEditing.value = false
   state.value = { zone: '', name: '', type: 'A', vl: '', ttl: 60, priority: undefined, svcPriority: undefined, targetName: '', comment: '', port: undefined, weight: undefined, target: '', svcParams: '' }
+  oldState.value = { zone: '', name: '', type: 'A', vl: '', ttl: 60, priority: undefined, svcPriority: undefined, targetName: '', comment: '', port: undefined, weight: undefined, target: '', svcParams: '' }
 }
 
 const placeholder = computed(() => {
@@ -162,6 +165,46 @@ async function addRecord(){
   toast.add({ title: res.message, icon: 'i-lucide-badge-check', color: 'success' })
   await refresh()
   state.value = { zone: '', name: '', type: 'A', vl: '', ttl: 60, priority: undefined, svcPriority: undefined, targetName: '', comment: '', port: undefined, weight: undefined, target: '', svcParams: '' }
+  finish()
+}
+
+async function editRecord(){
+  start()
+
+  state.value.zone = model.value
+  oldState.value.zone = model.value
+
+  if(!state.value.name || state.value.name === ''){
+    state.value.name = model.value
+  }
+  else if(!state.value.name.endsWith(`.${model.value}`)){
+    state.value.name = `${state.value.name}.${model.value}`
+  }
+
+  if(!oldState.value.name || oldState.value.name === ''){
+    oldState.value.name = model.value
+  }
+  else if(!oldState.value.name.endsWith(`.${model.value}`)){
+    oldState.value.name = `${oldState.value.name}.${model.value}`
+  }
+
+  const body = EditRecordSchema.safeParse({ oldValue: oldState.value, newValue: state.value })
+
+  if(!body.success){
+    for(const e of body.error.issues) toast.add({ title: e.message, icon: 'i-lucide-shield-alert', color: 'error' })
+    return finish({ error: true })
+  }
+
+  const res = await $fetch<{ message: string }>('/server/api/zone/records', { method: 'PATCH', body: body.data, query: { connection: optionSelected.value } })
+    .catch(error => { toast.add({ title: error?.data?.message || error?.message || 'Error updating SOA record', icon: 'i-lucide-shield-alert', color: 'error' }) })
+
+  if(!res) return finish({ error: true })
+
+  toast.add({ title: res.message, icon: 'i-lucide-badge-check', color: 'success' })
+  await refresh()
+  state.value = { zone: '', name: '', type: 'A', vl: '', ttl: 60, priority: undefined, svcPriority: undefined, targetName: '', comment: '', port: undefined, weight: undefined, target: '', svcParams: '' }
+  oldState.value = { zone: '', name: '', type: 'A', vl: '', ttl: 60, priority: undefined, svcPriority: undefined, targetName: '', comment: '', port: undefined, weight: undefined, target: '', svcParams: '' }
+  isEditing.value = false
   finish()
 }
 
@@ -251,6 +294,13 @@ watch(modalDelete, nv => {
     confirmDelete.value = ''
   }
 })
+
+watch(isEditing, nv => {
+  if(!nv){
+    state.value = { zone: '', name: '', type: 'A', vl: '', ttl: 60, priority: undefined, svcPriority: undefined, targetName: '', comment: '', port: undefined, weight: undefined, target: '', svcParams: '' }
+    oldState.value = { zone: '', name: '', type: 'A', vl: '', ttl: 60, priority: undefined, svcPriority: undefined, targetName: '', comment: '', port: undefined, weight: undefined, target: '', svcParams: '' }
+  }
+})
 </script>
 
 <template>
@@ -273,10 +323,10 @@ watch(modalDelete, nv => {
   <UForm :schema="RecordSchema" :state="state" class="mt-6 space-y-4 p-5 rounded-lg bg-slate-950/40" @submit="isEditing ? modalEditSOA = true : addRecord">
     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
       <UFormField label="Name" name="name">
-        <UInput v-model="state.name" icon="i-lucide-computer" class="w-full " placeholder="subdomain" />
+        <UInput v-model="state.name" :disabled="isEditing" icon="i-lucide-computer" class="w-full " placeholder="subdomain" />
       </UFormField>
       <UFormField label="Type" name="type">
-        <USelect v-model="state.type" :items="recordsOpts" class="w-full" />
+        <USelect v-model="state.type" :disabled="isEditing" :items="recordsOpts" class="w-full" />
       </UFormField>
       <UFormField label="Value" name="vl">
         <UInput v-model="state.vl" icon="i-lucide-database" class="w-full" :placeholder="placeholder" :disabled="state.type === 'HTTPS' || state.type === 'SRV'" />
@@ -318,7 +368,7 @@ watch(modalDelete, nv => {
     </UFormField>
 
     <div v-if="isEditing" class="flex items-center w-full gap-2">
-      <UButton variant="outline" color="info" class="mt-5 w-full flex justify-center" icon="i-lucide-pen" label="Edit Record" :loading="isLoading" />
+      <UButton variant="outline" color="info" class="mt-5 w-full flex justify-center" icon="i-lucide-pen" label="Edit Record" :loading="isLoading" @click="editRecord" />
       <UButton variant="outline" color="error" class="mt-5 w-full flex justify-center max-w-32" icon="i-lucide-x" label="Cancel" :loading="isLoading" @click="cancelEdit" />
     </div>
     <UButton v-else variant="outline" class="mt-5 w-full flex justify-center" icon="i-lucide-plus" label="Add Record" :loading="isLoading" @click="addRecord" />

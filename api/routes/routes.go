@@ -34,6 +34,7 @@ func RegisterRoutes(server *gin.Engine) {
 	api.GET("/zone/records", controllers.GetRecords)
 	api.PUT("/zone/records", controllers.InsertRecord)
 	api.DELETE("/zone/records", controllers.DeleteRecord)
+	api.PATCH("/zone/records", controllers.EditRecord)
 
 	apiAdmin.GET("/users", controllers.GetUsers)
 	apiAdmin.GET("/logs", controllers.GetLogs)

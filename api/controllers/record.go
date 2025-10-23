@@ -590,3 +590,143 @@ func DeleteRecord(ctx *gin.Context) {
 
 	ctx.JSON(200, gin.H{"message": "record deleted successfully"})
 }
+
+func EditRecord(ctx *gin.Context) {
+	allowed, connection := permission(ctx)
+	if !allowed {
+		return
+	}
+
+	var request models.EditRecordRequest
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		ctx.JSON(400, gin.H{"message": fmt.Sprintf("invalid request body: %v", err)})
+		return
+	}
+
+	if request.OldValue.Type != request.NewValue.Type {
+		ctx.JSON(400, gin.H{"message": "record type cannot be changed"})
+		return
+	}
+
+	if request.OldValue.Name != request.NewValue.Name {
+		ctx.JSON(400, gin.H{"message": "record name cannot be changed"})
+		return
+	}
+
+	plainKey, err := utils.Decrypt(connection.ApiKey)
+	if err != nil {
+		ctx.JSON(500, gin.H{"message": fmt.Sprintf("failed to decrypt api key: %v", err)})
+		return
+	}
+
+	ctxReq, cancel := context.WithTimeout(ctx.Request.Context(), 8*time.Second)
+	defer cancel()
+
+	base := utils.NormalizeBase(connection.Host)
+
+	httpc := resty.New().SetBaseURL(base).SetHeader("X-API-Key", plainKey).SetHeader("Accept", "application/json").SetTimeout(6 * time.Second).SetRetryCount(2)
+
+	normalizeRecordValue(&request.NewValue)
+	normalizeRecordValue(&request.OldValue)
+
+	zone := strings.TrimSuffix(request.NewValue.Zone, ".")
+	name := request.NewValue.Name
+
+	if !strings.HasSuffix(name, ".") {
+		if !strings.HasSuffix(name, zone) {
+			name = fmt.Sprintf("%s.%s.", name, zone)
+		} else {
+			name = name + "."
+		}
+	}
+
+	getResp, err := httpc.R().SetContext(ctxReq).Get(fmt.Sprintf("/api/v1/servers/%s/zones/%s", connection.ServerId, request.NewValue.Zone))
+	if err != nil {
+		ctx.JSON(502, gin.H{"message": fmt.Sprintf("failed to fetch existing records: %v", err)})
+		return
+	}
+
+	var zoneData models.Zone
+	if err := json.Unmarshal(getResp.Body(), &zoneData); err != nil {
+		ctx.JSON(500, gin.H{"message": "failed to parse PowerDNS response"})
+		return
+	}
+
+	var updatedRecords []map[string]any
+	for _, rr := range zoneData.RRSets {
+		if rr.Type == request.NewValue.Type && rr.Name == name {
+			for _, rec := range rr.Records {
+				if rec.Content == request.OldValue.VL {
+					updatedRecords = append(updatedRecords, map[string]any{
+						"content":  request.NewValue.VL,
+						"disabled": rec.Disabled,
+					})
+				} else {
+					updatedRecords = append(updatedRecords, map[string]any{
+						"content":  rec.Content,
+						"disabled": rec.Disabled,
+					})
+				}
+			}
+		}
+	}
+
+	var comments []string
+	for _, rr := range zoneData.RRSets {
+		if rr.Type == request.NewValue.Type && rr.Name == name {
+			if len(rr.Comments) > 0 && rr.Comments[0].Content != "" {
+				comments = strings.Split(rr.Comments[0].Content, " | ")
+			}
+			break
+		}
+	}
+
+	newComment := request.NewValue.Comment
+	if newComment == "" {
+		newComment = "Edited via SanchezDNS"
+	}
+
+	for len(comments) < len(updatedRecords) {
+		comments = append(comments, "Added via SanchezDNS")
+	}
+
+	for i, rec := range updatedRecords {
+		if rec["content"] == request.NewValue.VL {
+			comments[i] = newComment
+		}
+	}
+
+	commentJoined := strings.Join(comments, " | ")
+	mergedComments := []map[string]any{
+		{
+			"content": commentJoined,
+			"account": ctx.GetString("username"),
+		},
+	}
+
+	resp, err := httpc.R().SetContext(ctxReq).
+		SetBody(map[string]any{
+			"rrsets": []map[string]any{
+				{
+					"name":       name,
+					"type":       request.NewValue.Type,
+					"ttl":        request.NewValue.TTL,
+					"changetype": "REPLACE",
+					"records":    updatedRecords,
+					"comments":   mergedComments,
+				},
+			},
+		}).Patch(fmt.Sprintf("/api/v1/servers/%s/zones/%s", connection.ServerId, request.NewValue.Zone))
+
+	if err != nil {
+		ctx.JSON(502, gin.H{"message": fmt.Sprintf("failed to edit record: %v", err)})
+		return
+	}
+
+	if resp.StatusCode() != 204 && resp.StatusCode() != 201 {
+		ctx.JSON(resp.StatusCode(), gin.H{"message": fmt.Sprintf("failed to edit record: %s", resp.String())})
+		return
+	}
+
+	ctx.JSON(200, gin.H{"message": "record edited successfully"})
+}
