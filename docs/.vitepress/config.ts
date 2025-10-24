@@ -44,7 +44,6 @@ export default defineConfig({
         items: [
           { text: 'Why SanchezDNS', link: '/reason' },
           { text: 'Setup', link: '/setup' },
-          { text: 'Showcase', link: '/showcase' },
         ],
       },
       {
@@ -55,7 +54,6 @@ export default defineConfig({
           { text: 'Statistics', link: '/statistics' },
           { text: 'Users', link: '/users' },
           { text: 'Logs', link: '/logs' },
-          { text: 'Connections', link: '/connections' },
         ],
       },
       {

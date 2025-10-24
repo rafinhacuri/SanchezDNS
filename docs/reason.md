@@ -13,7 +13,7 @@ SanchezDNS is ideal for teams, system administrators, and hosting providers who 
 - **Real-Time Sync** – Every change reflects instantly through the native PowerDNS Authoritative API.  
 - **Scalable Architecture** – Manage multiple DNS servers or distributed networks with ease.  
 - **Audit-Ready** – Every action is logged for transparency and compliance.  
-- **Secure by Design** – Built with AES‑256 encryption, role-based access control, and safe API key storage.  
+- **Secure by Design** – Built with AES‑256/ BCRYPT encryption, role-based access control, and safe API key storage.  
 
 ---
 

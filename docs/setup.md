@@ -12,7 +12,39 @@ Before you begin, make sure you have:
 - **Docker & Docker Compose** installed on your system.  
 - A **PowerDNS Authoritative Server** (version 4.7 or higher).  
 - Access to a **MongoDB instance** (local or remote).  
-- Basic knowledge of DNS records and PowerDNS API.
+- Basic knowledge of DNS records.
+
+---
+
+## ✅ Quick Start
+
+### 🔧 Step 1 — Install Prerequisites
+- Install **Docker**  
+- Install **Docker Compose**  
+👉 Official guide: [Get Docker](https://docs.docker.com/get-started/get-docker/)
+
+---
+
+### 📦 Step 2 — Get the `docker-compose.yaml`
+Choose one of the options below to download the configuration file:
+
+<details>
+<summary>🔽 Using curl</summary>
+
+```bash
+curl -L -o docker-compose.yaml https://raw.githubusercontent.com/rafinhacuri/sanchezdns/main/docker-compose.yaml
+```
+</details>
+
+<details>
+<summary>🔽 Using wget</summary>
+
+```bash
+wget -O docker-compose.yaml https://raw.githubusercontent.com/rafinhacuri/sanchezdns/main/docker-compose.yaml
+```
+</details>
+
+Alternatively, copy it directly from the [example file](https://github.com/rafinhacuri/sanchezdns/blob/main/docker-compose.yaml).
 
 ---
 
@@ -42,6 +74,24 @@ openssl rand -base64 32
 
 > ⚠️ Keep your environment file safe. Never share your `JWT_SECRET` or `CRYPT_KEY`.
 
+Download and prepare your `.env` file:
+
+<details>
+<summary>🔽 Using curl</summary>
+
+```bash
+curl -L -o .env https://raw.githubusercontent.com/rafinhacuri/sanchezdns/main/.env.example
+```
+</details>
+
+<details>
+<summary>🔽 Using wget</summary>
+
+```bash
+wget -O .env https://raw.githubusercontent.com/rafinhacuri/sanchezdns/main/.env.example
+```
+</details>
+
 ---
 
 ## 🐳 Run with Docker
@@ -50,7 +100,14 @@ Simply run the following commands to build and start SanchezDNS:
 
 ```bash
 docker compose build
-docker compose up -d
+docker compose up -d --force-recreate
+```
+
+### Verify Installation
+Check running containers:
+
+```bash
+docker compose ps
 ```
 
 The system will automatically start both backend and frontend containers.
@@ -58,7 +115,7 @@ The system will automatically start both backend and frontend containers.
 Once running, open your browser and go to:
 
 ```
-http://localhost:3000
+http://localhost:4000
 ```
 
 ---

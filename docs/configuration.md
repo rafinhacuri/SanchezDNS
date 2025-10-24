@@ -45,12 +45,15 @@ server-id=localhost
 ## 🔒 Enabling DNSSEC (Optional)
 
 If you plan to use **DNSSEC** (Domain Name System Security Extensions),  
-you must enable it directly in your PowerDNS configuration file:
+its activation depends on the backend configured in your PowerDNS server.  
+For example, if you are using the **SQLite** backend, you must enable DNSSEC like this:
 
 **File:** `/etc/powerdns/pdns.conf`
 
 ```ini
-dnssec=yes
+launch=gsqlite3
+gsqlite3-database=/var/lib/powerdns/pdns.sqlite3
+gsqlite3-dnssec=yes
 ```
 
 You can then manage DNSSEC-enabled zones directly from the SanchezDNS interface.  
