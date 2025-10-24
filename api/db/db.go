@@ -10,6 +10,7 @@ import (
 )
 
 var Database *mongo.Database
+var client *mongo.Client
 
 func InitDB(ssl bool, user, url, pass, name string) error {
 	opts := options.Client().ApplyURI(url)
@@ -33,6 +34,16 @@ func InitDB(ssl bool, user, url, pass, name string) error {
 	}
 
 	Database = mongoClient.Database(name)
+	client = mongoClient
+
+	return nil
+}
+
+func TestMongo(ctx context.Context) error {
+	err := client.Ping(ctx, nil)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
