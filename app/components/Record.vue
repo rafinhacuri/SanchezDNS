@@ -77,6 +77,7 @@ const columns: TableColumn<RecordForm>[] = [
 ]
 
 const { copy } = useClipboard()
+
 const destiny = useTemplateRef<HTMLElement>('destiny')
 
 const { y } = useWindowScroll({ behavior: 'smooth' })
