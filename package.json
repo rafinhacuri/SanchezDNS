@@ -1,7 +1,7 @@
 {
   "name": "sanchezdns",
   "type": "module",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "private": true,
   "packageManager": "bun@1.3.0",
   "description": "🗄️ Web application to manage authoritative dns servers using PowerDNS",
@@ -40,23 +40,23 @@
   },
   "dependencies": {
     "@iconify-json/heroicons": "^1.2.3",
-    "@iconify-json/lucide": "^1.2.69",
-    "@iconify-json/simple-icons": "^1.2.54",
-    "@nuxt/image": "^1.11.0",
-    "@nuxt/ui": "^4.0.1",
+    "@iconify-json/lucide": "^1.2.75",
+    "@iconify-json/simple-icons": "^1.2.60",
+    "@nuxt/image": "^2.0.0",
+    "@nuxt/ui": "^4.2.1",
     "@nuxtjs/seo": "^3.2.2",
-    "@vueuse/nuxt": "^13.9.0",
-    "nuxt": "^4.1.3",
-    "nuxt-security": "^2.4.0",
-    "vue": "^3.5.22",
+    "@vueuse/nuxt": "^14.0.0",
+    "nuxt": "^4.2.1",
+    "nuxt-security": "^2.5.0",
+    "vue": "^3.5.25",
     "vue-router": "^4.5.1",
-    "zod": "^4.1.12"
+    "zod": "^4.1.13"
   },
   "devDependencies": {
     "@dethdkn/eslint-config": "^4.0.3",
     "bumpp": "^10.3.1",
-    "eslint": "^9.37.0",
+    "eslint": "^9.39.1",
     "vitepress": "^1.6.4",
-    "vue-tsc": "^3.1.1"
+    "vue-tsc": "^3.1.5"
   }
 }
