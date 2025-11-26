@@ -377,7 +377,9 @@ watch(isEditing, nv => {
 
   <UInput v-model="globalFilter" class="mt-10 mb-4" placeholder="Search records..." icon="i-lucide-search" />
 
-  <UTable ref="table" v-model:global-filter="globalFilter" v-model:pagination="pagination" class="mb-10" :pagination-options="{ getPaginationRowModel: getPaginationRowModel()}" :data="data?.record" :columns="columns" />
+  <ClientOnly>
+    <UTable ref="table" v-model:global-filter="globalFilter" v-model:pagination="pagination" class="mb-10" :pagination-options="{ getPaginationRowModel: getPaginationRowModel()}" :data="data?.record" :columns="columns" />
+  </ClientOnly>
 
   <div v-if="data?.record && data.record.length > pagination.pageSize" class="border-default flex justify-center border-t pt-4">
     <UPagination :default-page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1" :items-per-page="table?.tableApi?.getState().pagination.pageSize" :total="table?.tableApi?.getFilteredRowModel().rows.length" @update:page="(p) => table?.tableApi?.setPageIndex(p - 1)" />

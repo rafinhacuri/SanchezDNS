@@ -52,7 +52,7 @@ const columns: TableColumn<Zones>[] = [
   },
 ]
 
-function onSelect(row: TableRow<Zones>){
+function onSelect(e: Event, row: TableRow<Zones>){
   model.value = row.original.id
 }
 
@@ -174,7 +174,9 @@ async function createZone(){
     </div>
   </div>
 
-  <UTable ref="table" v-model:global-filter="globalFilter" v-model:pagination="pagination" :pagination-options="{ getPaginationRowModel: getPaginationRowModel()}" :data="data?.zones" :columns="columns" @select="onSelect" />
+  <ClientOnly>
+    <UTable ref="table" v-model:global-filter="globalFilter" v-model:pagination="pagination" :pagination-options="{ getPaginationRowModel: getPaginationRowModel()}" :data="data?.zones" :columns="columns" @select="onSelect" />
+  </ClientOnly>
 
   <div v-if="data?.zones && data.zones.length > pagination.pageSize" class="border-default flex justify-center border-t pt-4">
     <UPagination :default-page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1" :items-per-page="table?.tableApi?.getState().pagination.pageSize" :total="table?.tableApi?.getFilteredRowModel().rows.length" @update:page="(p) => table?.tableApi?.setPageIndex(p - 1)" />
