@@ -54,10 +54,10 @@ Create a `.env` file in the root directory with the following structure:
 
 ```bash
 SITE_URL="https://example.com"
-MONGO_URL="mongodb://mongo:27017/testdb"
-MONGO_USERNAME="devuser"
-MONGO_PASSWORD="devpass123"
-MONGO_DB_NAME="testdb"
+MONGO_URL="mongodb://mongo:27017/sanchezdns"
+MONGO_USERNAME="sanchezcos"
+MONGO_PASSWORD="!w3irdP@ssw0rd#2024"
+MONGO_DB_NAME="sanchezdns"
 MONGO_SSL="false"
 
 # Must have at least 32 characters
