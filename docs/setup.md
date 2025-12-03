@@ -53,11 +53,12 @@ Alternatively, copy it directly from the [example file](https://github.com/rafin
 Create a `.env` file in the root directory with the following structure:
 
 ```bash
-SITE_URL="https://dns.example.com"
-MONGO_URL="mongodb://mongo.example.com:27017"
-MONGO_USERNAME="mongouser"
-MONGO_PASSWORD="essa senha é mt dificil de ser quebrada :o"
-MONGO_DB_NAME="expo-go"
+SITE_URL="https://example.com"
+MONGO_URL="mongodb://mongo:27017/testdb"
+MONGO_USERNAME="devuser"
+MONGO_PASSWORD="devpass123"
+MONGO_DB_NAME="testdb"
+MONGO_SSL="false"
 
 # Must have at least 32 characters
 JWT_SECRET="essa senha é mt dificil de ser quebrada :o"
@@ -96,12 +97,30 @@ wget -O .env https://raw.githubusercontent.com/rafinhacuri/sanchezdns/main/.env.
 
 ## 🐳 Run with Docker
 
-Simply run the following commands to build and start SanchezDNS:
+### ▶️ Option 1 — Use Local MongoDB (full setup)
+
+Use this command to **download and start** SanchezDNS **along with the local MongoDB**:
 
 ```bash
-docker compose build
+docker compose pull
 docker compose up -d --force-recreate
 ```
+
+---
+
+### ▶️ Option 2 — Use an External MongoDB Cluster (e.g., Atlas)
+
+Use this option if you **DO NOT want to run MongoDB locally** and already have an external database configured.
+
+This will start **only the SanchezDNS service**:
+
+```bash
+docker compose pull sanchezdns
+docker compose up -d --force-recreate sanchezdns
+```
+
+---
+
 
 ### Verify Installation
 Check running containers:
