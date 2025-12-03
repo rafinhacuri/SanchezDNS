@@ -20,8 +20,8 @@ features:
     details: Manage authoritative zones and records with full PowerDNS API synchronization — instant updates and reliability.
   - title: 🧭 Unified Control Panel
     details: Centralized management for zones, users, records, and logs in a sleek, Nuxt 4 + Nuxt UI 4 interface.
-  - title: 🔒 AES‑256/ BCRYPT Secure Encryption
-    details: All sensitive credentials and API keys are encrypted, ensuring enterprise‑grade security.
+  - title: 🔒 AES‑256/ BCRYPT /DNSSEC Secure Encryption
+    details: All sensitive credentials and API keys are encrypted, ensuring enterprise‑grade security. Native DNSSEC support allows secure key management, signing, and validation of zones for maximum protection.
   - title: 📊 Real‑Time Statistics
     details: Track DNS queries, QPS, uptime, and record distribution — all updated live.
   - title: 👥 Role‑Based Access
