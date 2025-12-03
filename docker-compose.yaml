@@ -10,6 +10,7 @@ services:
       - MONGO_USERNAME=${MONGO_USERNAME}
       - MONGO_PASSWORD=${MONGO_PASSWORD}
       - MONGO_DB_NAME=${MONGO_DB_NAME}
+      - MONGO_SSL=${MONGO_SSL}
       - JWT_SECRET=${JWT_SECRET}
       - CRYPT_KEY=${CRYPT_KEY}
       - SITE_URL=${SITE_URL}
@@ -20,3 +21,17 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+  mongo:
+    image: mongo:latest
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_INITDB_DATABASE=${MONGO_DB_NAME}
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:

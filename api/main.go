@@ -14,7 +14,9 @@ import (
 func init() {
 	godotenv.Load("../.env")
 
-	if err := db.InitDB(true, os.Getenv("MONGO_USERNAME"), os.Getenv("MONGO_URL"), os.Getenv("MONGO_PASSWORD"), os.Getenv("MONGO_DB_NAME")); err != nil {
+	ssl := os.Getenv("MONGO_SSL") == "true"
+
+	if err := db.InitDB(ssl, os.Getenv("MONGO_USERNAME"), os.Getenv("MONGO_URL"), os.Getenv("MONGO_PASSWORD"), os.Getenv("MONGO_DB_NAME")); err != nil {
 		log.Fatal("Error to connect to database:", err)
 	}
 }
