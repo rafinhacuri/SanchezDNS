@@ -11,61 +11,64 @@ export const EditSOASchema = z.object({
 
 export type EditSOASchemaType = z.infer<typeof EditSOASchema>
 
-export const RecordSchema = z.object({
-  zone: z.string().min(1, 'Zone ID is required'),
-  type: z.enum([
-    'A',
-    'AAAA',
-    'ALIAS',
-    'CAA',
-    'CNAME',
-    'HTTPS',
-    'MX',
-    'NS',
-    'TXT',
-    'SRV',
-  ]),
-  name: z.string().optional(),
-  vl: z.string().optional(),
-  ttl: z.number().min(60, 'TTL must be at least 60 seconds'),
-  comment: z.string().optional(),
-  svcPriority: z.number().optional(),
-  targetName: z.string().optional(),
-  svcParams: z.string().optional(),
-  weight: z.number().optional(),
-  port: z.number().optional(),
-  target: z.string().optional(),
-  priority: z.number().optional(),
-})
-  .refine(data => ['HTTPS', 'SRV'].includes(data.type) || (data.vl && data.vl.trim() !== ''), {
+export const RecordSchema = z
+  .object({
+    zone: z.string().min(1, 'Zone ID is required'),
+    type: z.enum([
+      'A',
+      'AAAA',
+      'ALIAS',
+      'CAA',
+      'CNAME',
+      'HTTPS',
+      'MX',
+      'NS',
+      'PTR',
+      'TXT',
+      'SRV',
+      'TLSA',
+    ]),
+    name: z.string().optional(),
+    vl: z.string().optional(),
+    ttl: z.number().min(60, 'TTL must be at least 60 seconds'),
+    comment: z.string().optional(),
+    svcPriority: z.number().optional(),
+    targetName: z.string().optional(),
+    svcParams: z.string().optional(),
+    weight: z.number().optional(),
+    port: z.number().optional(),
+    target: z.string().optional(),
+    priority: z.number().optional(),
+  })
+  .refine((data) => ['HTTPS', 'SRV'].includes(data.type) || (data.vl && data.vl.trim() !== ''), {
     message: 'Value is required for this record type',
     path: ['vl'],
   })
-  .refine(data => data.type !== 'HTTPS' || (data.svcPriority !== undefined && data.svcPriority !== null), {
+  .refine((data) => data.type !== 'HTTPS' || (data.svcPriority ?? null) !== null, {
     message: 'Service Priority is required for HTTPS records',
     path: ['svcPriority'],
   })
-  .refine(data => data.type !== 'HTTPS' || (data.targetName && data.targetName.trim() !== ''), {
+  .refine((data) => data.type !== 'HTTPS' || (data.targetName && data.targetName.trim() !== ''), {
     message: 'Target Name is required for HTTPS records',
     path: ['targetName'],
   })
-  .refine(data => data.type !== 'SRV' || (data.weight !== undefined && data.weight !== null), {
+  .refine((data) => data.type !== 'SRV' || (data.weight ?? null) !== null, {
     message: 'Weight is required for SRV records',
     path: ['weight'],
   })
-  .refine(data => data.type !== 'SRV' || (data.port !== undefined && data.port !== null), {
+  .refine((data) => data.type !== 'SRV' || (data.port ?? null) !== null, {
     message: 'Port is required for SRV records',
     path: ['port'],
   })
-  .refine(data => data.type !== 'SRV' || (data.target && data.target.trim() !== ''), {
+  .refine((data) => data.type !== 'SRV' || (data.target && data.target.trim() !== ''), {
     message: 'Target is required for SRV records',
     path: ['target'],
   })
-  .refine(data => data.type !== 'SRV' || (data.priority !== undefined && data.priority !== null), {
+  .refine((data) => data.type !== 'SRV' || (data.priority ?? null) !== null, {
     message: 'Priority is required for SRV records',
     path: ['priority'],
   })
-  .refine(data => data.type !== 'MX' || (data.priority !== undefined && data.priority !== null), {
+  .refine((data) => data.type !== 'MX' || (data.priority ?? null) !== null, {
     message: 'Priority is required for MX records',
     path: ['priority'],
   })
