@@ -1,27 +1,40 @@
 package fetch
 
 import (
+	"log"
 	"path/filepath"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/rafinhacuri/SanchezDNS/api/cadastro"
 	"github.com/rafinhacuri/SanchezDNS/api/s3"
 )
 
 func File(c *gin.Context) {
-	file := c.Param("id")
+	email := c.Param("id")
 
 	ctx := c.Request.Context()
 
-	binaryPhoto, contentType, err := s3.Read(ctx, file)
+	foto, err := cadastro.GetFoto(ctx, email)
 	if err != nil {
+		log.Print(err)
+
+		c.AbortWithStatusJSON(404, gin.H{"message": "File not found"})
+
+		return
+	}
+
+	binaryPhoto, contentType, err := s3.Read(ctx, foto)
+	if err != nil {
+		log.Print(err)
+
 		c.AbortWithStatusJSON(500, gin.H{"message": "Failed to read file"})
 
 		return
 	}
 
-	filename := strings.TrimSuffix(file, filepath.Ext(file))
+	filename := strings.TrimSuffix(foto, filepath.Ext(foto))
 
 	c.Header("Content-Disposition", "inline; filename="+filename)
 

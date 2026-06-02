@@ -1,8 +1,10 @@
 <script setup lang="ts">
-  import type { TableColumn } from '@nuxt/ui'
+  import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
   import type { Row } from '@tanstack/vue-table'
   import { getPaginationRowModel } from '@tanstack/vue-table'
   import { safeParse } from 'valibot'
+
+  import { UButton, UDropdownMenu, UPopover } from '#components'
 
   const toast = useToast()
   const { isLoading, start, finish } = useLoadingIndicator()
@@ -456,10 +458,6 @@
 
   const table = useTemplateRef('table')
 
-  const UButton = resolveComponent('UButton')
-  const UDropdownMenu = resolveComponent('UDropdownMenu')
-  const UPopover = resolveComponent('UPopover')
-
   const columns: TableColumn<RecordForm>[] = [
     {
       accessorKey: 'name',
@@ -632,13 +630,7 @@
     },
   ]
 
-  function getRowItems(row: Row<RecordForm>): {
-    type?: 'label' | 'separator'
-    label?: string
-    icon?: string
-    color?: string
-    onSelect?: () => void
-  }[] {
+  function getRowItems(row: Row<RecordForm>): DropdownMenuItem[] {
     return [
       { type: 'label', label: `Ações` },
       {

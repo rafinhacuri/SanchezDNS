@@ -3,7 +3,6 @@
 
   const { user, useLogout } = useUser()
   const route = useRoute()
-  const colorMode = useColorMode()
 
   const items = computed<NavigationMenuItem[]>(() => {
     const base: NavigationMenuItem[] = [
@@ -44,6 +43,7 @@
     <template #right>
       <div class="flex items-center gap-4">
         <UColorModeSwitch size="lg" color="info" />
+        <User />
       </div>
     </template>
 

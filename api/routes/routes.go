@@ -8,6 +8,7 @@ import (
 	"github.com/rafinhacuri/SanchezDNS/api/controller/insert"
 	"github.com/rafinhacuri/SanchezDNS/api/controller/remove"
 	"github.com/rafinhacuri/SanchezDNS/api/controller/update"
+	"github.com/rafinhacuri/SanchezDNS/api/middleware"
 )
 
 func RegisterRoutes(server *gin.Engine) {
@@ -20,24 +21,25 @@ func RegisterRoutes(server *gin.Engine) {
 	server.GET("/healthcheck", controller.HealthCheck)
 
 	api := server.Group("/api")
+	auth := api.Group("/", middleware.ValidateSession)
 
 	api.POST("/login", controller.Login)
-	api.POST("/logout", controller.Logout)
-	api.GET("/session", controller.Session)
+	auth.POST("/logout", controller.Logout)
+	auth.GET("/session", controller.Session)
 
 	api.GET("/file/:id", fetch.File)
 	api.PUT("/file", insert.File)
 
-	api.GET("/zones", fetch.Zones)
-	api.GET("/records", fetch.Records)
-	api.PUT("/records", insert.Record)
-	api.DELETE("/records", remove.Record)
-	api.PATCH("/records", update.Record)
-	api.GET("/statistics", fetch.Statistics)
+	auth.GET("/zones", fetch.Zones)
+	auth.GET("/records", fetch.Records)
+	auth.PUT("/records", insert.Record)
+	auth.DELETE("/records", remove.Record)
+	auth.PATCH("/records", update.Record)
+	auth.GET("/statistics", fetch.Statistics)
 
 	api.POST("/cadastro", insert.Cadastro)
 
-	admin := api.Group("/")
+	admin := api.Group("/", middleware.AdminOnly)
 
 	admin.GET("/logs", fetch.Logs)
 	admin.PUT("/zone", insert.Zone)

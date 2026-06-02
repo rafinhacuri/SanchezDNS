@@ -1,16 +1,17 @@
 // oxlint-disable-next-line harlanzw/vue-no-faux-composables
-async function useLogout(): Promise<GoRes> {
-  const res = await $fetch<GoRes>('/server/api/logout', {
+async function useLogout(): Promise<void> {
+  await $fetch('/server/api/logout', {
     method: 'post',
   })
-  return res
+
+  await navigateTo('/login')
 }
 
 export function useUser(): {
   user: ComputedRef<{ email: string; level: string }>
   isLoggedIn: ComputedRef<boolean>
   refresh: () => Promise<void>
-  useLogout: () => Promise<GoRes>
+  useLogout: () => Promise<void>
 } {
   const headers = useRequestHeaders(['cookie'])
 

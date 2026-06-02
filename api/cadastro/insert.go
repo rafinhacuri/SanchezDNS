@@ -3,6 +3,8 @@ package cadastro
 import (
 	"context"
 
+	"go.mongodb.org/mongo-driver/v2/bson"
+
 	"github.com/rafinhacuri/SanchezDNS/api/mongo"
 	"github.com/rafinhacuri/SanchezDNS/api/passwords"
 )
@@ -10,7 +12,7 @@ import (
 func Insert(ctx context.Context, email, senha, nome, foto string) (string, error) {
 	var level string
 
-	count, err := mongo.Dns.Collection("cadastros").CountDocuments(ctx, mongo.Cadastro{Email: email})
+	count, err := mongo.Dns.Collection("cadastros").CountDocuments(ctx, bson.M{})
 	if err != nil {
 		return "", err
 	}

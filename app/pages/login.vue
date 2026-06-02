@@ -186,7 +186,7 @@
       description="Crie sua conta para aproveitar o sistema de monitoramento e gerenciamento de DNS"
       :ui="{ footer: 'justify-end' }">
       <template #body>
-        <UForm :schema="CadastroSchema" :state="cadastro" class="space-y-4">
+        <UForm :schema="CadastroSchema" :state="cadastro" class="space-y-4" @submit="cadastrar">
           <UFormField>
             <UFileUpload v-slot="{ open, removeFile }" v-model="foto" accept="image/*">
               <div class="flex flex-col items-center gap-4">

@@ -1,6 +1,8 @@
 <script setup lang="ts">
   import type { TableColumn } from '@nuxt/ui'
 
+  import { NuxtTime, UButton } from '#components'
+
   useHead({ title: 'Logs' })
 
   const page = ref(1)
@@ -15,9 +17,6 @@
   })
 
   watch(filterDebounced, () => (page.value = 1))
-
-  const UButton = resolveComponent('UButton')
-  const NuxtTime = resolveComponent('NuxtTime')
 
   const columns: TableColumn<Log>[] = [
     {

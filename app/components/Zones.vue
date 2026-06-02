@@ -1,8 +1,10 @@
 <script setup lang="ts">
-  import { safeParse } from 'valibot'
-  import type { TableColumn, TableRow } from '@nuxt/ui'
+  import type { BadgeProps, DropdownMenuItem, TableColumn, TableRow } from '@nuxt/ui'
   import type { Row } from '@tanstack/vue-table'
   import { getPaginationRowModel } from '@tanstack/vue-table'
+  import { safeParse } from 'valibot'
+
+  import { UBadge, UButton, UDropdownMenu, UIcon } from '#components'
 
   const { user } = useUser()
   const toast = useToast()
@@ -26,11 +28,6 @@
   watch(globalFilter, () => {
     pagination.value.pageIndex = 0
   })
-
-  const UButton = resolveComponent('UButton')
-  const UDropdownMenu = resolveComponent('UDropdownMenu')
-  const UBadge = resolveComponent('UBadge')
-  const UIcon = resolveComponent('UIcon')
 
   const columns: TableColumn<ZoneFetch>[] = [
     {
@@ -85,9 +82,13 @@
       },
       cell: ({ row }) => {
         const { nivel: level } = row.original
-        let color = 'success'
-        if (level === 'ADMINISTRADOR') color = 'error'
-        else if (level === 'LEITURA') color = 'warning'
+        let color: BadgeProps['color'] = 'success'
+
+        if (level === 'ADMINISTRADOR') {
+          color = 'error'
+        } else if (level === 'LEITURA') {
+          color = 'warning'
+        }
         return h(UBadge, { color, variant: 'soft', class: 'uppercase' }, () => level)
       },
     },
@@ -109,13 +110,15 @@
       },
       cell: ({ row }) =>
         row.original.dnssec
-          ? h(UBadge, { variant: 'soft', color: 'success' }, () =>
+          ? // oxlint-disable-next-line antfu/consistent-list-newline
+            h(UBadge, { variant: 'soft', color: 'success' }, () =>
               h('div', { class: 'flex items-center space-x-2' }, [
                 h(UIcon, { name: 'i-lucide-shield-check', class: 'text-green-500' }),
                 h('span', 'Ativo'),
               ]),
             )
-          : h(UBadge, { variant: 'soft', color: 'error' }, () =>
+          : // oxlint-disable-next-line antfu/consistent-list-newline
+            h(UBadge, { variant: 'soft', color: 'error' }, () =>
               h('div', { class: 'flex items-center space-x-2' }, [
                 h(UIcon, { name: 'i-lucide-shield-off', class: 'text-red-500' }),
                 h('span', 'Desativado'),
@@ -159,13 +162,7 @@
 
   const { copy } = useClipboard()
 
-  function getRowItems(row: Row<ZoneFetch>): {
-    type?: 'label' | 'separator'
-    label?: string
-    icon?: string
-    color?: string
-    onSelect?: () => void
-  }[] {
+  function getRowItems(row: Row<ZoneFetch>): DropdownMenuItem[] {
     return [
       { type: 'label', label: `${row.original.name} actions` },
       {
@@ -190,7 +187,7 @@
         },
       },
       ...(user.value.level === 'admin'
-        ? [
+        ? ([
             {
               label: 'Delete zone',
               icon: 'i-lucide-trash',
@@ -200,7 +197,7 @@
                 modalDelete.value = true
               },
             },
-          ]
+          ] satisfies DropdownMenuItem[])
         : []),
     ]
   }
