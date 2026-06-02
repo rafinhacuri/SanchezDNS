@@ -1,7 +1,7 @@
 <script setup lang="ts">
-  import type { DropdownMenuItem, NavigationMenuItem } from '@nuxt/ui'
+  import type { NavigationMenuItem } from '@nuxt/ui'
 
-  const { user, logout } = useUser()
+  const { user, useLogout } = useUser()
   const route = useRoute()
   const colorMode = useColorMode()
 
@@ -30,12 +30,11 @@
 
   const nuxtReady = ref(false)
   onNuxtReady(() => (nuxtReady.value = true))
-  const queryTheme = computed(() => (nuxtReady.value ? colorMode.value : ''))
 </script>
 
 <template>
   <UHeader>
-   <template #title>
+    <template #title>
       <NuxtImg src="/logo.png" alt="SanchezDNS Logo" width="32" />
       Sanchez<span class="text-green-500">DNS</span>
     </template>

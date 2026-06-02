@@ -8,7 +8,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return navigateTo('/login')
   }
 
-  if (to.path === '/logs' && user.value.level !== 'admin') {
+  if (to.path === '/login') {
+    return navigateTo('/')
+  }
+
+  if (to.path === '/logs' || (to.path === '/cadastros' && user.value.level !== 'admin')) {
     return navigateTo('/')
   }
 })

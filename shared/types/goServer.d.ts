@@ -36,8 +36,7 @@ export interface PdnsZone {
   soa_edit_api: string
 }
 export interface SessionRes {
-  idcbpf: string
-  representar: boolean
+  email: string
   level: string
 }
 export interface StatisticsResponse {
@@ -61,7 +60,7 @@ export interface ZonesResponse {
 }
 
 export interface User {
-  idcbpf: string
+  email: string
   permissao: string
   zona: string
   id: string

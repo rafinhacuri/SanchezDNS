@@ -19,7 +19,7 @@
 
   const roleOptions = ['escrita', 'leitura']
 
-  const stateUser = ref<InsertUserType>({ idcbpf: '', permissao: 'leitura', id: '', zona: '' })
+  const stateUser = ref<InsertUserType>({ email: '', permissao: 'leitura', id: '', zona: '' })
   const isEditingUser = ref(false)
 
   async function addUser(): Promise<void> {
@@ -52,12 +52,12 @@
     toast.add({ title: res.message, icon: 'i-lucide-badge-check', color: 'success' })
     isEditingUser.value = false
     await refreshUsers()
-    stateUser.value = { idcbpf: '', permissao: 'leitura', id: '', zona: '' }
+    stateUser.value = { email: '', permissao: 'leitura', id: '', zona: '' }
     finish()
   }
 
   watch(modalUsers, (nv) => {
-    if (!nv) stateUser.value = { idcbpf: '', permissao: 'leitura', id: '', zona: '' }
+    if (!nv) stateUser.value = { email: '', permissao: 'leitura', id: '', zona: '' }
   })
 
   async function deleteUser(zona: string, id: string): Promise<void> {
@@ -113,11 +113,11 @@
       cell: ({ row }) =>
         h('div', { class: 'flex items-center gap-3' }, [
           h('img', {
-            src: `/server/api/photo/${row.original.idcbpf}`,
-            alt: row.original.idcbpf,
+            src: `/server/api/file/${row.original.email}`,
+            alt: row.original.email,
             class: 'size-6 cursor-pointer rounded-full',
           }),
-          h('p', {}, row.original.idcbpf),
+          h('p', {}, row.original.email),
         ]),
     },
     {
@@ -165,7 +165,7 @@
               variant: 'outline',
               onClick: () => {
                 isEditingUser.value = false
-                stateUser.value = { idcbpf: '', permissao: 'leitura', id: '', zona: '' }
+                stateUser.value = { email: '', permissao: 'leitura', id: '', zona: '' }
               },
             }),
 
@@ -207,7 +207,7 @@
       <div class="flex items-center justify-center space-x-3">
         <USelectMenu
           :disabled="isEditingUser"
-          v-model="stateUser.idcbpf"
+          v-model="stateUser.email"
           :items="members?.members || []"
           icon="i-lucide-search"
           placeholder="Selecione o usuário..."
@@ -215,7 +215,7 @@
           <template #item-label="{ item }">
             <div class="flex items-center gap-3">
               <img
-                :src="`/server/api/photo/${item}`"
+                :src="`/server/api/file/${item}`"
                 :alt="item"
                 class="size-6 cursor-pointer rounded-full" />
               <p>{{ item }}</p>
