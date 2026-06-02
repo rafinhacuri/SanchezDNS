@@ -9,7 +9,7 @@ import (
 func GetSession(ctx context.Context, sid string) (SessionJSON, error) {
 	var session SessionJSON
 
-	key := "uniposrio-fisica:session:" + sid
+	key := "sanchezdns:session:" + sid
 
 	res, err := client.Do(ctx, "JSON.GET", key).Result()
 	if err != nil {

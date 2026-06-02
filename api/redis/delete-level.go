@@ -5,7 +5,7 @@ import (
 )
 
 func DeleteLevel(ctx context.Context, email string) error {
-	key := "uniposrio-fisica:level:" + email
+	key := "sanchezdns:level:" + email
 
 	_, err := client.Del(ctx, key).Result()
 	if err != nil {

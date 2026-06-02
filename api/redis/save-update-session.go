@@ -51,7 +51,7 @@ func SaveUpdateSession(sid string) {
 		return
 	}
 
-	key := "uniposrio-fisica:session:" + session.SID
+	key := "sanchezdns:session:" + session.SID
 
 	pipe := client.TxPipeline()
 

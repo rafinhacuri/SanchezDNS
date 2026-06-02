@@ -5,7 +5,7 @@ import (
 )
 
 func GetLevel(ctx context.Context, email string) (string, error) {
-	key := "uniposrio-fisica:level:" + email
+	key := "sanchezdns:level:" + email
 
 	res, err := client.Get(ctx, key).Result()
 	if err != nil {

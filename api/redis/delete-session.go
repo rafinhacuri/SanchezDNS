@@ -5,7 +5,7 @@ import (
 )
 
 func DeleteSession(ctx context.Context, sid string) error {
-	key := "uniposrio-fisica:session:" + sid
+	key := "sanchezdns:session:" + sid
 
 	_, err := client.Del(ctx, key).Result()
 	if err != nil {
