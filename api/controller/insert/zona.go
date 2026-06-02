@@ -106,7 +106,7 @@ func Zone(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	idcbpf := c.GetString("idcbpf")
+	email := c.GetString("email")
 
 	_, err = zonas.CreateZone(
 		ctx,
@@ -118,7 +118,7 @@ func Zone(c *gin.Context) {
 		req.Soa.Retry,
 		req.Soa.Expire,
 		req.Soa.NegativeCacheTtl,
-		idcbpf)
+		email)
 	if err != nil {
 		log.Println(err)
 		c.AbortWithStatusJSON(502, gin.H{"message": fmt.Sprintf("falha ao criar zona: %v", err.Error())})

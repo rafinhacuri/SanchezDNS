@@ -32,7 +32,7 @@ func DeleteUser(ctx context.Context, zona, id, arrayName string, index int, user
 		return "", errors.New("zona não encontrada")
 	}
 
-	var idcbpf string
+	var email string
 
 	leitura := existing.Leitura
 	escrita := existing.Escrita
@@ -43,14 +43,14 @@ func DeleteUser(ctx context.Context, zona, id, arrayName string, index int, user
 			return "", errors.New("índice fora do intervalo para leitura")
 		}
 
-		idcbpf = leitura[index]
+		email = leitura[index]
 		leitura = append(leitura[:index], leitura[index+1:]...)
 	case "escrita":
 		if index < 0 || index >= len(escrita) {
 			return "", errors.New("índice fora do intervalo para escrita")
 		}
 
-		idcbpf = escrita[index]
+		email = escrita[index]
 		escrita = append(escrita[:index], escrita[index+1:]...)
 	default:
 		return "", errors.New("permissão original inválida")
@@ -71,7 +71,7 @@ func DeleteUser(ctx context.Context, zona, id, arrayName string, index int, user
 		return "", errors.New("falha ao atualizar usuário")
 	}
 
-	go logs.InsertLog(zona, user, "delete_user", fmt.Sprintf("Removido usuário %s da zona %s", idcbpf, zona))
+	go logs.InsertLog(zona, user, "delete_user", fmt.Sprintf("Removido usuário %s da zona %s", email, zona))
 
 	return "user deleted", nil
 }

@@ -23,11 +23,11 @@ func Records(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	idcbpf := c.GetString("idcbpf")
+	email := c.GetString("email")
 	level := c.GetString("level")
 
 	if level == "member" {
-		allowed, err := memberCanViewZone(ctx, zoneID, idcbpf)
+		allowed, err := memberCanViewZone(ctx, zoneID, email)
 		if err != nil {
 			log.Println(err)
 			c.AbortWithStatusJSON(403, gin.H{"message": "Zona não encontrada ou sem permissão"})
@@ -64,7 +64,7 @@ func containsCI(slice []string, value string) bool {
 	return false
 }
 
-func memberCanViewZone(ctx context.Context, zoneID, idcbpf string) (bool, error) {
+func memberCanViewZone(ctx context.Context, zoneID, email string) (bool, error) {
 	coll := mongo.Dns.Collection("users")
 
 	var perm struct {
@@ -77,11 +77,11 @@ func memberCanViewZone(ctx context.Context, zoneID, idcbpf string) (bool, error)
 		return false, err
 	}
 
-	if containsCI(perm.Escrita, idcbpf) {
+	if containsCI(perm.Escrita, email) {
 		return true, nil
 	}
 
-	if containsCI(perm.Leitura, idcbpf) {
+	if containsCI(perm.Leitura, email) {
 		return true, nil
 	}
 

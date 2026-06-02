@@ -42,9 +42,9 @@ func User(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	idcbpf := c.GetString("idcbpf")
+	email := c.GetString("email")
 
-	_, err = users.DeleteUser(ctx, zona, arrayName, arrayName, index, idcbpf)
+	_, err = users.DeleteUser(ctx, zona, arrayName, arrayName, index, email)
 	if err != nil {
 		c.AbortWithStatusJSON(500, gin.H{"message": err.Error()})
 

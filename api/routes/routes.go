@@ -23,6 +23,7 @@ func RegisterRoutes(server *gin.Engine) {
 
 	server.POST("/login", controller.Login)
 	api.POST("/logout", controller.Logout)
+	api.GET("/session", controller.Session)
 
 	api.GET("/session", controller.Session)
 	api.GET("/zones", fetch.Zones)

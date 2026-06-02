@@ -8,8 +8,8 @@ import (
 	"github.com/mileusna/useragent"
 
 	"github.com/rafinhacuri/SanchezDNS/api/auth"
+	"github.com/rafinhacuri/SanchezDNS/api/cadastro"
 	"github.com/rafinhacuri/SanchezDNS/api/env"
-	"github.com/rafinhacuri/SanchezDNS/api/mongo"
 	"github.com/rafinhacuri/SanchezDNS/api/util"
 )
 
@@ -40,14 +40,12 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	// isValidPassword, mail := cadastro.ValidarSenha(ctx, credentials.Email, credentials.Password)
-	// if !isValidPassword {
-	// 	c.AbortWithStatusJSON(401, gin.H{"message": "api.invalid_credentials"})
+	isValidPassword, mail := cadastro.ValidarSenha(ctx, credentials.Email, credentials.Password)
+	if !isValidPassword {
+		c.AbortWithStatusJSON(401, gin.H{"message": "api.invalid_credentials"})
 
-	// 	return
-	// }
-
-	mail := credentials.Email
+		return
+	}
 
 	uaStr := c.GetHeader("User-Agent")
 	ua := useragent.Parse(uaStr)
@@ -59,7 +57,7 @@ func Login(c *gin.Context) {
 	sessionID, err := auth.CreateSession(ctx, mail, ip, os, browser, location)
 	if err != nil {
 		log.Printf("Erro ao criar sessão para o usuário %q: %v", mail, err)
-		c.AbortWithStatusJSON(500, gin.H{"message": "api.internal_server_error"})
+		c.AbortWithStatusJSON(500, gin.H{"message": "Erro interno"})
 
 		return
 	}
@@ -71,7 +69,7 @@ func Login(c *gin.Context) {
 
 	switch env.C.Production {
 	case true:
-		siteURL = "cbpf.br"
+		siteURL = "sanchezdns.curi.dev.br"
 		secure = true
 	case false:
 		if strings.Contains(env.C.SiteUrl, "cbpf.dev.br") {
@@ -86,9 +84,7 @@ func Login(c *gin.Context) {
 
 	c.SetCookie("sanchezdns_session_id", sessionID, 34560000, "/", siteURL, secure, true)
 
-	go mongo.InsertLog(mail, "Se autenticou", ip)
-
 	c.JSON(200, gin.H{
-		"message": "api.authenticated_successfully",
+		"message": "logado com sucesso",
 	})
 }

@@ -36,7 +36,7 @@ func SOA(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	idcbpf := c.GetString("idcbpf")
+	email := c.GetString("email")
 
 	_, err = zonas.UpdateSoa(
 		ctx,
@@ -47,7 +47,7 @@ func SOA(c *gin.Context) {
 		req.Retry,
 		req.Expire,
 		req.NegativeCacheTtl,
-		idcbpf)
+		email)
 	if err != nil {
 		log.Println(err)
 		c.AbortWithStatusJSON(502, gin.H{"message": fmt.Sprintf("falha ao atualizar registro SOA: %v", err.Error())})

@@ -29,10 +29,10 @@ func Zones(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	idcbpf := c.GetString("idcbpf")
+	email := c.GetString("email")
 	level := c.GetString("level")
 
-	filtered, err := zonas.FetchZonas(ctx, zoneType, idcbpf, level)
+	filtered, err := zonas.FetchZonas(ctx, zoneType, email, level)
 	if err != nil {
 		log.Println(err)
 		c.AbortWithStatusJSON(http.StatusBadGateway, gin.H{"message": fmt.Sprintf("falha ao buscar zonas: %v", err.Error())})

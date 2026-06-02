@@ -7,7 +7,7 @@ import (
 )
 
 type insertUserRequest struct {
-	IDCBPF    string `binding:"required"                       json:"idcbpf"`
+	Email     string `binding:"required"                       json:"email"`
 	Permissao string `binding:"required,oneof=escrita leitura" json:"permissao"`
 	Zona      string `binding:"required"                       json:"zona"`
 }
@@ -24,9 +24,9 @@ func User(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	idcbpf := c.GetString("idcbpf")
+	email := c.GetString("email")
 
-	_, err = users.InsertUser(ctx, req.Zona, req.Permissao, req.IDCBPF, idcbpf)
+	_, err = users.InsertUser(ctx, req.Zona, req.Permissao, req.Email, email)
 	if err != nil {
 		c.AbortWithStatusJSON(500, gin.H{"message": err.Error()})
 

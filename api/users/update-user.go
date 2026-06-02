@@ -16,7 +16,7 @@ import (
 	"github.com/rafinhacuri/SanchezDNS/api/mongo"
 )
 
-func UpdateUser(ctx context.Context, zona, id, permissao, idcbpf, user string) (string, error) {
+func UpdateUser(ctx context.Context, zona, id, permissao, email, user string) (string, error) {
 	collection := mongo.Dns.Collection("users")
 
 	filter := bson.M{"zona": zona}
@@ -54,7 +54,7 @@ func UpdateUser(ctx context.Context, zona, id, permissao, idcbpf, user string) (
 	if originalArray == newArray {
 		update := bson.M{
 			"$set": bson.M{
-				fmt.Sprintf("%s.%d", originalArray, index): idcbpf,
+				fmt.Sprintf("%s.%d", originalArray, index): email,
 				"updatedAt": time.Now(),
 			},
 		}
@@ -90,9 +90,9 @@ func UpdateUser(ctx context.Context, zona, id, permissao, idcbpf, user string) (
 	}
 
 	if newArray == "leitura" {
-		leitura = append(leitura, idcbpf)
+		leitura = append(leitura, email)
 	} else {
-		escrita = append(escrita, idcbpf)
+		escrita = append(escrita, email)
 	}
 
 	update := bson.M{
@@ -114,7 +114,7 @@ func UpdateUser(ctx context.Context, zona, id, permissao, idcbpf, user string) (
 		zona,
 		user,
 		"update_user",
-		fmt.Sprintf("Atualizado usuário %s na zona %s com permissão %s", idcbpf, zona, permissao))
+		fmt.Sprintf("Atualizado usuário %s na zona %s com permissão %s", email, zona, permissao))
 
 	return "user updated", nil
 }

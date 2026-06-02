@@ -18,9 +18,9 @@ func Zone(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	idcbpf := c.GetString("idcbpf")
+	email := c.GetString("email")
 
-	_, err := zonas.DeleteZone(ctx, zoneID, idcbpf)
+	_, err := zonas.DeleteZone(ctx, zoneID, email)
 	if err != nil {
 		c.AbortWithStatusJSON(502, gin.H{"message": fmt.Sprintf("falha ao deletar zona: %v", err.Error())})
 

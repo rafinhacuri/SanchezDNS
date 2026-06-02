@@ -54,7 +54,7 @@ func containsCI(slice []string, value string) bool {
 	return false
 }
 
-func resolveNivel(level, idcbpf, zone string, permsByZone map[string]ZonePermission) (string, bool) {
+func resolveNivel(level, email, zone string, permsByZone map[string]ZonePermission) (string, bool) {
 	if level == "admin" {
 		return "ADMINISTRADOR", true
 	}
@@ -64,11 +64,11 @@ func resolveNivel(level, idcbpf, zone string, permsByZone map[string]ZonePermiss
 		return "", false
 	}
 
-	if containsCI(perm.Escrita, idcbpf) {
+	if containsCI(perm.Escrita, email) {
 		return "ESCRITA", true
 	}
 
-	if containsCI(perm.Leitura, idcbpf) {
+	if containsCI(perm.Leitura, email) {
 		return "LEITURA", true
 	}
 
@@ -193,7 +193,7 @@ func filterReverseSpecial(zones []ZoneFetch) []ZoneFetch {
 	return finalFiltered
 }
 
-func FetchZonas(ctx context.Context, zoneType, idcbpf, level string) ([]ZoneFetch, error) {
+func FetchZonas(ctx context.Context, zoneType, email, level string) ([]ZoneFetch, error) {
 	httpc := resty.New().
 		SetTimeout(30*time.Second).
 		SetBaseURL(env.C.DnsHost).
@@ -224,7 +224,7 @@ func FetchZonas(ctx context.Context, zoneType, idcbpf, level string) ([]ZoneFetc
 			continue
 		}
 
-		nivel, ok := resolveNivel(level, idcbpf, nameLower, permsByZone)
+		nivel, ok := resolveNivel(level, email, nameLower, permsByZone)
 		if !ok {
 			continue
 		}

@@ -5,19 +5,16 @@ import (
 )
 
 type SessionRes struct {
-	Idcbpf      string `json:"idcbpf"`
-	Representar bool   `json:"representar"`
-	Level       string `json:"level"`
+	Email string `json:"email"`
+	Level string `json:"level"`
 }
 
 func Session(c *gin.Context) {
-	idcbpf := c.GetString("idcbpf")
-	representar := c.GetBool("representar")
+	email := c.GetString("email")
 	level := c.GetString("level")
 
 	c.JSON(200, SessionRes{
-		Idcbpf:      idcbpf,
-		Representar: representar,
-		Level:       level,
+		Email: email,
+		Level: level,
 	})
 }

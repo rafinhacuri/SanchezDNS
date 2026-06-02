@@ -16,12 +16,7 @@ import (
 var client *s3.Client
 
 func Connect() {
-	var endpoint string
-	if env.C.Production {
-		endpoint = "https://fs.cbpf.br"
-	} else {
-		endpoint = "https://fs.cbpf.dev.br"
-	}
+	endpoint := env.C.FsEndpoint
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

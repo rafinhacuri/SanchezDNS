@@ -16,6 +16,7 @@ type EnvConfig struct {
 	FsUser      string
 	FsPassword  string
 	FsBucket    string
+	FsEndpoint  string
 	DevUrl      string
 	DevKey      string
 	DevCert     string
@@ -32,6 +33,7 @@ func LoadEnv() {
 		FsUser:      os.Getenv("FS_USER"),
 		FsPassword:  os.Getenv("FS_PASSWORD"),
 		FsBucket:    os.Getenv("FS_BUCKET"),
+		FsEndpoint:  os.Getenv("FS_ENDPOINT"),
 		DnsHost:     os.Getenv("DNS_HOST"),
 		DnsApiKey:   os.Getenv("DNS_API_KEY"),
 		DnsServerId: os.Getenv("DNS_SERVER_ID"),

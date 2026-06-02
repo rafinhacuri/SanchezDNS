@@ -6,7 +6,7 @@ async function useLogout(): Promise<GoRes> {
 }
 
 export function useUser(): {
-  user: ComputedRef<{ idcbpf: string; representar: boolean; level: string }>
+  user: ComputedRef<{ email: string; level: string }>
   isLoggedIn: ComputedRef<boolean>
   refresh: () => Promise<void>
   useLogout: () => Promise<GoRes>
@@ -20,8 +20,7 @@ export function useUser(): {
   })
 
   const user = computed(() => ({
-    idcbpf: data.value?.idcbpf ?? '',
-    representar: data.value?.representar ?? false,
+    email: data.value?.email ?? '',
     level: data.value?.level ?? '',
   }))
 
@@ -29,7 +28,7 @@ export function useUser(): {
     await refreshU()
   }
 
-  const isLoggedIn = computed(() => Boolean(user.value.idcbpf))
+  const isLoggedIn = computed(() => Boolean(user.value.email))
 
   return { user, isLoggedIn, refresh, useLogout }
 }

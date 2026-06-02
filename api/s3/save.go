@@ -61,7 +61,7 @@ func Save(ctx context.Context, file *multipart.FileHeader, prefix string) (strin
 	if err != nil {
 		log.Println("error opening file:", err)
 
-		return "", errors.New("api.internal_server_error")
+		return "", errors.New("erro interno")
 	}
 
 	defer func() {
@@ -102,7 +102,7 @@ func Save(ctx context.Context, file *multipart.FileHeader, prefix string) (strin
 	if err != nil {
 		log.Println("error putting object to s3:", err)
 
-		return "", errors.New("api.internal_server_error")
+		return "", errors.New("erro interno")
 	}
 
 	return objectName, nil

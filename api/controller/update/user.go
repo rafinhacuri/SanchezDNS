@@ -18,9 +18,9 @@ func User(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	idcbpf := c.GetString("idcbpf")
+	email := c.GetString("email")
 
-	_, err = users.UpdateUser(ctx, req.Zona, req.ID, req.Permissao, req.IDCBPF, idcbpf)
+	_, err = users.UpdateUser(ctx, req.Zona, req.ID, req.Permissao, req.Email, email)
 	if err != nil {
 		c.AbortWithStatusJSON(500, gin.H{"message": err.Error()})
 

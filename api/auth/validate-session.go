@@ -6,6 +6,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 
+	"github.com/rafinhacuri/SanchezDNS/api/cadastro"
 	"github.com/rafinhacuri/SanchezDNS/api/mongo"
 	"github.com/rafinhacuri/SanchezDNS/api/redis"
 )
@@ -33,7 +34,7 @@ func ValidateSession(ctx context.Context, sid string) (string, string, error) {
 		email = sessionMongo.Email
 	}
 
-	level := "Admin"
+	level, err := cadastro.GetLevel(ctx, email)
 
 	return email, level, err
 }

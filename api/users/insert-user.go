@@ -15,7 +15,7 @@ import (
 	"github.com/rafinhacuri/SanchezDNS/api/mongo"
 )
 
-func InsertUser(ctx context.Context, zona, permissao, idcbpf, user string) (string, error) {
+func InsertUser(ctx context.Context, zona, permissao, email, user string) (string, error) {
 	collection := mongo.Dns.Collection("users")
 
 	filter := bson.M{"zona": zona}
@@ -37,12 +37,12 @@ func InsertUser(ctx context.Context, zona, permissao, idcbpf, user string) (stri
 	}()
 
 	if err == nil {
-		if slices.Contains(existing.Leitura, idcbpf) || slices.Contains(existing.Escrita, idcbpf) {
+		if slices.Contains(existing.Leitura, email) || slices.Contains(existing.Escrita, email) {
 			return "", errors.New("usuário já cadastrado na zona com alguma permissão")
 		}
 
 		update := bson.M{
-			"$addToSet": bson.M{roleField: idcbpf},
+			"$addToSet": bson.M{roleField: email},
 		}
 
 		_, err = collection.UpdateOne(ctx, filter, update)
@@ -70,9 +70,9 @@ func InsertUser(ctx context.Context, zona, permissao, idcbpf, user string) (stri
 		"updatedAt": time.Now(),
 	}
 	if permissao == "leitura" {
-		newDoc["leitura"] = []string{idcbpf}
+		newDoc["leitura"] = []string{email}
 	} else {
-		newDoc["escrita"] = []string{idcbpf}
+		newDoc["escrita"] = []string{email}
 	}
 
 	_, err = collection.InsertOne(ctx, newDoc)
@@ -86,7 +86,7 @@ func InsertUser(ctx context.Context, zona, permissao, idcbpf, user string) (stri
 		zona,
 		user,
 		"insert_user",
-		fmt.Sprintf("Inserido usuário %s na zona %s com permissão %s", idcbpf, zona, permissao))
+		fmt.Sprintf("Inserido usuário %s na zona %s com permissão %s", email, zona, permissao))
 
 	return "user inserted", nil
 }

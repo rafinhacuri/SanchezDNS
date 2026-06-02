@@ -12,7 +12,7 @@ import (
 )
 
 type User struct {
-	IDCBPF    string `json:"idcbpf"`
+	Email     string `json:"email"`
 	Permissao string `json:"permissao"`
 	Zona      string `json:"zona"`
 	ID        string `json:"id"`
@@ -38,7 +38,7 @@ func FetchUsers(ctx context.Context, zona string) ([]User, error) {
 	var users []User
 	for index, id := range result.Leitura {
 		users = append(users, User{
-			IDCBPF:    id,
+			Email:     id,
 			Permissao: "leitura",
 			Zona:      result.Zona,
 			ID:        fmt.Sprintf("leitura-%d", index),
@@ -47,7 +47,7 @@ func FetchUsers(ctx context.Context, zona string) ([]User, error) {
 
 	for index, id := range result.Escrita {
 		users = append(users, User{
-			IDCBPF:    id,
+			Email:     id,
 			Permissao: "escrita",
 			Zona:      result.Zona,
 			ID:        fmt.Sprintf("escrita-%d", index),

@@ -45,7 +45,7 @@ func Record(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	level := c.GetString("level")
-	idcbpf := c.GetString("idcbpf")
+	email := c.GetString("email")
 
 	if level == "member" {
 		coll := mongo.Dns.Collection("users")
@@ -62,7 +62,7 @@ func Record(c *gin.Context) {
 			return
 		}
 
-		userKey := strings.ToLower(strings.TrimSpace(idcbpf))
+		userKey := strings.ToLower(strings.TrimSpace(email))
 		allowed := false
 
 		for _, u := range perm.Escrita {
@@ -95,7 +95,7 @@ func Record(c *gin.Context) {
 		request.Port,
 		request.Target,
 		request.Priority,
-		idcbpf)
+		email)
 	if err != nil {
 		c.AbortWithStatusJSON(500, gin.H{"message": fmt.Sprintf("falha ao adicionar registro: %v", err)})
 

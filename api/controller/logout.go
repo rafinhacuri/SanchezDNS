@@ -8,19 +8,17 @@ import (
 
 	"github.com/rafinhacuri/SanchezDNS/api/auth"
 	"github.com/rafinhacuri/SanchezDNS/api/env"
-	"github.com/rafinhacuri/SanchezDNS/api/mongo"
 )
 
 func Logout(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	sid := c.GetString("sid")
-	idcbpf := c.GetString("email")
 
 	err := auth.DeleteSession(ctx, "", sid, "user logout")
 	if err != nil {
 		log.Printf("Erro ao deletar sessão do usuário %s: %v", sid, err)
-		c.AbortWithStatusJSON(500, gin.H{"message": "api.erro_generico"})
+		c.AbortWithStatusJSON(500, gin.H{"message": "Erro interno"})
 
 		return
 	}
@@ -32,7 +30,7 @@ func Logout(c *gin.Context) {
 
 	switch env.C.Production {
 	case true:
-		siteURL = "cbpf.br"
+		siteURL = "sanchezdns.curi.dev.br"
 		secure = true
 	case false:
 		if strings.Contains(env.C.SiteUrl, "cbpf.dev.br") {
@@ -47,8 +45,5 @@ func Logout(c *gin.Context) {
 
 	c.SetCookie("sanchezdns_session_id", "", -1, "/", siteURL, secure, true)
 
-	ip := c.ClientIP()
-	go mongo.InsertLog(idcbpf, "Se deslogou", ip)
-
-	c.JSON(200, gin.H{"message": "api.logout_sucesso"})
+	c.JSON(200, gin.H{"message": "deslogado com sucesso"})
 }
