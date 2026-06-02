@@ -87,10 +87,6 @@
 
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div>
-            <div class="text-sm text-gray-500">ID do Servidor</div>
-            <div class="text-lg font-semibold">ns1.cbpf.br</div>
-          </div>
-          <div>
             <div class="text-sm text-gray-500">Iniciado Em</div>
             <NuxtTime
               class="text-lg font-semibold"

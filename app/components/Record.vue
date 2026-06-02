@@ -1,4 +1,6 @@
 <script setup lang="ts">
+  import { safeParse } from 'valibot'
+
   import type { TableColumn } from '@nuxt/ui'
   import type { Row } from '@tanstack/vue-table'
   import { getPaginationRowModel } from '@tanstack/vue-table'
@@ -155,10 +157,9 @@
       state.value.name = `${state.value.name}.${zoneId.value}`
     }
 
-    const body = RecordSchema.safeParse(state.value)
-
+    const body = safeParse(RecordSchema, state.value)
     if (!body.success) {
-      for (const e of body.error.issues) {
+      for (const e of body.issues) {
         toast.add({ title: e.message, icon: 'i-lucide-shield-alert', color: 'error' })
       }
       return finish({ error: true })
@@ -166,7 +167,7 @@
 
     const res = await $fetch<GoRes>('/server/api/records', {
       method: 'PUT',
-      body: body.data,
+      body: body.output,
     }).catch((error) => {
       toast.add({
         title: error?.data?.message || error?.message || 'Erro ao adicionar record',
@@ -217,10 +218,10 @@
       oldState.value.name = `${oldState.value.name}.${zoneId.value}`
     }
 
-    const body = EditRecordSchema.safeParse({ oldValue: oldState.value, newValue: state.value })
+    const body = safeParse(EditRecordSchema, { oldValue: oldState.value, newValue: state.value })
 
     if (!body.success) {
-      for (const e of body.error.issues) {
+      for (const e of body.issues) {
         toast.add({ title: e.message, icon: 'i-lucide-shield-alert', color: 'error' })
       }
       return finish({ error: true })
@@ -228,7 +229,7 @@
 
     const res = await $fetch<GoRes>('/server/api/records', {
       method: 'PATCH',
-      body: body.data,
+      body: body.output,
     }).catch((error) => {
       toast.add({
         title: error?.data?.message || error?.message || 'Erro ao atualizar record',
@@ -289,10 +290,10 @@
   async function updateSOA(): Promise<void> {
     start()
 
-    const body = EditSOASchema.safeParse(stateSOA.value)
+    const body = safeParse(EditSOASchema, stateSOA.value)
 
     if (!body.success) {
-      for (const e of body.error.issues) {
+      for (const e of body.issues) {
         toast.add({ title: e.message, icon: 'i-lucide-shield-alert', color: 'error' })
       }
       return finish({ error: true })
@@ -300,7 +301,7 @@
 
     const res = await $fetch<GoRes>('/server/api/soa', {
       method: 'PATCH',
-      body: body.data,
+      body: body.output,
       query: { zone: zoneId.value },
     }).catch((error) => {
       toast.add({
@@ -368,10 +369,10 @@
 
     stateDelete.value.zone = zoneId.value
 
-    const body = RecordSchema.safeParse(stateDelete.value)
+    const body = safeParse(RecordSchema, stateDelete.value)
 
     if (!body.success) {
-      for (const e of body.error.issues) {
+      for (const e of body.issues) {
         toast.add({ title: e.message, icon: 'i-lucide-shield-alert', color: 'error' })
       }
       return finish({ error: true })
@@ -379,7 +380,7 @@
 
     const res = await $fetch<GoRes>('/server/api/records', {
       method: 'DELETE',
-      body: body.data,
+      body: body.output,
     }).catch((error) => {
       toast.add({
         title: error?.data?.message || error?.message || 'Erro ao remover record',

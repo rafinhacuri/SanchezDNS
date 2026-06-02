@@ -15,9 +15,6 @@ export default defineNuxtConfig({
   $development: {
     security: { headers: { crossOriginEmbedderPolicy: 'unsafe-none' } },
   },
-  routeRules: {
-    '/server/**': { proxy: { to: DEV_KEY && DEV_CERT ?`https://${DEV_URL}:8080/**` : 'http://localhost:8080/**' } },
-  },
   devtools: { enabled: true },
   app: { head: { templateParams: { separator: '•' } } },
   css: ['~/assets/main.css'],
@@ -25,16 +22,30 @@ export default defineNuxtConfig({
     name: 'Sanchez DNS',
     description: '🗄️ Web application to manage authoritative dns servers using PowerDNS',
   },
+  routeRules: {
+    '/server/**': {
+      proxy: {
+        to: DEV_KEY && DEV_CERT ? `https://${DEV_URL}:8080/**` : 'http://localhost:8080/**',
+      },
+    },
+  },
   devServer: {
     host: DEV_URL,
     https: DEV_KEY && DEV_CERT ? { key: DEV_KEY, cert: DEV_CERT } : undefined,
   },
   compatibilityDate: '2026-01-26',
+  nitro: {
+    preset: 'bun',
+  },
   linkChecker: { enabled: false },
+  ogImage: {
+    enabled: false,
+  },
   security: {
+    xssValidator: false,
     headers: {
       contentSecurityPolicy: {
-        'img-src': ["'self'", 'https://assets.cbpf.br', 'https://assets.cbpf.dev.br', 'data:'],
+        'img-src': ["'self'", 'data:', 'blob:'],
       },
     },
   },

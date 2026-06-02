@@ -17,6 +17,8 @@ import (
 func main() {
 	_ = godotenv.Load("../.env")
 
+	env.LoadEnv()
+
 	mongo.Connect()
 	redis.Connect()
 	s3.Connect()

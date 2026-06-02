@@ -1,10 +1,11 @@
-import { z } from 'zod'
+import { nonEmpty, object, optional, pipe, string } from 'valibot'
+import type { InferInput } from 'valibot'
 
-export const InsertUserSchema = z.object({
-  id: z.string().optional(),
-  email: z.string().min(1, 'Email é obrigatório'),
-  permissao: z.string().min(1, 'Permissão é obrigatória'),
-  zona: z.string().min(1, 'Zona é obrigatória'),
+export const InsertUserSchema = object({
+  id: optional(string('ID é uma string')),
+  email: pipe(string('Email é uma string'), nonEmpty('Email é obrigatório')),
+  permissao: pipe(string('Permissão é uma string'), nonEmpty('Permissão é obrigatória')),
+  zona: pipe(string('Zona é uma string'), nonEmpty('Zona é obrigatória')),
 })
 
-export type InsertUserType = z.infer<typeof InsertUserSchema>
+export type InsertUserType = InferInput<typeof InsertUserSchema>

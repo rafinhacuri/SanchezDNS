@@ -1,4 +1,5 @@
 <script setup lang="ts">
+  import { safeParse } from 'valibot'
   import type { TableColumn, TableRow } from '@nuxt/ui'
   import type { Row } from '@tanstack/vue-table'
   import { getPaginationRowModel } from '@tanstack/vue-table'
@@ -289,16 +290,16 @@
 
     state.value.type = type.value
 
-    const body = ZoneSchema.safeParse(state.value)
+    const body = safeParse(ZoneSchema, state.value)
 
     if (!body.success) {
-      for (const e of body.error.issues) {
+      for (const e of body.issues) {
         toast.add({ title: e.message, icon: 'i-lucide-shield-alert', color: 'error' })
       }
       return finish({ error: true })
     }
 
-    const res = await $fetch<GoRes>('/server/api/zone', { method: 'PUT', body: body.data }).catch(
+    const res = await $fetch<GoRes>('/server/api/zone', { method: 'PUT', body: body.output }).catch(
       (error) => {
         toast.add({ title: error.data.message, icon: 'i-lucide-shield-alert', color: 'error' })
       },

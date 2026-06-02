@@ -1,6 +1,9 @@
 <script setup lang="ts">
   import type { TableColumn } from '@nuxt/ui'
   import { getPaginationRowModel } from '@tanstack/vue-table'
+  import { safeParse } from 'valibot'
+
+  import { UBadge, UButton, UPopover } from '#components'
 
   const toast = useToast()
   const { isLoading, start, finish } = useLoadingIndicator()
@@ -27,18 +30,18 @@
 
     stateUser.value.zona = zoneId.value
 
-    const body = InsertUserSchema.safeParse(stateUser.value)
+    const body = safeParse(InsertUserSchema, stateUser.value)
 
     if (!body.success) {
-      for (const e of body.error.issues) {
+      for (const e of body.issues) {
         toast.add({ title: e.message, icon: 'i-lucide-shield-alert', color: 'error' })
       }
       return finish({ error: true })
     }
 
     const res = await $fetch<GoRes>('/server/api/user', {
-      method: body.data.id ? 'PATCH' : 'POST',
-      body: body.data,
+      method: body.output.id ? 'PATCH' : 'POST',
+      body: body.output,
     }).catch((error) => {
       toast.add({
         title: error?.data?.message || error?.message || 'Erro ao adicionar usuário',
@@ -82,9 +85,6 @@
   }
 
   const tableUsers = useTemplateRef('tableUsers')
-  const UButton = resolveComponent('UButton')
-  const UBadge = resolveComponent('UBadge')
-  const UPopover = resolveComponent('UPopover')
 
   const paginationUsers = ref({ pageIndex: 0, pageSize: 5 })
   const globalFilterUsers = ref('')
@@ -95,7 +95,7 @@
 
   const columnsUsers: TableColumn<User>[] = [
     {
-      accessorKey: 'idcbpf',
+      accessorKey: 'email',
       header: ({ column }) => {
         const isSorted = column.getIsSorted()
         let icon = 'i-heroicons-arrows-up-down'
