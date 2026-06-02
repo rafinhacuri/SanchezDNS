@@ -1,3 +1,4 @@
+// oxlint-disable-next-line harlanzw/vue-no-faux-composables
 async function useLogout(): Promise<GoRes> {
   const res = await $fetch<GoRes>('/server/api/logout', {
     method: 'post',

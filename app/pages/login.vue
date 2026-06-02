@@ -6,10 +6,6 @@
   })
   useHead({ title: 'Login' })
 
-  useSeoMeta({ description: 'Login page' })
-
-  defineOgImageComponent('Login', { title: 'Login page' })
-
   const toast = useToast()
   const { isLoading, start, finish } = useLoadingIndicator()
 
@@ -17,16 +13,27 @@
 
   function checkStrength(str: string): { met: boolean; text: string }[] {
     const requirements = [
+      // oxlint-disable-next-line require-unicode-regexp
       { regex: /.{8,}/, text: 'Pelo menos 8 caracteres' },
+      // oxlint-disable-next-line require-unicode-regexp
       { regex: /\d/, text: 'Pelo menos 1 número' },
+      // oxlint-disable-next-line require-unicode-regexp
       { regex: /[a-z]/, text: 'Pelo menos 1 letra minúscula' },
+      // oxlint-disable-next-line require-unicode-regexp
       { regex: /[A-Z]/, text: 'Pelo menos 1 letra maiúscula' },
     ]
 
     return requirements.map((req) => ({ met: req.regex.test(str), text: req.text }))
   }
 
-  const strength = computed(() => checkStrength(state.value.senha))
+  const cadastro = ref<Cadastro>({
+    email: '',
+    senha: '',
+    foto: '',
+    nome: '',
+  })
+
+  const strength = computed(() => checkStrength(cadastro.value.senha))
   const score = computed(() => strength.value.filter((req) => req.met).length)
 
   const color = computed(() => {
@@ -72,6 +79,60 @@
     await navigateTo('/')
     finish()
   }
+
+  const foto = ref<File | null>(null)
+
+  function createObjectUrl(file: File): string {
+    return URL.createObjectURL(file)
+  }
+
+  watch(foto, async (file) => {
+    if (file) {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const res = await $fetch<GoRes>('/server/api/file', {
+        method: 'PUT',
+        body: formData,
+      }).catch((error) => {
+        toast.add({ title: error.data.message, icon: 'i-lucide-shield-alert', color: 'error' })
+      })
+
+      if (res) cadastro.value.foto = res.message
+    }
+  })
+
+  async function cadastrar(): Promise<void> {
+    start()
+
+    const body = safeParse(CadastroSchema, cadastro.value)
+    if (!body.success) {
+      for (const e of body.issues) {
+        toast.add({ title: e.message, icon: 'i-lucide-shield-alert', color: 'error' })
+      }
+      return finish({ error: true })
+    }
+
+    const res = await $fetch<GoRes>('/server/api/cadastro', {
+      method: 'post',
+      body: body.output,
+    }).catch((error) => {
+      toast.add({ title: error.data.message, icon: 'i-lucide-shield-alert', color: 'error' })
+    })
+
+    if (!res) return finish({ error: true })
+
+    toast.add({ title: res.message, icon: 'i-lucide-shield-check', color: 'success' })
+    modal.value = false
+    finish()
+  }
+
+  watch(modal, (open) => {
+    if (!open) {
+      cadastro.value = { email: '', senha: '', foto: '', nome: '' }
+      foto.value = null
+    }
+  })
 </script>
 
 <template>
@@ -125,15 +186,63 @@
       description="Crie sua conta para aproveitar o sistema de monitoramento e gerenciamento de DNS"
       :ui="{ footer: 'justify-end' }">
       <template #body>
-        <UForm :schema="AuthSchema" :state="state" class="space-y-4">
+        <UForm :schema="CadastroSchema" :state="cadastro" class="space-y-4">
+          <UFormField>
+            <UFileUpload v-slot="{ open, removeFile }" v-model="foto" accept="image/*">
+              <div class="flex flex-col items-center gap-4">
+                <button type="button" class="group relative cursor-pointer" @click="open()">
+                  <UAvatar
+                    size="3xl"
+                    :src="foto ? createObjectUrl(foto) : undefined"
+                    icon="i-lucide-user"
+                    class="ring-2 ring-default transition-all group-hover:scale-105 group-hover:ring-primary" />
+
+                  <div
+                    class="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
+                    <UIcon name="i-lucide-camera" class="size-6 text-white" />
+                  </div>
+                </button>
+
+                <div class="text-center">
+                  <p class="text-sm font-medium">
+                    {{ foto ? foto.name : 'Escolha uma foto de perfil' }}
+                  </p>
+
+                  <p class="text-xs text-muted">JPG, PNG ou GIF</p>
+                </div>
+
+                <div class="flex gap-2">
+                  <UButton
+                    :label="foto ? 'Trocar foto' : 'Selecionar foto'"
+                    icon="i-lucide-upload"
+                    color="neutral"
+                    variant="outline"
+                    @click="open()" />
+
+                  <UButton
+                    v-if="foto"
+                    label="Remover"
+                    icon="i-lucide-trash-2"
+                    color="error"
+                    variant="soft"
+                    @click="removeFile()" />
+                </div>
+              </div>
+            </UFileUpload>
+          </UFormField>
+
+          <UFormField label="Nome" name="nome">
+            <UInput v-model="cadastro.nome" icon="i-lucide-user" class="w-full" />
+          </UFormField>
+
           <UFormField label="Email" name="email">
-            <UInput v-model="state.email" icon="i-lucide-mail" class="w-full" />
+            <UInput v-model="cadastro.email" icon="i-lucide-mail" class="w-full" />
           </UFormField>
 
           <div class="space-y-2">
             <UFormField label="Senha" name="senha">
               <UInput
-                v-model="state.senha"
+                v-model="cadastro.senha"
                 placeholder="Senha"
                 :color="color"
                 :type="show ? 'text' : 'password'"
@@ -178,8 +287,8 @@
       </template>
 
       <template #footer>
-        <UButton label="Cancel" :loading="isLoading" variant="outline" @click="modal = false" />
-        <UButton label="Confirm" :loading="isLoading" />
+        <UButton label="Cancelar" :loading="isLoading" variant="outline" @click="modal = false" />
+        <UButton label="Confirmar" :loading="isLoading" @click="cadastrar" />
       </template>
     </UModal>
   </UContainer>

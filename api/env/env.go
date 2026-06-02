@@ -30,7 +30,7 @@ func LoadEnv() {
 		SiteUrl:     os.Getenv("NUXT_PUBLIC_SITE_URL"),
 		MongoUrl:    os.Getenv("MONGO_URL"),
 		RedisUrl:    os.Getenv("REDIS_URL"),
-		FsUser:      os.Getenv("FS_USER"),
+		FsUser:      os.Getenv("FS_USERNAME"),
 		FsPassword:  os.Getenv("FS_PASSWORD"),
 		FsBucket:    os.Getenv("FS_BUCKET"),
 		FsEndpoint:  os.Getenv("FS_ENDPOINT"),

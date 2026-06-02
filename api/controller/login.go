@@ -14,10 +14,8 @@ import (
 )
 
 type LoginBody struct {
-	Email string `json:"email"`
-
-	Password string `json:"password"`
-	Captcha  string `json:"captcha"`
+	Email    string `json:"email"`
+	Password string `json:"senha"`
 }
 
 func Login(c *gin.Context) {
@@ -42,7 +40,7 @@ func Login(c *gin.Context) {
 
 	isValidPassword, mail := cadastro.ValidarSenha(ctx, credentials.Email, credentials.Password)
 	if !isValidPassword {
-		c.AbortWithStatusJSON(401, gin.H{"message": "api.invalid_credentials"})
+		c.AbortWithStatusJSON(401, gin.H{"message": "email ou senha incorretos"})
 
 		return
 	}

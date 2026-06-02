@@ -21,12 +21,12 @@ func RegisterRoutes(server *gin.Engine) {
 
 	api := server.Group("/api")
 
-	server.POST("/login", controller.Login)
+	api.POST("/login", controller.Login)
 	api.POST("/logout", controller.Logout)
 	api.GET("/session", controller.Session)
 
-	server.GET("/file/:id", fetch.File)
-	server.PUT("/file", insert.File)
+	api.GET("/file/:id", fetch.File)
+	api.PUT("/file", insert.File)
 
 	api.GET("/zones", fetch.Zones)
 	api.GET("/records", fetch.Records)
@@ -34,6 +34,8 @@ func RegisterRoutes(server *gin.Engine) {
 	api.DELETE("/records", remove.Record)
 	api.PATCH("/records", update.Record)
 	api.GET("/statistics", fetch.Statistics)
+
+	api.POST("/cadastro", insert.Cadastro)
 
 	admin := api.Group("/")
 

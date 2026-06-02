@@ -1,9 +1,8 @@
 <script setup lang="ts">
-  import { safeParse } from 'valibot'
-
   import type { TableColumn } from '@nuxt/ui'
   import type { Row } from '@tanstack/vue-table'
   import { getPaginationRowModel } from '@tanstack/vue-table'
+  import { safeParse } from 'valibot'
 
   const toast = useToast()
   const { isLoading, start, finish } = useLoadingIndicator()

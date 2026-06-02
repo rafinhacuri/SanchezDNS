@@ -1,6 +1,8 @@
 package insert
 
 import (
+	"log"
+
 	"github.com/gin-gonic/gin"
 
 	"github.com/rafinhacuri/SanchezDNS/api/cadastro"
@@ -11,11 +13,13 @@ func Cadastro(c *gin.Context) {
 		Nome  string `binding:"required"       json:"nome"`
 		Email string `binding:"required,email" json:"email"`
 		Senha string `binding:"required,min=8" json:"senha"`
-		Foto  string `binding:"required,url"   json:"foto"`
+		Foto  string `binding:"required"       json:"foto"`
 	}
 
 	err := c.ShouldBindJSON(&body)
 	if err != nil {
+		log.Println("Cadastro request received" + err.Error())
+
 		c.JSON(400, gin.H{
 			"message": "Requisição inválida",
 		})

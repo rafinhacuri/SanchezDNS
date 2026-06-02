@@ -4,15 +4,15 @@ export default defineNuxtRouteMiddleware(async (to) => {
   // * Atualizando a sessão
   await refresh()
 
-  if (!isLoggedIn.value) {
+  if (!isLoggedIn.value && to.path !== '/login') {
     return navigateTo('/login')
   }
 
-  if (to.path === '/login') {
+  if (isLoggedIn.value && to.path === '/login') {
     return navigateTo('/')
   }
 
-  if (to.path === '/logs' || (to.path === '/cadastros' && user.value.level !== 'admin')) {
+  if ((to.path === '/logs' || to.path === '/cadastros') && user.value.level !== 'admin') {
     return navigateTo('/')
   }
 })

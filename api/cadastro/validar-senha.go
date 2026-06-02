@@ -2,6 +2,7 @@ package cadastro
 
 import (
 	"context"
+	"log"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 
@@ -18,6 +19,8 @@ func ValidarSenha(ctx context.Context, email, senha string) (bool, string) {
 	}
 
 	isValid := passwords.VerifyBCrypt(senha, cadastro.Senha)
+	log.Printf("Validando senha para o email %q, senha: %q, válida: %v", email, senha, isValid)
+	log.Println(cadastro)
 
 	return isValid, cadastro.Email
 }
