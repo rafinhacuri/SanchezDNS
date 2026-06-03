@@ -1,6 +1,6 @@
 module github.com/rafinhacuri/SanchezDNS/api
 
-go 1.26.0
+go 1.26.4
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.41.9

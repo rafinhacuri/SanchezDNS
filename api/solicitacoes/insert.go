@@ -1,4 +1,4 @@
-package cadastro
+package solicitacoes
 
 import (
 	"context"
@@ -13,23 +13,22 @@ func Insert(ctx context.Context, email, senha, nome, foto string) (string, error
 		return "", err
 	}
 
-	cadastro := mongo.Cadastro{
+	solicitacao := mongo.Solicitacao{
 		Email: email,
 		Senha: senha,
 		Nome:  nome,
 		Foto:  foto,
-		Level: "admin",
 	}
 
-	err = cadastro.Validate()
+	err = solicitacao.Validate()
 	if err != nil {
 		return "", err
 	}
 
-	_, err = mongo.Dns.Collection("cadastros").InsertOne(ctx, cadastro)
+	_, err = mongo.Dns.Collection("solicitacoes").InsertOne(ctx, solicitacao)
 	if err != nil {
 		return "", err
 	}
 
-	return "Cadastro realizado com sucesso", nil
+	return "Solicitação realizada com sucesso e será analisada em breve", nil
 }

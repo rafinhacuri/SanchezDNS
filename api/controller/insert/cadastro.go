@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/rafinhacuri/SanchezDNS/api/cadastro"
+	"github.com/rafinhacuri/SanchezDNS/api/solicitacoes"
 )
 
 func Cadastro(c *gin.Context) {
@@ -27,10 +28,36 @@ func Cadastro(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	exist, err := cadastro.Exist(ctx, body.Email)
+	first, err := cadastro.First(ctx)
 	if err != nil {
 		c.JSON(500, gin.H{
-			"message": "Erro ao verificar existência do cadastro",
+			"message": "Erro ao verificar cadastro",
+		})
+
+		return
+	}
+
+	if first {
+		res, err := cadastro.Insert(ctx, body.Email, body.Senha, body.Nome, body.Foto)
+		if err != nil {
+			c.JSON(500, gin.H{
+				"message": "Erro ao criar cadastro",
+			})
+
+			return
+		}
+
+		c.JSON(200, gin.H{
+			"message": res,
+		})
+
+		return
+	}
+
+	exist, err := solicitacoes.Exist(ctx, body.Email)
+	if err != nil {
+		c.JSON(500, gin.H{
+			"message": "Erro ao verificar existência da solicitação",
 		})
 
 		return
@@ -38,16 +65,16 @@ func Cadastro(c *gin.Context) {
 
 	if exist {
 		c.JSON(409, gin.H{
-			"message": "Cadastro já existe",
+			"message": "Solicitação já existe",
 		})
 
 		return
 	}
 
-	res, err := cadastro.Insert(ctx, body.Email, body.Senha, body.Nome, body.Foto)
+	res, err := solicitacoes.Insert(ctx, body.Email, body.Senha, body.Nome, body.Foto)
 	if err != nil {
 		c.JSON(500, gin.H{
-			"message": "Erro ao criar cadastro",
+			"message": "Erro ao criar solicitação",
 		})
 
 		return
