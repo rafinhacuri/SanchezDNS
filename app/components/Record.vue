@@ -692,7 +692,6 @@
     variant="outline"
     class="mb-4"
     icon="i-lucide-arrow-left"
-    color="info"
     label="Voltar para Zonas"
     @click="zoneId = ''" />
 
@@ -708,7 +707,6 @@
         v-if="nivel === 'ADMINISTRADOR'"
         variant="outline"
         icon="i-lucide-users"
-        color="info"
         label="Usuários"
         :loading="isLoading"
         @click="modalUsers = true" />
@@ -716,7 +714,6 @@
         v-if="nivel === 'ADMINISTRADOR'"
         variant="outline"
         icon="i-lucide-pen"
-        color="info"
         label="Editar SOA"
         :loading="isLoading"
         @click="modalEditSOA = true" />
@@ -733,36 +730,28 @@
       <UFormField label="Nome" name="name">
         <UInput
           v-model="state.name"
-          color="info"
           :disabled="isEditing"
           icon="i-lucide-computer"
           class="w-full"
           placeholder="subdomínio" />
       </UFormField>
       <UFormField label="Tipo" name="type">
-        <USelect
-          v-model="state.type"
-          color="info"
-          :disabled="isEditing"
-          :items="recordsOpts"
-          class="w-full" />
+        <USelect v-model="state.type" :disabled="isEditing" :items="recordsOpts" class="w-full" />
       </UFormField>
       <UFormField label="Valor" name="vl">
         <UInput
           v-model="state.vl"
-          color="info"
           icon="i-lucide-database"
           class="w-full"
           :placeholder="placeholder"
           :disabled="state.type === 'HTTPS' || state.type === 'SRV'" />
       </UFormField>
       <UFormField label="TTL" name="ttl">
-        <UInputNumber v-model="state.ttl" color="info" :min="60" />
+        <UInputNumber v-model="state.ttl" :min="60" />
       </UFormField>
       <UFormField v-if="state.type !== 'HTTPS'" label="Prioridade" name="priority">
         <UInputNumber
           v-model="state.priority"
-          color="info"
           :min="0"
           :disabled="state.type !== 'SRV' && state.type !== 'MX'"
           placeholder="10" />
@@ -773,24 +762,17 @@
       <UFormField label="SvcPriority" name="svcPriority">
         <UInputNumber
           v-model="state.svcPriority"
-          color="info"
           :min="1"
           :max="65535"
           placeholder="0"
           class="w-full" />
       </UFormField>
       <UFormField label="TargetName" name="targetName">
-        <UInput
-          v-model="state.targetName"
-          color="info"
-          icon="i-lucide-target"
-          class="w-full"
-          placeholder="." />
+        <UInput v-model="state.targetName" icon="i-lucide-target" class="w-full" placeholder="." />
       </UFormField>
       <UFormField label="SvcParams (Opcional)" name="svcParams">
         <UInput
           v-model="state.svcParams"
-          color="info"
           icon="i-lucide-settings"
           class="w-full"
           placeholder="alpn=h2,h3 foo=..." />
@@ -801,25 +783,17 @@
       <UFormField label="Weight" name="weight">
         <UInputNumber
           v-model="state.weight"
-          color="info"
           :min="0"
           :max="65535"
           placeholder="10"
           class="w-full" />
       </UFormField>
       <UFormField label="Port" name="port">
-        <UInputNumber
-          v-model="state.port"
-          color="info"
-          :min="1"
-          :max="65535"
-          placeholder="80"
-          class="w-full" />
+        <UInputNumber v-model="state.port" :min="1" :max="65535" placeholder="80" class="w-full" />
       </UFormField>
       <UFormField label="Target" name="target">
         <UInput
           v-model="state.target"
-          color="info"
           icon="i-lucide-target"
           class="w-full"
           placeholder="service.example.com" />
@@ -827,17 +801,12 @@
     </div>
 
     <UFormField label="Comentário" name="comment">
-      <UTextarea
-        v-model="state.comment"
-        color="info"
-        class="w-full"
-        placeholder="Comentário opcional" />
+      <UTextarea v-model="state.comment" class="w-full" placeholder="Comentário opcional" />
     </UFormField>
 
     <div v-if="isEditing" class="flex w-full items-center gap-2">
       <UButton
         variant="outline"
-        color="info"
         class="mt-5 flex w-full justify-center"
         icon="i-lucide-pen"
         label="Editar Record"
@@ -855,7 +824,6 @@
     <UButton
       v-else
       variant="outline"
-      color="info"
       class="mt-5 flex w-full justify-center"
       icon="i-lucide-plus"
       label="Adicionar Record"
@@ -866,7 +834,6 @@
   <div class="space-x-6">
     <UInput
       v-model="globalFilter"
-      color="info"
       class="mt-10 mb-4"
       placeholder="Buscar records..."
       icon="i-lucide-search" />
@@ -887,8 +854,7 @@
     v-if="data?.record && data.record.length > pagination.pageSize"
     class="flex justify-center border-t border-default pt-4">
     <UPagination
-      active-color="info"
-      color="info"
+      active-
       active-variant="subtle"
       :default-page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
       :items-per-page="table?.tableApi?.getState().pagination.pageSize"
@@ -906,7 +872,6 @@
         <UFormField label="Start of Authority" name="startOfAuthority">
           <UInput
             v-model="stateSOA.startOfAuthority"
-            color="info"
             icon="i-lucide-shield-check"
             class="w-full"
             placeholder="Ex: ns1.example.com" />
@@ -914,7 +879,6 @@
         <UFormField label="Email" name="email">
           <UInput
             v-model="stateSOA.email"
-            color="info"
             icon="i-lucide-mail"
             class="w-full"
             placeholder="Ex: hostmaster.example.com" />
@@ -922,7 +886,6 @@
         <UFormField label="Refresh" name="refresh">
           <UInputNumber
             v-model="stateSOA.refresh"
-            color="info"
             :min="0"
             icon="i-lucide-refresh-cw"
             class="w-full"
@@ -931,7 +894,6 @@
         <UFormField label="Retry" name="retry">
           <UInputNumber
             v-model="stateSOA.retry"
-            color="info"
             :min="0"
             icon="i-lucide-clock"
             class="w-full"
@@ -940,7 +902,6 @@
         <UFormField label="Expire" name="expire">
           <UInputNumber
             v-model="stateSOA.expire"
-            color="info"
             :min="0"
             icon="i-lucide-hourglass"
             class="w-full"
@@ -949,7 +910,6 @@
         <UFormField label="Negative Cache TTL" name="negativeCacheTtl">
           <UInputNumber
             v-model="stateSOA.negativeCacheTtl"
-            color="info"
             :min="0"
             icon="i-lucide-timer"
             class="w-full"
@@ -963,9 +923,8 @@
         label="Cancel"
         :loading="isLoading"
         variant="outline"
-        color="info"
         @click="modalEditSOA = false" />
-      <UButton label="Confirm" color="info" :loading="isLoading" @click="updateSOA" />
+      <UButton label="Confirm" :loading="isLoading" @click="updateSOA" />
     </template>
   </UModal>
 
@@ -983,12 +942,7 @@
     </template>
 
     <template #footer>
-      <UButton
-        label="Cancel"
-        :loading="isLoading"
-        variant="outline"
-        color="info"
-        @click="modalDelete = false" />
+      <UButton label="Cancel" :loading="isLoading" variant="outline" @click="modalDelete = false" />
       <UButton
         label="Confirm"
         color="error"

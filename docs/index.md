@@ -2,11 +2,11 @@
 layout: home
 
 hero:
-  name: "SanchezDNS"
-  tagline: "🗄️ Web application to manage authoritative dns servers using PowerDNS"
+  name: 'SanchezDNS'
+  tagline: '🗄️ Web application to manage authoritative dns servers using PowerDNS'
   image:
     src: /logo.png
-    alt: "SanchezDNS"
+    alt: 'SanchezDNS'
   actions:
     - theme: brand
       text: Get Started

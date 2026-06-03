@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import type { NavigationMenuItem } from '@nuxt/ui'
 
-  const { user, useLogout } = useUser()
+  const { user } = useUser()
   const route = useRoute()
 
   const items = computed<NavigationMenuItem[]>(() => {
@@ -38,17 +38,17 @@
       Sanchez<span class="text-green-500">DNS</span>
     </template>
 
-    <UNavigationMenu :items color="info" />
+    <UNavigationMenu :items />
 
     <template #right>
       <div class="flex items-center gap-4">
-        <UColorModeSwitch size="lg" color="info" />
+        <UColorModeSwitch size="lg" />
         <User />
       </div>
     </template>
 
     <template #body>
-      <UNavigationMenu :items orientation="vertical" class="-mx-2.5" color="info" />
+      <UNavigationMenu :items orientation="vertical" class="-mx-2.5" />
     </template>
   </UHeader>
 </template>

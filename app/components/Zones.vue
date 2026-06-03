@@ -326,7 +326,6 @@
     <div class="grid grid-cols-1 gap-2 md:flex md:items-center md:gap-4">
       <UButton
         v-if="user.level === 'admin'"
-        color="info"
         :label="
           type === 'normal'
             ? 'Criar Zona'
@@ -356,8 +355,7 @@
     v-if="data?.zones && data.zones.length > pagination.pageSize"
     class="flex justify-center border-t border-default pt-4">
     <UPagination
-      active-color="info"
-      color="info"
+      active-
       active-variant="subtle"
       :default-page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
       :items-per-page="table?.tableApi?.getState().pagination.pageSize"

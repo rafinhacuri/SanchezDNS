@@ -1,16 +1,12 @@
 import { defineConfig } from 'vitepress'
+
 import { description, version } from '../../package.json'
 
 export default defineConfig({
-  title: 'SanchezDNS',
-  description:
-    description || 'A modern web interface for PowerDNS with real-time control, automation, and security.',
-  lang: 'en-US',
-  lastUpdated: true,
   cleanUrls: true,
-  sitemap: {
-    hostname: 'https://sanchezdns.curi.dev.br',
-  },
+  description:
+    description ||
+    'A modern web interface for PowerDNS with real-time control, automation, and security.',
   head: [
     ['meta', { name: 'theme-color', content: '#00c850' }],
     ['meta', { name: 'og:type', content: 'website' }],
@@ -18,22 +14,33 @@ export default defineConfig({
     ['meta', { name: 'og:site_name', content: 'SanchezDNS' }],
     ['link', { rel: 'icon', href: '/logo.png', type: 'image/png' }],
   ],
+  lang: 'en-US',
+  lastUpdated: true,
+  sitemap: {
+    hostname: 'https://sanchezdns.curi.dev.br',
+  },
   themeConfig: {
     siteTitle: 'SanchezDNS',
     logo: '/logo.png',
     search: {
       provider: 'local',
     },
-    socialLinks: [
-      { icon: 'github', link: 'https://github.com/rafinhacuri/sanchezdns' },
-    ],
+    socialLinks: [{ icon: 'github', link: 'https://github.com/rafinhacuri/sanchezdns' }],
     nav: [
       { text: 'Home', link: '/' },
       {
         text: `V${version}`,
         items: [
-          { text: 'Changelog', link: 'https://github.com/rafinhacuri/sanchezdns/releases', target: '_blank' },
-          { text: 'Report a Bug', link: 'https://github.com/rafinhacuri/sanchezdns/issues', target: '_blank' },
+          {
+            text: 'Changelog',
+            link: 'https://github.com/rafinhacuri/sanchezdns/releases',
+            target: '_blank',
+          },
+          {
+            text: 'Report a Bug',
+            link: 'https://github.com/rafinhacuri/sanchezdns/issues',
+            target: '_blank',
+          },
           { text: 'Sponsor', link: 'https://github.com/sponsors/rafinhacuri', target: '_blank' },
         ],
       },
@@ -80,4 +87,5 @@ export default defineConfig({
       copyright: '© 2025 Rafael Curi — SanchezDNS',
     },
   },
+  title: 'SanchezDNS',
 })

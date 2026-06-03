@@ -138,7 +138,7 @@
       },
       cell: ({ row }) =>
         row.original.permissao === 'escrita'
-          ? h(UBadge, { color: 'info', variant: 'outline', label: 'Escrita' })
+          ? h(UBadge, { variant: 'outline', label: 'Escrita' })
           : h(UBadge, { color: 'neutral', variant: 'outline', label: 'Leitura' }),
     },
     {
@@ -150,7 +150,6 @@
             stateUser.value.id !== row.original.id &&
             h(UButton, {
               icon: 'i-lucide-user-pen',
-              color: 'info',
               variant: 'outline',
               onClick: () => {
                 isEditingUser.value = true
@@ -161,7 +160,6 @@
           stateUser.value.id === row.original.id &&
             h(UButton, {
               icon: 'i-lucide-x',
-              color: 'info',
               variant: 'outline',
               onClick: () => {
                 isEditingUser.value = false
@@ -225,7 +223,6 @@
         <USelect
           v-model="stateUser.permissao"
           :items="roleOptions"
-          color="info"
           class="mb-4"
           placeholder="Selecione a permissão..."
           icon="i-lucide-shield-check" />
@@ -233,7 +230,6 @@
 
       <UInput
         v-model="globalFilterUsers"
-        color="info"
         class="mt-10 mb-4"
         placeholder="Buscar usuário..."
         icon="i-lucide-search" />
@@ -253,8 +249,7 @@
         v-if="userData && userData.length > paginationUsers.pageSize"
         class="flex justify-center border-t border-default pt-4">
         <UPagination
-          active-color="info"
-          color="info"
+          active-
           active-variant="subtle"
           :default-page="(tableUsers?.tableApi?.getState().pagination.pageIndex || 0) + 1"
           :items-per-page="tableUsers?.tableApi?.getState().pagination.pageSize"
@@ -264,16 +259,10 @@
     </template>
 
     <template #footer>
-      <UButton
-        label="Fechar"
-        color="info"
-        :loading="isLoading"
-        variant="outline"
-        @click="modalUsers = false" />
+      <UButton label="Fechar" :loading="isLoading" variant="outline" @click="modalUsers = false" />
       <UButton
         :label="stateUser.id ? 'Editar' : 'Adicionar'"
         icon="i-lucide-user-plus"
-        color="info"
         :loading="isLoading"
         variant="outline"
         @click="addUser" />

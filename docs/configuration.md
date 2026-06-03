@@ -19,7 +19,6 @@ To allow SanchezDNS to connect, make sure the following parameters are set in yo
 
 **File:** `/etc/powerdns/pdns.conf`
 
-
 ```ini
 api=yes
 api-key=YourSecureAPIKeyHere
@@ -34,6 +33,7 @@ server-id=localhost
 > Avoid using `webserver-allow-from=0.0.0.0/0` in production.  
 > This allows anyone to access your PowerDNS API.  
 > Instead, restrict access to your SanchezDNS server IP only:
+>
 > ```ini
 > webserver-allow-from=YOUR_SYSTEM_IP/32
 > ```
@@ -66,12 +66,12 @@ Once DNSSEC is active, SanchezDNS will automatically display and track DNSSEC st
 In SanchezDNS, go to the **Connections** page and click **Add New Connection**.  
 Fill in the following details:
 
-| Field | Description |
-|-------|--------------|
-| **Name** | A friendly name to identify your server (e.g. “Authoritative DNS - Primary”). |
-| **Host** | The IP or hostname of your PowerDNS server (e.g. `152.84.120.200`). |
-| **Server ID** | Typically `localhost`, unless you use a custom setup. |
-| **API Key** | The same API key you defined in `/etc/powerdns/pdns.conf`. |
+| Field         | Description                                                                   |
+| ------------- | ----------------------------------------------------------------------------- |
+| **Name**      | A friendly name to identify your server (e.g. “Authoritative DNS - Primary”). |
+| **Host**      | The IP or hostname of your PowerDNS server (e.g. `152.84.120.200`).           |
+| **Server ID** | Typically `localhost`, unless you use a custom setup.                         |
+| **API Key**   | The same API key you defined in `/etc/powerdns/pdns.conf`.                    |
 
 ---
 
@@ -103,8 +103,8 @@ These settings allow your server to respond to DNS queries and store zone data c
 
 ## 🧾 Summary
 
-- SanchezDNS supports **PowerDNS Authoritative Servers only**.  
-- Ensure **API** and **webserver** are enabled in `/etc/powerdns/pdns.conf`.  
-- Enable **DNSSEC** manually if desired.  
-- The connection will only be established if the host responds to ping and the API key is valid.  
+- SanchezDNS supports **PowerDNS Authoritative Servers only**.
+- Ensure **API** and **webserver** are enabled in `/etc/powerdns/pdns.conf`.
+- Enable **DNSSEC** manually if desired.
+- The connection will only be established if the host responds to ping and the API key is valid.
 - Once connected, SanchezDNS provides full control over zones, records, users, and logs — all from one place.

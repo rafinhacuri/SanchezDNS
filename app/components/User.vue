@@ -33,7 +33,7 @@
     :ui="{
       content:
         'w-64 rounded-2xl border border-default bg-default/95 backdrop-blur shadow-lg ring-1 ring-default/60',
-      item: 'flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition hover:bg-info/10',
+      item: 'flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition hover:bg-primary/10',
       label: 'text-xs font-semibold text-muted uppercase px-3 pt-2 pb-1',
       separator: 'my-2 border-default',
     }">

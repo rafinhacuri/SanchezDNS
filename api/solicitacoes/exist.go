@@ -14,5 +14,18 @@ func Exist(ctx context.Context, email string) (bool, error) {
 		return false, err
 	}
 
-	return count > 0, nil
+	if count > 0 {
+		return true, nil
+	}
+
+	count, err = mongo.Dns.Collection("cadastros").CountDocuments(ctx, bson.M{"email": email})
+	if err != nil {
+		return false, err
+	}
+
+	if count > 0 {
+		return true, nil
+	}
+
+	return false, nil
 }

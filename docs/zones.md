@@ -1,9 +1,11 @@
 # 🧭 Zones
 
 ## Overview
+
 The **Zones** section in SanchezDNS manages DNS zones, each representing a distinct domain. Users can create, edit, or delete zones directly connected to PowerDNS through the API, enabling seamless synchronization between the SanchezDNS interface and the authoritative DNS servers.
 
 ## SOA (Start of Authority)
+
 Every new zone must include a SOA record, which defines the authoritative information about the zone and controls DNS replication behavior between primary and secondary servers.
 
 The SOA record consists of the following parameters:
@@ -19,6 +21,7 @@ The SOA record consists of the following parameters:
 Together, these parameters establish the authority of the zone and control how DNS data is replicated and refreshed across servers.
 
 ## Creating and Managing Records
+
 When adding DNS records, the interface provides intuitive behavior to simplify management:
 
 - If the zone is `teste.curi.dev.br` and the user enters a record name such as `rafael`, the system automatically expands it to `rafael.teste.curi.dev.br`.
@@ -44,9 +47,11 @@ A, AAAA, ALIAS, CAA, CNAME, HTTPS, MX, NS, TXT, SRV
 - **SRV** — Defines service location records for specific protocols.
 
 ## Notes
+
 SanchezDNS is designed for DNS professionals and does not provide DNS concept tutorials. It automates record management by interfacing directly with the PowerDNS Authoritative API, ensuring that all changes are applied immediately and accurately.
 
 ## Best Practices
+
 - Verify SOA values carefully and ensure that secondary servers synchronize correctly.
 - Use TTL values thoughtfully to balance DNS propagation speed and cache efficiency.
 - Always confirm DNS changes with external lookups before deploying them live to avoid disruptions.

@@ -37,6 +37,7 @@ func (s *Solicitacao) Validate() error {
 	if s.Foto == "" {
 		return errors.New("schema.foto_obrigatoria")
 	}
+
 	if s.Id.IsZero() {
 		s.Id = bson.NewObjectID()
 	}

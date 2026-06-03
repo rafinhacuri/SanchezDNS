@@ -117,8 +117,7 @@
     <div v-if="data.total > itemsPerPage" class="flex justify-center border-t border-default pt-4">
       <UPagination
         v-model:page="page"
-        active-color="info"
-        color="info"
+        active-
         active-variant="subtle"
         :total="data.total"
         :items-per-page="itemsPerPage" />

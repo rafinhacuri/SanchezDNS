@@ -65,7 +65,7 @@ func Cadastro(c *gin.Context) {
 
 	if exist {
 		c.JSON(409, gin.H{
-			"message": "Solicitação já existe",
+			"message": "Usuário já existe",
 		})
 
 		return

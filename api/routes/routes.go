@@ -39,8 +39,9 @@ func RegisterRoutes(server *gin.Engine) {
 
 	api.POST("/cadastro", insert.Cadastro)
 
-	admin := api.Group("/", middleware.AdminOnly)
+	admin := auth.Group("/", middleware.AdminOnly)
 
+	admin.PATCH("/aprovar-solicitacao", update.AprovarSolicitacao)
 	admin.GET("/logs", fetch.Logs)
 	admin.PUT("/zone", insert.Zone)
 	admin.DELETE("/zone", remove.Zone)

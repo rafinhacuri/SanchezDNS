@@ -10,6 +10,7 @@ import (
 	"github.com/rafinhacuri/SanchezDNS/api/auth"
 	"github.com/rafinhacuri/SanchezDNS/api/cadastro"
 	"github.com/rafinhacuri/SanchezDNS/api/env"
+	"github.com/rafinhacuri/SanchezDNS/api/solicitacoes"
 	"github.com/rafinhacuri/SanchezDNS/api/util"
 )
 
@@ -34,6 +35,19 @@ func Login(c *gin.Context) {
 	err := c.ShouldBindJSON(&credentials)
 	if err != nil {
 		c.AbortWithStatusJSON(400, gin.H{"message": "Requisição inválida"})
+
+		return
+	}
+
+	panding, err := solicitacoes.Panding(ctx, credentials.Email)
+	if err != nil {
+		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao verificar existência da solicitação"})
+
+		return
+	}
+
+	if panding {
+		c.AbortWithStatusJSON(401, gin.H{"message": "Seu cadastro ainda está em análise"})
 
 		return
 	}

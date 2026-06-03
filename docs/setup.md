@@ -9,9 +9,9 @@ This guide will help you get the system running smoothly.
 
 Before you begin, make sure you have:
 
-- **Docker & Docker Compose** installed on your system.  
-- A **PowerDNS Authoritative Server** (version 4.7 or higher).  
-- Access to a **MongoDB instance** (local or remote).  
+- **Docker & Docker Compose** installed on your system.
+- A **PowerDNS Authoritative Server** (version 4.7 or higher).
+- Access to a **MongoDB instance** (local or remote).
 - Basic knowledge of DNS records.
 
 ---
@@ -19,13 +19,15 @@ Before you begin, make sure you have:
 ## ✅ Quick Start
 
 ### 🔧 Step 1 — Install Prerequisites
-- Install **Docker**  
+
+- Install **Docker**
 - Install **Docker Compose**  
-👉 Official guide: [Get Docker](https://docs.docker.com/get-started/get-docker/)
+  👉 Official guide: [Get Docker](https://docs.docker.com/get-started/get-docker/)
 
 ---
 
 ### 📦 Step 2 — Get the `docker-compose.yaml`
+
 Choose one of the options below to download the configuration file:
 
 <details>
@@ -34,6 +36,7 @@ Choose one of the options below to download the configuration file:
 ```bash
 curl -L -o docker-compose.yaml https://raw.githubusercontent.com/rafinhacuri/sanchezdns/main/docker-compose.yaml
 ```
+
 </details>
 
 <details>
@@ -42,6 +45,7 @@ curl -L -o docker-compose.yaml https://raw.githubusercontent.com/rafinhacuri/san
 ```bash
 wget -O docker-compose.yaml https://raw.githubusercontent.com/rafinhacuri/sanchezdns/main/docker-compose.yaml
 ```
+
 </details>
 
 Alternatively, copy it directly from the [example file](https://github.com/rafinhacuri/sanchezdns/blob/main/docker-compose.yaml).
@@ -83,6 +87,7 @@ Download and prepare your `.env` file:
 ```bash
 curl -L -o .env https://raw.githubusercontent.com/rafinhacuri/sanchezdns/main/.env.example
 ```
+
 </details>
 
 <details>
@@ -91,6 +96,7 @@ curl -L -o .env https://raw.githubusercontent.com/rafinhacuri/sanchezdns/main/.e
 ```bash
 wget -O .env https://raw.githubusercontent.com/rafinhacuri/sanchezdns/main/.env.example
 ```
+
 </details>
 
 ---
@@ -121,8 +127,8 @@ docker compose up -d --force-recreate sanchezdns
 
 ---
 
-
 ### Verify Installation
+
 Check running containers:
 
 ```bash
@@ -143,11 +149,12 @@ http://localhost:4000
 
 When you first open SanchezDNS, you'll be guided through:
 
-1. Creating the **first admin user**  
-2. Adding your **PowerDNS connection**  
-3. Syncing zones and viewing server statistics  
+1. Creating the **first admin user**
+2. Adding your **PowerDNS connection**
+3. Syncing zones and viewing server statistics
 
 The admin user automatically gains access to:
+
 - Logs
 - Connections
 - System configuration tools
@@ -156,9 +163,9 @@ The admin user automatically gains access to:
 
 ## 🧠 Notes
 
-- The backend and API are **fully preconfigured** — no manual edits are needed.  
-- DNS records are synced automatically with your PowerDNS server.  
-- You can safely update via Docker without losing data (persistent volumes).  
+- The backend and API are **fully preconfigured** — no manual edits are needed.
+- DNS records are synced automatically with your PowerDNS server.
+- You can safely update via Docker without losing data (persistent volumes).
 
 > _SanchezDNS is designed to be ready out of the box — focus on your zones, not the setup._
 

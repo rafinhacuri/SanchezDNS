@@ -22,12 +22,13 @@ export default {
         if (!heading || !('offsetTop' in heading) || typeof heading.offsetTop !== 'number') return
         window.scrollTo({ top: heading.offsetTop, behavior: 'smooth' })
       })
-      return
+
+      return false
     }
 
     if (from.path !== to.path) {
       window.scrollTo({ top: 0, behavior: 'smooth' })
-      return
+      return false
     }
 
     return { top: 0 }

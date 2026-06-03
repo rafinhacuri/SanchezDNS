@@ -30,7 +30,7 @@
 <template>
   <UContainer class="py-8">
     <template v-if="!zoneId">
-      <UTabs v-model="selectedTab" :items value-key="id" color="info" />
+      <UTabs v-model="selectedTab" :items value-key="id" />
       <div class="mt-6">
         <Zones v-model:zone-id="zoneId" v-model:type="selectedTab" v-model:nivel="nivel" />
       </div>
