@@ -50,4 +50,5 @@ func RegisterRoutes(server *gin.Engine) {
 	admin.PATCH("/user", update.User)
 	admin.DELETE("/user", remove.User)
 	admin.GET("/users", fetch.Users)
+	admin.GET("/members", fetch.Membros)
 }

@@ -16,9 +16,12 @@
     query: { zona: zoneId },
   })
 
-  const { data: members } = await useFetch<{ members: string[] }>('/server/api/members', {
-    method: 'GET',
-  })
+  const { data: members } = await useFetch<{ email: string; nome: string }[]>(
+    '/server/api/members',
+    {
+      method: 'GET',
+    },
+  )
 
   const roleOptions = ['escrita', 'leitura']
 
@@ -206,17 +209,19 @@
         <USelectMenu
           :disabled="isEditingUser"
           v-model="stateUser.email"
-          :items="members?.members || []"
+          label-key="nome"
+          value-key="email"
+          :items="members || []"
           icon="i-lucide-search"
           placeholder="Selecione o usuário..."
           class="mb-4">
           <template #item-label="{ item }">
             <div class="flex items-center gap-3">
               <img
-                :src="`/server/api/file/${item}`"
-                :alt="item"
+                :src="`/server/api/file/${item.email}`"
+                :alt="item.nome"
                 class="size-6 cursor-pointer rounded-full" />
-              <p>{{ item }}</p>
+              <p>{{ item.nome }}</p>
             </div>
           </template>
         </USelectMenu>
