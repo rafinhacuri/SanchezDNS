@@ -18,7 +18,7 @@ func File(c *gin.Context) {
 
 	key, err := s3.Save(ctx, file, "")
 	if err != nil {
-		c.AbortWithStatusJSON(502, gin.H{"message": err.Error()})
+		c.AbortWithStatusJSON(502, gin.H{"message": "erro ao salvar arquivo"})
 
 		return
 	}

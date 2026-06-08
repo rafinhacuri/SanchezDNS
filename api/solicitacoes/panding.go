@@ -9,7 +9,7 @@ import (
 )
 
 func Panding(ctx context.Context, email string) (bool, error) {
-	count, err := mongo.Dns.Collection("solicitacoes").CountDocuments(ctx, bson.M{"email": email})
+	count, err := mongo.Dns.Collection("solicitacoes").CountDocuments(ctx, bson.M{"email": email, "status": "pendente"})
 	if err != nil {
 		return false, err
 	}

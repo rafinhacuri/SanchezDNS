@@ -1,5 +1,6 @@
 <script setup lang="ts">
   import { safeParse } from 'valibot'
+  import { U } from 'vue-router/dist/index-BQLwgiyK.js'
 
   import { NuxtTime } from '#components'
 
@@ -14,7 +15,7 @@
   const filter = ref('')
   const filterDebounced = refDebounced(filter, 300)
 
-  const { data } = await useFetch<CadastroResponse>('/server/api/cadastros', {
+  const { data, refresh } = await useFetch<CadastroResponse>('/server/api/cadastros', {
     method: 'GET',
     query: { page, limit: itemsPerPage, filter: filterDebounced },
     default: () => ({ cadastros: [], total: 0 }),
@@ -40,6 +41,52 @@
       }
     }
   }
+
+  const idDelete = ref('')
+  const nomeDelete = ref('')
+  const modalDelete = ref(false)
+
+  function openDelete(id: string, nome: string): void {
+    idDelete.value = id
+    nomeDelete.value = nome
+
+    modalDelete.value = true
+  }
+
+  async function deleteCadastro(): Promise<void> {
+    start()
+
+    const body = safeParse(IdSchema, {
+      id: idDelete.value ?? '',
+    })
+    if (!body.success) {
+      for (const e of body.issues) {
+        toast.add({ title: e.message, icon: 'i-lucide-shield-alert', color: 'error' })
+      }
+      return finish({ error: true })
+    }
+
+    const res = await $fetch<GoRes>('/server/api/cadastro', {
+      method: 'DELETE',
+      body: body.output,
+    }).catch((error) => {
+      toast.add({ title: error.data.message, icon: 'i-lucide-shield-alert', color: 'error' })
+    })
+
+    if (!res) return finish({ error: true })
+
+    refresh()
+    toast.add({ title: res.message, icon: 'i-lucide-shield-check', color: 'success' })
+    modalDelete.value = false
+    finish()
+  }
+
+  watch(modalDelete, (open) => {
+    if (!open) {
+      idDelete.value = ''
+      nomeDelete.value = ''
+    }
+  })
 </script>
 
 <template>
@@ -153,11 +200,13 @@
               block
               variant="soft" />
             <UButton
+              v-if="cadastro.level !== 'admin'"
               :loading="isLoading"
               label="Excluir"
               color="error"
               icon="i-lucide-trash-2"
               variant="soft"
+              @click="openDelete(cadastro.id, cadastro.nome)"
               block />
           </div>
         </div>
@@ -189,5 +238,23 @@
         :total="data.total"
         :items-per-page="itemsPerPage" />
     </div>
+
+    <UModal v-model:open="modalDelete" :title="`Excluir cadastro de ${nomeDelete}`">
+      <template #body>
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          Tem certeza que deseja excluir este cadastro? Esta ação é irreversível.
+        </p>
+      </template>
+      <template #footer>
+        <div class="flex items-center justify-end gap-2">
+          <UButton
+            label="Cancelar"
+            variant="outline"
+            color="neutral"
+            @click="modalDelete = false" />
+          <UButton :loading="isLoading" label="Excluir" color="error" @click="deleteCadastro" />
+        </div>
+      </template>
+    </UModal>
   </UContainer>
 </template>

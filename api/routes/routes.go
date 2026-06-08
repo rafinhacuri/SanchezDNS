@@ -53,4 +53,5 @@ func RegisterRoutes(server *gin.Engine) {
 	admin.GET("/members", fetch.Membros)
 	admin.GET("/solicitacoes", fetch.Solicitacoes)
 	admin.GET("/cadastros", fetch.Cadastros)
+	admin.DELETE("/cadastro", remove.Cadastro)
 }
