@@ -87,6 +87,55 @@
       nomeDelete.value = ''
     }
   })
+
+  const idLevel = ref('')
+  const nomeLevel = ref('')
+  const modalLevel = ref(false)
+  const level = ref('')
+
+  function openLevel(id: string, nome: string, lvl: string): void {
+    idLevel.value = id
+    nomeLevel.value = nome
+    level.value = lvl
+
+    modalLevel.value = true
+  }
+
+  async function updateLevel(): Promise<void> {
+    start()
+
+    const body = safeParse(IdSchema, {
+      id: idLevel.value ?? '',
+    })
+    if (!body.success) {
+      for (const e of body.issues) {
+        toast.add({ title: e.message, icon: 'i-lucide-shield-alert', color: 'error' })
+      }
+      return finish({ error: true })
+    }
+
+    const res = await $fetch<GoRes>('/server/api/level', {
+      method: 'PATCH',
+      body: body.output,
+    }).catch((error) => {
+      toast.add({ title: error.data.message, icon: 'i-lucide-shield-alert', color: 'error' })
+    })
+
+    if (!res) return finish({ error: true })
+
+    refresh()
+    toast.add({ title: res.message, icon: 'i-lucide-shield-check', color: 'success' })
+    modalLevel.value = false
+    finish()
+  }
+
+  watch(modalLevel, (open) => {
+    if (!open) {
+      idLevel.value = ''
+      nomeLevel.value = ''
+      level.value = ''
+    }
+  })
 </script>
 
 <template>
@@ -198,6 +247,7 @@
               color="warning"
               icon="i-lucide-user-pen"
               block
+              @click="openLevel(cadastro.id, cadastro.nome, cadastro.level)"
               variant="soft" />
             <UButton
               v-if="cadastro.level !== 'admin'"
@@ -253,6 +303,26 @@
             color="neutral"
             @click="modalDelete = false" />
           <UButton :loading="isLoading" label="Excluir" color="error" @click="deleteCadastro" />
+        </div>
+      </template>
+    </UModal>
+
+    <UModal v-model:open="modalLevel" :title="`Alterar level de ${nomeLevel}`">
+      <template #body>
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          Tem certeza que deseja alterar o level deste cadastro para
+          {{ level == 'admin' ? 'Usuário' : 'Administrador' }}?
+        </p>
+      </template>
+      <template #footer>
+        <div class="flex items-center justify-end gap-2">
+          <UButton label="Cancelar" variant="outline" color="neutral" @click="modalLevel = false" />
+          <UButton
+            :loading="isLoading"
+            label="confirmar"
+            color="warning"
+            variant="soft"
+            @click="updateLevel" />
         </div>
       </template>
     </UModal>
