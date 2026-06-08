@@ -12,17 +12,13 @@ import (
 )
 
 func File(c *gin.Context) {
-	email := c.Param("id")
+	id := c.Param("id")
 
 	ctx := c.Request.Context()
 
-	foto, err := cadastro.GetFoto(ctx, email)
+	foto, err := cadastro.GetFoto(ctx, id)
 	if err != nil {
-		log.Print(err)
-
-		c.AbortWithStatusJSON(404, gin.H{"message": "File not found"})
-
-		return
+		foto = id
 	}
 
 	binaryPhoto, contentType, err := s3.Read(ctx, foto)

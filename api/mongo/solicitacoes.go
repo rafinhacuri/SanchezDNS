@@ -1,3 +1,4 @@
+//nolint:dupl
 package mongo
 
 import (
@@ -17,6 +18,7 @@ type Solicitacao struct {
 	Email     string        `bson:"email"     json:"email"`
 	Senha     string        `bson:"senha"     json:"senha"`
 	Foto      string        `bson:"foto"      json:"foto"`
+	Status    string        `bson:"status"    json:"status"`
 	CreatedAt time.Time     `bson:"createdAt" json:"createdAt"`
 	UpdatedAt time.Time     `bson:"updatedAt" json:"updatedAt"`
 }
@@ -36,6 +38,10 @@ func (s *Solicitacao) Validate() error {
 
 	if s.Foto == "" {
 		return errors.New("schema.foto_obrigatoria")
+	}
+
+	if s.Status == "" {
+		s.Status = "pendente"
 	}
 
 	if s.Id.IsZero() {

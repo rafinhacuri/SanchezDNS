@@ -3,8 +3,9 @@ package cadastro
 import (
 	"context"
 
-	"github.com/rafinhacuri/SanchezDNS/api/mongo"
 	"go.mongodb.org/mongo-driver/v2/bson"
+
+	"github.com/rafinhacuri/SanchezDNS/api/mongo"
 )
 
 type Membro struct {
@@ -19,13 +20,19 @@ func GetMembros(ctx context.Context) ([]Membro, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer cursor.Close(ctx)
+
+	defer func() {
+		_ = cursor.Close(ctx)
+	}()
 
 	for cursor.Next(ctx) {
 		var membro Membro
-		if err := cursor.Decode(&membro); err != nil {
+
+		err := cursor.Decode(&membro)
+		if err != nil {
 			return nil, err
 		}
+
 		membros = append(membros, membro)
 	}
 

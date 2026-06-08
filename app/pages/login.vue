@@ -33,6 +33,8 @@
     nome: '',
   })
 
+  const confirmSenha = ref('')
+
   const strength = computed(() => checkStrength(cadastro.value.senha))
   const score = computed(() => strength.value.filter((req) => req.met).length)
 
@@ -52,6 +54,7 @@
   })
 
   const show = ref(false)
+  const showConfirm = ref(false)
 
   const modal = ref(false)
 
@@ -105,6 +108,11 @@
   async function cadastrar(): Promise<void> {
     start()
 
+    if (cadastro.value.senha !== confirmSenha.value) {
+      toast.add({ title: 'As senhas não coincidem', icon: 'i-lucide-shield-alert', color: 'error' })
+      return finish({ error: true })
+    }
+
     const body = safeParse(CadastroSchema, cadastro.value)
     if (!body.success) {
       for (const e of body.issues) {
@@ -131,6 +139,7 @@
     if (!open) {
       cadastro.value = { email: '', senha: '', foto: '', nome: '' }
       foto.value = null
+      confirmSenha.value = ''
     }
   })
 </script>
@@ -232,21 +241,30 @@
           </UFormField>
 
           <UFormField label="Nome" name="nome">
-            <UInput v-model="cadastro.nome" icon="i-lucide-user" class="w-full" />
+            <UInput
+              v-model="cadastro.nome"
+              icon="i-lucide-user"
+              placeholder="Digite seu nome completo"
+              class="w-full" />
           </UFormField>
 
           <UFormField label="Email" name="email">
-            <UInput v-model="cadastro.email" icon="i-lucide-mail" class="w-full" />
+            <UInput
+              v-model="cadastro.email"
+              icon="i-lucide-mail"
+              placeholder="Digite seu email"
+              class="w-full" />
           </UFormField>
 
           <div class="space-y-2">
             <UFormField label="Senha" name="senha">
               <UInput
                 v-model="cadastro.senha"
-                placeholder="Senha"
                 :color="color"
+                icon="i-lucide-key"
                 :type="show ? 'text' : 'password'"
                 :aria-invalid="score < 4"
+                placeholder="Digite uma senha forte"
                 aria-describedby="password-strength"
                 :ui="{ trailing: 'pe-1' }"
                 class="w-full">
@@ -262,6 +280,35 @@
                     @click="show = !show" />
                 </template>
               </UInput>
+            </UFormField>
+            <UFormField label="Confirmar Senha" name="confirmar_senha">
+              <UInput
+                v-model="confirmSenha"
+                :color="confirmSenha && confirmSenha !== cadastro.senha ? 'error' : undefined"
+                :type="showConfirm ? 'text' : 'password'"
+                placeholder="Confirme sua senha"
+                icon="i-lucide-key"
+                :aria-invalid="confirmSenha && confirmSenha !== cadastro.senha"
+                aria-describedby="confirm-password-error"
+                class="w-full">
+                <template #trailing>
+                  <UButton
+                    color="neutral"
+                    variant="link"
+                    size="sm"
+                    :icon="showConfirm ? 'i-lucide-eye-off' : 'i-lucide-eye'"
+                    :aria-label="showConfirm ? 'Esconder senha' : 'Mostrar senha'"
+                    :aria-pressed="showConfirm"
+                    aria-controls="password"
+                    @click="showConfirm = !showConfirm" />
+                </template>
+              </UInput>
+              <p
+                v-if="confirmSenha && confirmSenha !== cadastro.senha"
+                id="confirm-password-error"
+                class="text-sm text-error">
+                As senhas não coincidem.
+              </p>
             </UFormField>
             <UProgress :color="color" :indicator="text" :model-value="score" :max="4" size="sm" />
             <p id="password-strength" class="text-sm font-medium">{{ text }}. Deve conter:</p>

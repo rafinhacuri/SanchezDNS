@@ -41,7 +41,7 @@ func RegisterRoutes(server *gin.Engine) {
 
 	admin := auth.Group("/", middleware.AdminOnly)
 
-	admin.PATCH("/aprovar-solicitacao", update.AprovarSolicitacao)
+	admin.PUT("/solicitacoes-status", update.SolicitacaoStatus)
 	admin.GET("/logs", fetch.Logs)
 	admin.PUT("/zone", insert.Zone)
 	admin.DELETE("/zone", remove.Zone)
@@ -51,4 +51,5 @@ func RegisterRoutes(server *gin.Engine) {
 	admin.DELETE("/user", remove.User)
 	admin.GET("/users", fetch.Users)
 	admin.GET("/members", fetch.Membros)
+	admin.GET("/solicitacoes", fetch.Solicitacoes)
 }

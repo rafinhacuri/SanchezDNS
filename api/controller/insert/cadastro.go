@@ -2,11 +2,13 @@ package insert
 
 import (
 	"log"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 
 	"github.com/rafinhacuri/SanchezDNS/api/cadastro"
 	"github.com/rafinhacuri/SanchezDNS/api/solicitacoes"
+	"github.com/rafinhacuri/SanchezDNS/api/util"
 )
 
 func Cadastro(c *gin.Context) {
@@ -24,6 +26,17 @@ func Cadastro(c *gin.Context) {
 		c.JSON(400, gin.H{
 			"message": "Requisição inválida",
 		})
+	}
+
+	body.Email = strings.ToLower(body.Email)
+
+	valid := util.ValidateEmail(body.Email)
+	if !valid {
+		c.JSON(400, gin.H{
+			"message": "Email inválido",
+		})
+
+		return
 	}
 
 	ctx := c.Request.Context()

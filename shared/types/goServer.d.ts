@@ -65,3 +65,17 @@ export interface User {
   zona: string
   id: string
 }
+export interface Solicitacao {
+  id: string
+  nome: string
+  email: string
+  senha: string
+  foto: string
+  status: string
+  createdAt: string
+  updatedAt: string
+}
+export interface SolicitacaoResponse {
+  solicitacoes: Solicitacao[]
+  total: number
+}

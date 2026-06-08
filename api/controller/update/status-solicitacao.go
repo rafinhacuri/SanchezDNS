@@ -2,14 +2,16 @@ package update
 
 import (
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/v2/bson"
 
 	"github.com/rafinhacuri/SanchezDNS/api/cadastro"
 	"github.com/rafinhacuri/SanchezDNS/api/solicitacoes"
 )
 
-func AprovarSolicitacao(c *gin.Context) {
+func SolicitacaoStatus(c *gin.Context) {
 	var body struct {
-		Email string `binding:"required" json:"email"`
+		Id     bson.ObjectID `binding:"required" json:"id"`
+		Status string        `binding:"required" json:"status"`
 	}
 
 	err := c.ShouldBindJSON(&body)
@@ -23,7 +25,7 @@ func AprovarSolicitacao(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	exist, err := cadastro.Exist(ctx, body.Email)
+	exist, err := cadastro.ExistId(ctx, body.Id)
 	if err != nil {
 		c.JSON(500, gin.H{
 			"message": "Erro ao verificar existência do cadastro",
@@ -40,10 +42,27 @@ func AprovarSolicitacao(c *gin.Context) {
 		return
 	}
 
-	res, err := solicitacoes.Aprovar(ctx, body.Email)
+	exist, err = solicitacoes.ExistId(ctx, body.Id)
 	if err != nil {
 		c.JSON(500, gin.H{
-			"message": "Erro ao aprovar solicitação",
+			"message": "Erro ao verificar existência do solicitação",
+		})
+
+		return
+	}
+
+	if !exist {
+		c.JSON(400, gin.H{
+			"message": "Solicitação não encontrada",
+		})
+
+		return
+	}
+
+	res, err := solicitacoes.Status(ctx, body.Id, body.Status)
+	if err != nil {
+		c.JSON(500, gin.H{
+			"message": "Erro ao atualizar status da solicitação",
 		})
 
 		return

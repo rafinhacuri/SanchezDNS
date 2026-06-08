@@ -2,13 +2,16 @@ package main
 
 import (
 	"os"
+	"time"
 
 	"github.com/tkrajina/typescriptify-golang-structs/typescriptify"
+	"go.mongodb.org/mongo-driver/v2/bson"
 
 	"github.com/rafinhacuri/SanchezDNS/api/controller"
 	"github.com/rafinhacuri/SanchezDNS/api/controller/fetch"
 	"github.com/rafinhacuri/SanchezDNS/api/controller/insert"
 	"github.com/rafinhacuri/SanchezDNS/api/logs"
+	"github.com/rafinhacuri/SanchezDNS/api/mongo"
 	"github.com/rafinhacuri/SanchezDNS/api/users"
 	"github.com/rafinhacuri/SanchezDNS/api/zonas"
 )
@@ -20,6 +23,13 @@ type GoRes struct {
 func main() {
 	converter := typescriptify.New()
 
+	converter.ManageType(time.Time{}, typescriptify.TypeOptions{
+		TSType: "string",
+	})
+	converter.ManageType(bson.ObjectID{}, typescriptify.TypeOptions{
+		TSType: "string",
+	})
+
 	converter.Add(GoRes{})
 	converter.Add(insert.CreateZoneRequest{})
 	converter.Add(logs.LogsResponse{})
@@ -29,6 +39,8 @@ func main() {
 	converter.Add(zonas.ZonesResponse{})
 	converter.Add(zonas.ZoneFetch{})
 	converter.Add(users.User{})
+	converter.Add(mongo.Solicitacao{})
+	converter.Add(fetch.SolicitacaoResponse{})
 
 	converter.BackupDir = ""
 	converter.CreateInterface = true

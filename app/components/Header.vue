@@ -24,6 +24,15 @@
       })
     }
 
+    if (user.value.level === 'admin') {
+      base.push({
+        label: 'Solicitações',
+        icon: 'i-lucide-clipboard-list',
+        to: '/solicitacoes',
+        active: route.path === '/solicitacoes',
+      })
+    }
+
     return base
   })
 
