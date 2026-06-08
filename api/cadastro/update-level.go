@@ -25,7 +25,8 @@ func UpdateLevel(ctx context.Context, id bson.ObjectID) (string, error) {
 		level = "admin"
 	}
 
-	_, err = mongo.Dns.Collection("cadastros").UpdateByID(ctx, id, bson.M{"$set": bson.M{"level": level}})
+	_, err = mongo.Dns.Collection("cadastros").
+		UpdateByID(ctx, id, bson.M{"$set": bson.M{"level": level}, "$currentDate": bson.M{"updatedAt": true}})
 	if err != nil {
 		return "", err
 	}
