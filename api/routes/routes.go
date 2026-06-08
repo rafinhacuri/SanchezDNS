@@ -52,4 +52,5 @@ func RegisterRoutes(server *gin.Engine) {
 	admin.GET("/users", fetch.Users)
 	admin.GET("/members", fetch.Membros)
 	admin.GET("/solicitacoes", fetch.Solicitacoes)
+	admin.GET("/cadastros", fetch.Cadastros)
 }

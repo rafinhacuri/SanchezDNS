@@ -55,11 +55,17 @@ func FetchLogs(
 
 	var logsMongo []bson.M
 
-	err = cursor.All(ctx, &logsMongo)
-	if err != nil {
-		log.Println(err.Error())
+	for cursor.Next(ctx) {
+		var logEntry bson.M
 
-		return nil, 0, errors.New("falha ao analisar logs")
+		err := cursor.Decode(&logEntry)
+		if err != nil {
+			log.Println(err.Error())
+
+			return nil, 0, errors.New("falha ao decodificar log")
+		}
+
+		logsMongo = append(logsMongo, logEntry)
 	}
 
 	return logsMongo, total, nil

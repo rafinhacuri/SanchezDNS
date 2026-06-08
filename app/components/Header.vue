@@ -33,6 +33,15 @@
       })
     }
 
+    if (user.value.level === 'admin') {
+      base.push({
+        label: 'Cadastros',
+        icon: 'i-lucide-users',
+        to: '/cadastros',
+        active: route.path === '/cadastros',
+      })
+    }
+
     return base
   })
 

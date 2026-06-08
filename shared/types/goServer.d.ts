@@ -79,3 +79,17 @@ export interface SolicitacaoResponse {
   solicitacoes: Solicitacao[]
   total: number
 }
+export interface Cadastro {
+  id: string
+  nome: string
+  email: string
+  senha: string
+  foto: string
+  level: string
+  createdAt: string
+  updatedAt: string
+}
+export interface CadastroResponse {
+  cadastros: Cadastro[]
+  total: number
+}

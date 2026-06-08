@@ -1,10 +1,9 @@
-package solicitacoes
+package cadastro
 
 import (
 	"context"
 	"errors"
 	"log"
-	"sort"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
@@ -18,7 +17,7 @@ func Fetch(
 	limit int,
 	search string,
 	skip int64,
-) ([]mongo.Solicitacao, int64, error) {
+) ([]mongo.Cadastro, int64, error) {
 	filter := bson.M{}
 
 	var orFilters []bson.M
@@ -33,7 +32,7 @@ func Fetch(
 		filter = bson.M{"$or": orFilters}
 	}
 
-	total, err := mongo.Dns.Collection("solicitacoes").CountDocuments(ctx, filter)
+	total, err := mongo.Dns.Collection("cadastros").CountDocuments(ctx, filter)
 	if err != nil {
 		log.Println(err.Error())
 
@@ -41,43 +40,35 @@ func Fetch(
 	}
 
 	opts := options.Find().
-		SetSort(bson.M{"createdAt": -1}).
+		SetSort(bson.D{
+			{Key: "level", Value: 1},
+			{Key: "nome", Value: 1},
+			{Key: "createdAt", Value: -1},
+		}).
 		SetSkip(skip).
 		SetLimit(int64(limit))
 
-	cursor, err := mongo.Dns.Collection("solicitacoes").Find(ctx, filter, opts)
+	cursor, err := mongo.Dns.Collection("cadastros").Find(ctx, filter, opts)
 	if err != nil {
 		log.Println(err.Error())
 
-		return nil, 0, errors.New("falha ao buscar solicitações")
+		return nil, 0, errors.New("falha ao buscar cadastros")
 	}
 
-	var solicitacoes []mongo.Solicitacao
+	var cadastros []mongo.Cadastro
 
 	for cursor.Next(ctx) {
-		var solicitacao mongo.Solicitacao
+		var cadastro mongo.Cadastro
 
-		err := cursor.Decode(&solicitacao)
+		err := cursor.Decode(&cadastro)
 		if err != nil {
 			log.Println(err.Error())
 
-			return nil, 0, errors.New("falha ao decodificar solicitação")
+			return nil, 0, errors.New("falha ao decodificar cadastro")
 		}
 
-		solicitacoes = append(solicitacoes, solicitacao)
+		cadastros = append(cadastros, cadastro)
 	}
 
-	sort.SliceStable(solicitacoes, func(i, j int) bool {
-		if solicitacoes[i].Status == "pendente" {
-			return true
-		}
-
-		if solicitacoes[i].Status == "rejeitada" && solicitacoes[j].Status != "pendente" {
-			return true
-		}
-
-		return false
-	})
-
-	return solicitacoes, total, nil
+	return cadastros, total, nil
 }

@@ -41,6 +41,7 @@ func main() {
 	converter.Add(users.User{})
 	converter.Add(mongo.Solicitacao{})
 	converter.Add(fetch.SolicitacaoResponse{})
+	converter.Add(fetch.CadastroResponse{})
 
 	converter.BackupDir = ""
 	converter.CreateInterface = true
