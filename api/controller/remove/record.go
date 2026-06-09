@@ -1,7 +1,6 @@
 package remove
 
 import (
-	"fmt"
 	"log"
 	"strings"
 
@@ -18,7 +17,7 @@ func Record(c *gin.Context) {
 
 	err := c.ShouldBindJSON(&request)
 	if err != nil {
-		c.JSON(400, gin.H{"message": fmt.Sprintf("invalid request body: %v", err.Error())})
+		c.AbortWithStatusJSON(400, gin.H{"message": "Requisição inválida"})
 
 		return
 	}
@@ -38,6 +37,7 @@ func Record(c *gin.Context) {
 		err := coll.FindOne(ctx, bson.M{"zona": request.Zone}).Decode(&perm)
 		if err != nil {
 			log.Println(err)
+
 			c.AbortWithStatusJSON(403, gin.H{"message": "Zona não encontrada ou sem permissão"})
 
 			return
@@ -78,7 +78,8 @@ func Record(c *gin.Context) {
 		request.Priority,
 		email)
 	if err != nil {
-		c.JSON(500, gin.H{"message": fmt.Sprintf("failed to delete record: %v", err.Error())})
+		log.Println(err)
+		c.AbortWithStatusJSON(500, gin.H{"message": "falha ao excluir registro"})
 
 		return
 	}

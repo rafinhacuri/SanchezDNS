@@ -21,7 +21,8 @@ func Logs(c *gin.Context) {
 	logs, total, err := logs.FetchLogs(ctx, page, limit, search, int64(skip))
 	if err != nil {
 		log.Println(err)
-		c.JSON(500, gin.H{"message": "Erro ao buscar logs"})
+
+		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao buscar logs"})
 
 		return
 	}

@@ -1,7 +1,6 @@
 package fetch
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -35,7 +34,8 @@ func Zones(c *gin.Context) {
 	filtered, err := zonas.FetchZonas(ctx, zoneType, email, level)
 	if err != nil {
 		log.Println(err)
-		c.AbortWithStatusJSON(http.StatusBadGateway, gin.H{"message": fmt.Sprintf("falha ao buscar zonas: %v", err.Error())})
+
+		c.AbortWithStatusJSON(500, gin.H{"message": "falha ao buscar zonas"})
 
 		return
 	}

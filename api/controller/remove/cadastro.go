@@ -1,6 +1,8 @@
 package remove
 
 import (
+	"log"
+
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/v2/bson"
 
@@ -16,7 +18,7 @@ func Cadastro(c *gin.Context) {
 
 	err := c.ShouldBindJSON(&bady)
 	if err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"message": err.Error()})
+		c.AbortWithStatusJSON(400, gin.H{"message": "Requisição inválida"})
 
 		return
 	}
@@ -25,21 +27,25 @@ func Cadastro(c *gin.Context) {
 
 	email, err := cadastro.Delete(ctx, bady.Id)
 	if err != nil {
-		c.AbortWithStatusJSON(500, gin.H{"message": "erro interno"})
+		log.Println(err)
+
+		c.AbortWithStatusJSON(500, gin.H{"message": "erro ao deletar cadastro"})
 
 		return
 	}
 
 	err = users.DeleteMany(ctx, email)
 	if err != nil {
-		c.AbortWithStatusJSON(500, gin.H{"message": "erro interno"})
+		log.Println(err)
+		c.AbortWithStatusJSON(500, gin.H{"message": "erro ao deletar usuários"})
 
 		return
 	}
 
 	err = redis.DeleteLevel(ctx, email)
 	if err != nil {
-		c.AbortWithStatusJSON(500, gin.H{"message": "erro interno"})
+		log.Println(err)
+		c.AbortWithStatusJSON(500, gin.H{"message": "erro ao deletar nível de acesso"})
 
 		return
 	}

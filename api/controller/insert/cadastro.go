@@ -23,7 +23,7 @@ func Cadastro(c *gin.Context) {
 	if err != nil {
 		log.Println("Cadastro request received" + err.Error())
 
-		c.JSON(400, gin.H{
+		c.AbortWithStatusJSON(400, gin.H{
 			"message": "Requisição inválida",
 		})
 	}
@@ -32,7 +32,7 @@ func Cadastro(c *gin.Context) {
 
 	valid := util.ValidateEmail(body.Email)
 	if !valid {
-		c.JSON(400, gin.H{
+		c.AbortWithStatusJSON(400, gin.H{
 			"message": "Email inválido",
 		})
 
@@ -43,7 +43,7 @@ func Cadastro(c *gin.Context) {
 
 	first, err := cadastro.First(ctx)
 	if err != nil {
-		c.JSON(500, gin.H{
+		c.AbortWithStatusJSON(500, gin.H{
 			"message": "Erro ao verificar cadastro",
 		})
 
@@ -53,7 +53,7 @@ func Cadastro(c *gin.Context) {
 	if first {
 		res, err := cadastro.Insert(ctx, body.Email, body.Senha, body.Nome, body.Foto)
 		if err != nil {
-			c.JSON(500, gin.H{
+			c.AbortWithStatusJSON(500, gin.H{
 				"message": "Erro ao criar cadastro",
 			})
 
@@ -69,7 +69,7 @@ func Cadastro(c *gin.Context) {
 
 	exist, err := solicitacoes.Exist(ctx, body.Email)
 	if err != nil {
-		c.JSON(500, gin.H{
+		c.AbortWithStatusJSON(500, gin.H{
 			"message": "Erro ao verificar existência da solicitação",
 		})
 
@@ -77,7 +77,7 @@ func Cadastro(c *gin.Context) {
 	}
 
 	if exist {
-		c.JSON(409, gin.H{
+		c.AbortWithStatusJSON(409, gin.H{
 			"message": "Usuário já existe",
 		})
 
@@ -86,7 +86,7 @@ func Cadastro(c *gin.Context) {
 
 	res, err := solicitacoes.Insert(ctx, body.Email, body.Senha, body.Nome, body.Foto)
 	if err != nil {
-		c.JSON(500, gin.H{
+		c.AbortWithStatusJSON(500, gin.H{
 			"message": "Erro ao criar solicitação",
 		})
 

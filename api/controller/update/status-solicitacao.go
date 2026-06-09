@@ -1,6 +1,8 @@
 package update
 
 import (
+	"log"
+
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/v2/bson"
 
@@ -16,7 +18,7 @@ func SolicitacaoStatus(c *gin.Context) {
 
 	err := c.ShouldBindJSON(&body)
 	if err != nil {
-		c.JSON(400, gin.H{
+		c.AbortWithStatusJSON(400, gin.H{
 			"message": "Requisição inválida",
 		})
 
@@ -27,7 +29,9 @@ func SolicitacaoStatus(c *gin.Context) {
 
 	exist, err := cadastro.ExistId(ctx, body.Id)
 	if err != nil {
-		c.JSON(500, gin.H{
+		log.Println(err)
+
+		c.AbortWithStatusJSON(500, gin.H{
 			"message": "Erro ao verificar existência do cadastro",
 		})
 
@@ -35,7 +39,7 @@ func SolicitacaoStatus(c *gin.Context) {
 	}
 
 	if exist {
-		c.JSON(400, gin.H{
+		c.AbortWithStatusJSON(400, gin.H{
 			"message": "Cadastro já existe",
 		})
 
@@ -44,7 +48,9 @@ func SolicitacaoStatus(c *gin.Context) {
 
 	exist, err = solicitacoes.ExistId(ctx, body.Id)
 	if err != nil {
-		c.JSON(500, gin.H{
+		log.Println(err)
+
+		c.AbortWithStatusJSON(500, gin.H{
 			"message": "Erro ao verificar existência do solicitação",
 		})
 
@@ -52,7 +58,7 @@ func SolicitacaoStatus(c *gin.Context) {
 	}
 
 	if !exist {
-		c.JSON(400, gin.H{
+		c.AbortWithStatusJSON(400, gin.H{
 			"message": "Solicitação não encontrada",
 		})
 
@@ -61,7 +67,9 @@ func SolicitacaoStatus(c *gin.Context) {
 
 	res, err := solicitacoes.Status(ctx, body.Id, body.Status)
 	if err != nil {
-		c.JSON(500, gin.H{
+		log.Println(err)
+
+		c.AbortWithStatusJSON(500, gin.H{
 			"message": "Erro ao atualizar status da solicitação",
 		})
 

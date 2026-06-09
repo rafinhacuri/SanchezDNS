@@ -12,7 +12,7 @@ export const CadastroSchema = object({
   nome: pipe(string('Nome é uma string'), nonEmpty('Nome é obrigatório')),
 })
 
-export type Cadastro = InferInput<typeof CadastroSchema>
+export type CadastroType = InferInput<typeof CadastroSchema>
 
 export const StatusSchema = object({
   id: pipe(string('ID é uma string'), nonEmpty('ID é obrigatório')),
@@ -24,3 +24,12 @@ export const StatusSchema = object({
 })
 
 export type Status = InferInput<typeof StatusSchema>
+
+export const CadastroEditSchema = object({
+  id: pipe(string('ID é uma string'), nonEmpty('ID é obrigatório')),
+  senha: pipe(string('Senha é uma string')),
+  foto: pipe(string('Foto é uma string'), nonEmpty('Foto é obrigatória')),
+  nome: pipe(string('Nome é uma string'), nonEmpty('Nome é obrigatório')),
+})
+
+export type CadastroEditType = InferInput<typeof CadastroEditSchema>

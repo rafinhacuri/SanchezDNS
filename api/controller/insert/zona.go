@@ -2,7 +2,6 @@ package insert
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"strings"
 
@@ -92,14 +91,14 @@ func Zone(c *gin.Context) {
 
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"message": fmt.Sprintf("corpo da requisição inválido: %v", err.Error())})
+		c.AbortWithStatusJSON(400, gin.H{"message": "Requisição inválida"})
 
 		return
 	}
 
 	err = req.Validate()
 	if err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"message": fmt.Sprintf("erro de validação: %v", err.Error())})
+		c.AbortWithStatusJSON(400, gin.H{"message": "erro de validação"})
 
 		return
 	}
@@ -121,7 +120,8 @@ func Zone(c *gin.Context) {
 		email)
 	if err != nil {
 		log.Println(err)
-		c.AbortWithStatusJSON(502, gin.H{"message": fmt.Sprintf("falha ao criar zona: %v", err.Error())})
+
+		c.AbortWithStatusJSON(502, gin.H{"message": "falha ao criar zona"})
 
 		return
 	}

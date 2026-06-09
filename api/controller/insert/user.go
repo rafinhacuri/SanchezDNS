@@ -1,6 +1,8 @@
 package insert
 
 import (
+	"log"
+
 	"github.com/gin-gonic/gin"
 
 	"github.com/rafinhacuri/SanchezDNS/api/users"
@@ -17,7 +19,7 @@ func User(c *gin.Context) {
 
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"message": err.Error()})
+		c.AbortWithStatusJSON(400, gin.H{"message": "Requisição inválida"})
 
 		return
 	}
@@ -28,7 +30,9 @@ func User(c *gin.Context) {
 
 	_, err = users.InsertUser(ctx, req.Zona, req.Permissao, req.Email, email)
 	if err != nil {
-		c.AbortWithStatusJSON(500, gin.H{"message": err.Error()})
+		log.Println(err)
+
+		c.AbortWithStatusJSON(500, gin.H{"message": "falha ao inserir usuário"})
 
 		return
 	}

@@ -25,7 +25,7 @@ func File(c *gin.Context) {
 	if err != nil {
 		log.Print(err)
 
-		c.AbortWithStatusJSON(500, gin.H{"message": "Failed to read file"})
+		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao buscar arquivo"})
 
 		return
 	}

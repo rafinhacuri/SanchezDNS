@@ -1,7 +1,7 @@
 package remove
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/gin-gonic/gin"
 
@@ -22,7 +22,9 @@ func Zone(c *gin.Context) {
 
 	_, err := zonas.DeleteZone(ctx, zoneID, email)
 	if err != nil {
-		c.AbortWithStatusJSON(502, gin.H{"message": fmt.Sprintf("falha ao deletar zona: %v", err.Error())})
+		log.Println(err)
+
+		c.AbortWithStatusJSON(502, gin.H{"message": "falha ao deletar zona"})
 
 		return
 	}

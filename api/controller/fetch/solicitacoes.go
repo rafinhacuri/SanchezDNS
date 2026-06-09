@@ -27,7 +27,8 @@ func Solicitacoes(c *gin.Context) {
 	solicitacoes, total, err := solicitacoes.Fetch(ctx, page, limit, search, int64(skip))
 	if err != nil {
 		log.Println(err)
-		c.JSON(500, gin.H{"message": "Erro ao buscar solicitações"})
+
+		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao buscar solicitações"})
 
 		return
 	}

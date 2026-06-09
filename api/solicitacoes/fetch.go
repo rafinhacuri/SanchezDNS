@@ -42,6 +42,7 @@ func Fetch(
 
 	opts := options.Find().
 		SetSort(bson.M{"createdAt": -1}).
+		SetProjection(bson.M{"senha": 0}).
 		SetSkip(skip).
 		SetLimit(int64(limit))
 

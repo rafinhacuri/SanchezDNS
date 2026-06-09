@@ -1,6 +1,7 @@
 package remove
 
 import (
+	"log"
 	"strconv"
 	"strings"
 
@@ -17,7 +18,7 @@ func User(c *gin.Context) {
 
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"message": err.Error()})
+		c.AbortWithStatusJSON(400, gin.H{"message": "Requisição inválida"})
 
 		return
 	}
@@ -46,7 +47,9 @@ func User(c *gin.Context) {
 
 	_, err = users.DeleteUser(ctx, zona, arrayName, arrayName, index, email)
 	if err != nil {
-		c.AbortWithStatusJSON(500, gin.H{"message": err.Error()})
+		log.Println(err)
+
+		c.AbortWithStatusJSON(500, gin.H{"message": "falha ao excluir usuário"})
 
 		return
 	}

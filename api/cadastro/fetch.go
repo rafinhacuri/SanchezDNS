@@ -45,6 +45,7 @@ func Fetch(
 			{Key: "nome", Value: 1},
 			{Key: "createdAt", Value: -1},
 		}).
+		SetProjection(bson.M{"senha": 0}).
 		SetSkip(skip).
 		SetLimit(int64(limit))
 

@@ -1,7 +1,6 @@
 package update
 
 import (
-	"fmt"
 	"log"
 	"strings"
 
@@ -23,19 +22,19 @@ func Record(c *gin.Context) {
 
 	err := c.ShouldBindJSON(&request)
 	if err != nil {
-		c.JSON(400, gin.H{"message": fmt.Sprintf("Requisição inválida: %v", err.Error())})
+		c.AbortWithStatusJSON(400, gin.H{"message": "Requisição inválida"})
 
 		return
 	}
 
 	if request.OldValue.Type != request.NewValue.Type {
-		c.JSON(400, gin.H{"message": "tipo não pode ser alterado"})
+		c.AbortWithStatusJSON(400, gin.H{"message": "tipo não pode ser alterado"})
 
 		return
 	}
 
 	if request.OldValue.Name != request.NewValue.Name {
-		c.JSON(400, gin.H{"message": "nome do registro não pode ser alterado"})
+		c.AbortWithStatusJSON(400, gin.H{"message": "nome do registro não pode ser alterado"})
 
 		return
 	}
@@ -112,7 +111,9 @@ func Record(c *gin.Context) {
 
 	_, err = records.UpdateRecord(ctx, newRec, oldRec, email)
 	if err != nil {
-		c.JSON(500, gin.H{"message": fmt.Sprintf("falha ao editar registro: %v", err.Error())})
+		log.Println(err)
+
+		c.AbortWithStatusJSON(500, gin.H{"message": "falha ao editar registro"})
 
 		return
 	}

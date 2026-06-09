@@ -27,7 +27,7 @@ func Cadastros(c *gin.Context) {
 	cadastros, total, err := cadastro.Fetch(ctx, page, limit, search, int64(skip))
 	if err != nil {
 		log.Println(err)
-		c.JSON(500, gin.H{"message": "Erro ao buscar cadastros"})
+		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao buscar cadastros"})
 
 		return
 	}

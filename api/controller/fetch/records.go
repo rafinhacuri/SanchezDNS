@@ -30,6 +30,7 @@ func Records(c *gin.Context) {
 		allowed, err := memberCanViewZone(ctx, zoneID, email)
 		if err != nil {
 			log.Println(err)
+
 			c.AbortWithStatusJSON(403, gin.H{"message": "Zona não encontrada ou sem permissão"})
 
 			return
@@ -45,6 +46,7 @@ func Records(c *gin.Context) {
 	records, soa, err := records.FetchRecords(ctx, zoneID)
 	if err != nil {
 		log.Println(err)
+
 		c.AbortWithStatusJSON(500, gin.H{"message": fmt.Sprintf("falha ao buscar registros: %v", err.Error())})
 
 		return

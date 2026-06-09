@@ -1,6 +1,8 @@
 package insert
 
 import (
+	"log"
+
 	"github.com/gin-gonic/gin"
 
 	"github.com/rafinhacuri/SanchezDNS/api/s3"
@@ -9,7 +11,9 @@ import (
 func File(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"message": "api.invalid_request"})
+		log.Print(err)
+
+		c.AbortWithStatusJSON(400, gin.H{"message": "Arquivo é obrigatório"})
 
 		return
 	}
@@ -18,6 +22,8 @@ func File(c *gin.Context) {
 
 	key, err := s3.Save(ctx, file, "")
 	if err != nil {
+		log.Print(err)
+
 		c.AbortWithStatusJSON(502, gin.H{"message": "erro ao salvar arquivo"})
 
 		return

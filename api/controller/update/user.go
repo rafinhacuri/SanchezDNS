@@ -11,7 +11,7 @@ func User(c *gin.Context) {
 
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"message": err.Error()})
+		c.AbortWithStatusJSON(400, gin.H{"message": "Requisição inválida"})
 
 		return
 	}
@@ -22,10 +22,10 @@ func User(c *gin.Context) {
 
 	_, err = users.UpdateUser(ctx, req.Zona, req.ID, req.Permissao, req.Email, email)
 	if err != nil {
-		c.AbortWithStatusJSON(500, gin.H{"message": err.Error()})
+		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao atualizar usuário"})
 
 		return
 	}
 
-	c.JSON(200, gin.H{"message": "user updated"})
+	c.JSON(200, gin.H{"message": "usuário atualizado com sucesso"})
 }

@@ -26,7 +26,7 @@
     return requirements.map((req) => ({ met: req.regex.test(str), text: req.text }))
   }
 
-  const cadastro = ref<Cadastro>({
+  const cadastro = ref<CadastroType>({
     email: '',
     senha: '',
     foto: '',

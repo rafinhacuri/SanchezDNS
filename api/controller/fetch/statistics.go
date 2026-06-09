@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
 	"strconv"
 	"time"
 
@@ -76,13 +75,13 @@ func Statistics(c *gin.Context) {
 		Get(fmt.Sprintf("/api/v1/servers/%s/statistics", env.C.DnsServerId))
 	if err != nil {
 		log.Println(err)
-		c.AbortWithStatusJSON(http.StatusBadGateway, gin.H{"message": "falha ao alcançar PowerDNS"})
+		c.AbortWithStatusJSON(500, gin.H{"message": "falha ao alcançar PowerDNS"})
 
 		return
 	}
 
 	if statResp.IsError() {
-		c.AbortWithStatusJSON(statResp.StatusCode(), gin.H{"message": "Erro ao obter estatísticas"})
+		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao obter estatísticas"})
 
 		return
 	}
@@ -171,13 +170,13 @@ func Statistics(c *gin.Context) {
 		Get(fmt.Sprintf("/api/v1/servers/%s/zones", env.C.DnsServerId))
 	if err != nil {
 		log.Println(err)
-		c.AbortWithStatusJSON(http.StatusBadGateway, gin.H{"message": "falha ao buscar zonas"})
+		c.AbortWithStatusJSON(500, gin.H{"message": "falha ao buscar zonas"})
 
 		return
 	}
 
 	if zonesResp.IsError() {
-		c.AbortWithStatusJSON(zonesResp.StatusCode(), gin.H{"message": "Erro nas zonas do PowerDNS: " + zonesResp.Status()})
+		c.AbortWithStatusJSON(500, gin.H{"message": "Erro nas zonas do PowerDNS: " + zonesResp.Status()})
 
 		return
 	}

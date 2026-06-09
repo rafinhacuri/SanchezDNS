@@ -97,7 +97,9 @@ func Record(c *gin.Context) {
 		request.Priority,
 		email)
 	if err != nil {
-		c.AbortWithStatusJSON(500, gin.H{"message": fmt.Sprintf("falha ao adicionar registro: %v", err)})
+		log.Println(err)
+
+		c.AbortWithStatusJSON(500, gin.H{"message": "falha ao adicionar registro"})
 
 		return
 	}
