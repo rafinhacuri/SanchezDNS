@@ -16,7 +16,10 @@ func Update(ctx context.Context, id bson.ObjectID, nome, foto, senha string) err
 	}
 
 	if senha != "" {
-		passwords.BCrypt(&senha)
+		err := passwords.BCrypt(&senha)
+		if err != nil {
+			return err
+		}
 
 		set["senha"] = senha
 	}
