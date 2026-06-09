@@ -19,7 +19,7 @@ COPY ./public ./public
 
 RUN bun run app:build
 
-FROM golang:1.26.3-bookworm AS go-builder
+FROM golang:1.26.4-bookworm AS go-builder
 
 WORKDIR /server
 

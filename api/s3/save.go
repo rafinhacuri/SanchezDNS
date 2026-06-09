@@ -1,9 +1,10 @@
 package s3
 
 import (
-	"bufio"
+	"bytes"
 	"context"
 	"errors"
+	"io"
 	"log"
 	"mime/multipart"
 	"net/http"
@@ -71,14 +72,16 @@ func Save(ctx context.Context, file *multipart.FileHeader, prefix string) (strin
 		}
 	}()
 
-	contentType := strings.TrimSpace(file.Header.Get("Content-Type"))
+	data, err := io.ReadAll(src)
+	if err != nil {
+		log.Println("error reading file:", err)
 
-	br := bufio.NewReader(src)
+		return "", errors.New("erro interno")
+	}
+
+	contentType := strings.TrimSpace(file.Header.Get("Content-Type"))
 	if contentType == "" || contentType == "application/octet-stream" {
-		head, _ := br.Peek(512)
-		if len(head) > 0 {
-			contentType = http.DetectContentType(head)
-		}
+		contentType = http.DetectContentType(data)
 	}
 
 	if contentType == "" {
@@ -90,12 +93,12 @@ func Save(ctx context.Context, file *multipart.FileHeader, prefix string) (strin
 		objectName = prefix + "/" + objectName
 	}
 
-	size := max(file.Size, 0)
+	size := int64(len(data))
 
 	_, err = client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:        aws.String(env.C.FsBucket),
 		Key:           aws.String(objectName),
-		Body:          br,
+		Body:          bytes.NewReader(data),
 		ContentType:   aws.String(contentType),
 		ContentLength: aws.Int64(size),
 	})
