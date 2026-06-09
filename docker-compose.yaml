@@ -4,16 +4,25 @@ services:
     container_name: sanchezdns
     platform: linux/amd64
     ports:
-      - 4000:3000
+      - 3000:3000
     environment:
+      - NUXT_PUBLIC_PRODUCTION=${NUXT_PUBLIC_PRODUCTION}
+      - NUXT_SITE_URL=${NUXT_SITE_URL}
+      - NUXT_PUBLIC_SITE_URL=${NUXT_PUBLIC_SITE_URL}
       - MONGO_URL=${MONGO_URL}
-      - MONGO_USERNAME=${MONGO_USERNAME}
-      - MONGO_PASSWORD=${MONGO_PASSWORD}
-      - MONGO_DB_NAME=${MONGO_DB_NAME}
-      - MONGO_SSL=${MONGO_SSL}
-      - JWT_SECRET=${JWT_SECRET}
-      - CRYPT_KEY=${CRYPT_KEY}
-      - SITE_URL=${SITE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - DNS_HOST=${DNS_HOST}
+      - DNS_API_KEY=${DNS_API_KEY}
+      - DNS_SERVER_ID=${DNS_SERVER_ID}
+      - FS_USERNAME=${FS_USERNAME}
+      - FS_PASSWORD=${FS_PASSWORD}
+      - FS_BUCKET=${FS_BUCKET}
+      - FS_ENDPOINT=${FS_ENDPOINT}
+    depends_on:
+      - mongo
+      - redis
+      - s3
+      - s3-create-bucket
     restart: unless-stopped
     healthcheck:
       test: [CMD, curl, -f, 'http://127.0.0.1:3000/server/healthcheck']
@@ -21,17 +30,58 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+
   mongo:
     image: mongo:latest
+    container_name: sanchezdns-mongo
     restart: unless-stopped
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
-      - MONGO_INITDB_DATABASE=${MONGO_DB_NAME}
     ports:
       - 27017:27017
     volumes:
       - mongo_data:/data/db
 
+  redis:
+    image: redis:latest
+    container_name: sanchezdns-redis
+    restart: unless-stopped
+    ports:
+      - 6379:6379
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+  s3:
+    image: minio/minio:latest
+    container_name: sanchezdns-s3
+    restart: unless-stopped
+    environment:
+      - MINIO_ROOT_USER=${FS_USERNAME}
+      - MINIO_ROOT_PASSWORD=${FS_PASSWORD}
+    ports:
+      - 9000:9000
+      - 9001:9001
+    volumes:
+      - s3_data:/data
+    command: server /data --console-address ':9001'
+
+  s3-create-bucket:
+    image: minio/mc:latest
+    container_name: sanchezdns-s3-create-bucket
+    depends_on:
+      - s3
+    environment:
+      - FS_USERNAME=${FS_USERNAME}
+      - FS_PASSWORD=${FS_PASSWORD}
+      - FS_BUCKET=${FS_BUCKET}
+    entrypoint: >
+      /bin/sh -c "
+      until mc alias set local http://s3:9000 $$FS_USERNAME $$FS_PASSWORD; do sleep 2; done;
+      mc mb -p local/$$FS_BUCKET || true;
+      mc anonymous set download local/$$FS_BUCKET || true;
+      exit 0;
+      "
+
 volumes:
   mongo_data:
+  redis_data:
+  s3_data:
