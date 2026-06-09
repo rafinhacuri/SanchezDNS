@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"log"
-	"strings"
+	"net/url"
 
 	"github.com/gin-gonic/gin"
 
@@ -29,19 +29,16 @@ func ValidateSession(c *gin.Context) {
 			secure  bool
 		)
 
+		u, err := url.Parse(siteURL)
+		if err == nil {
+			siteURL = u.Hostname()
+		}
+
 		switch env.C.Production {
 		case true:
-			siteURL = "sanchezdns.curi.dev.br"
 			secure = true
 		case false:
-			if strings.Contains(env.C.SiteUrl, "cbpf.dev.br") {
-				siteURL = "cbpf.dev.br"
-				secure = false
-			} else {
-				// Localhost
-				siteURL = ""
-				secure = false
-			}
+			secure = false
 		}
 
 		c.SetCookie("sanchezdns_session_id", "", -1, "/", siteURL, secure, true)
