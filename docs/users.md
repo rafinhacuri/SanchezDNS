@@ -1,50 +1,66 @@
-# 👥 User Management
+# 👥 Usuários
 
-SanchezDNS includes a simple but secure user system to control access to your DNS infrastructure.
+## Modelo atual
 
-## 🧩 Overview
+O sistema trabalha com dois níveis principais:
 
-- The **first registered user** in the system automatically becomes the **Administrator**.
-- The Administrator has full access to every part of the platform, including:
-  - Viewing and managing all DNS connections
-  - Creating, editing, or deleting zones and records
-  - Managing other users
-  - Viewing logs and audit activity
+- `admin`
+- `member`
 
-All other users who register afterward will **not** have access to any DNS connections until the Administrator explicitly grants it.
+O primeiro cadastro aprovado vira `admin`. Os próximos cadastros ficam como solicitação até aprovação manual.
 
----
+## Nível `admin`
 
-## 🔐 Access Control
+O administrador tem acesso às áreas administrativas:
 
-- New users can freely create accounts, but by default they have **no permissions** to view or modify any zones or servers.
-- The Administrator must manually associate them with one or more **connections** using the **Users page** (available only to administrators).
-- Once added to a connection, a user can:
-  - View and manage zones within that connection
-  - Create and update DNS records (depending on their assigned access level)
+- `Logs`
+- `Solicitações`
+- `Cadastros`
+- criação e remoção de zonas
+- atualização de SOA
+- gestão de permissões por zona
 
----
+## Nível `member`
 
-## ⚙️ Administrator Panel
+Usuários comuns só enxergam as zonas para as quais foram liberados.
 
-Accessible only to the first registered user, the **Users page** allows the admin to:
+As permissões são controladas por zona e podem ser:
 
-- View a list of all registered users
-- Add or remove user access to specific DNS connections
-- Deactivate or delete accounts if needed
+- `leitura`
+- `escrita`
 
-This ensures tight control over who can interact with your authoritative DNS servers.
+## Como a permissão funciona
 
----
+O backend guarda, por zona, duas listas de emails:
 
-## ⚠️ Security Notes
+- `leitura`
+- `escrita`
 
-- Only assign access to trusted users — each connection includes sensitive PowerDNS API credentials.
-- Rotate API keys and passwords periodically.
-- Always use strong passwords when creating accounts.
+Quando o usuário abre uma zona:
 
----
+- `leitura` permite listar registros;
+- `escrita` permite criar, editar e excluir registros;
+- sem permissão, a zona fica inacessível.
 
-With this approach, SanchezDNS ensures that your DNS infrastructure remains secure and organized, with full transparency over user permissions and actions.
+## Tela de usuários da zona
+
+Na tela da zona administrativa é possível:
+
+- adicionar um email com permissão de leitura ou escrita;
+- alterar a permissão de um usuário já associado;
+- remover o acesso de um usuário daquela zona.
+
+## Tela de cadastros
+
+A página de cadastros lista as contas já aprovadas:
+
+- permite editar nome, foto e senha;
+- permite alterar o nível do cadastro;
+- permite excluir o cadastro e limpar acessos associados.
+
+## Observações
+
+- O login usa o email e a senha do cadastro aprovado.
+- O sistema também salva a foto de perfil do usuário em storage S3 compatível.
 
 ---

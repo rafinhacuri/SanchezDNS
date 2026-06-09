@@ -1,28 +1,36 @@
 # 🧾 Logs
 
-The **Logs** page in **SanchezDNS** provides a complete audit trail of actions performed within the selected DNS connection.
+## O que aparece na página
 
-## 🔍 Overview
+A página de logs mostra entradas com:
 
-Logs record every significant action taken by users on a specific DNS connection, ensuring transparency and accountability.
+- zona
+- usuário
+- ação
+- detalhes
+- data de criação
 
-Each entry includes:
+## Eventos registrados
 
-- **Username** — who performed the action
-- **Action** — what was done (e.g., created a zone, added a record)
-- **Details** — additional information about the event
-- **Timestamp** — when the action occurred
+Os logs são gerados para operações como:
 
-## ⚙️ Behavior
+- criação e remoção de zonas
+- criação, edição e remoção de registros
+- inclusão, edição e remoção de usuários por zona
+- atualização de SOA
+- aprovação ou rejeição de solicitações
 
-- Logs are automatically generated for all changes made through the system.
-- They are **connection‑specific**, meaning you only see logs related to the currently selected DNS server.
-- Data is displayed in real time and stored securely in MongoDB for persistence.
+## Comportamento
 
-## 🔒 Access Control
+- a listagem tem busca textual;
+- a página trabalha com paginação;
+- os eventos são gravados no MongoDB;
+- a ordenação padrão mostra os eventos mais recentes primeiro.
 
-Only **administrators** can access the Logs page. Regular users cannot view or modify logs.
+## Acesso
 
----
+Somente `admin` acessa essa página.
 
-This feature ensures you can always trace what happened, who did it, and when — keeping your DNS operations auditable and secure.
+## Objetivo
+
+O log existe para auditoria operacional. Ele permite rastrear quem fez o quê e em qual zona, sem depender de histórico manual na interface.

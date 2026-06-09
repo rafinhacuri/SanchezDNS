@@ -1,172 +1,84 @@
-# ⚙️ Setup Guide
+# ⚙️ Instalação
 
-Welcome to **SanchezDNS** — a powerful and elegant platform for managing PowerDNS authoritative servers.  
-This guide will help you get the system running smoothly.
+Este guia descreve a forma atual de subir o projeto, tanto em Docker quanto em desenvolvimento local.
 
----
+## Pré-requisitos
 
-## 🧩 Prerequisites
+- Docker e Docker Compose.
+- Uma instância PowerDNS Authoritative com API habilitada.
+- MongoDB.
+- Redis.
+- Um storage S3 compatível para fotos de perfil.
 
-Before you begin, make sure you have:
+## Subindo com Docker
 
-- **Docker & Docker Compose** installed on your system.
-- A **PowerDNS Authoritative Server** (version 4.7 or higher).
-- Access to a **MongoDB instance** (local or remote).
-- Basic knowledge of DNS records.
-
----
-
-## ✅ Quick Start
-
-### 🔧 Step 1 — Install Prerequisites
-
-- Install **Docker**
-- Install **Docker Compose**  
-  👉 Official guide: [Get Docker](https://docs.docker.com/get-started/get-docker/)
-
----
-
-### 📦 Step 2 — Get the `docker-compose.yaml`
-
-Choose one of the options below to download the configuration file:
-
-<details>
-<summary>🔽 Using curl</summary>
-
-```bash
-curl -L -o docker-compose.yaml https://raw.githubusercontent.com/rafinhacuri/sanchezdns/main/docker-compose.yaml
-```
-
-</details>
-
-<details>
-<summary>🔽 Using wget</summary>
-
-```bash
-wget -O docker-compose.yaml https://raw.githubusercontent.com/rafinhacuri/sanchezdns/main/docker-compose.yaml
-```
-
-</details>
-
-Alternatively, copy it directly from the [example file](https://github.com/rafinhacuri/sanchezdns/blob/main/docker-compose.yaml).
-
----
-
-## 🧱 Environment Configuration
-
-Create a `.env` file in the root directory with the following structure:
-
-```bash
-SITE_URL="https://example.com"
-MONGO_URL="mongodb://mongo:27017/sanchezdns"
-MONGO_USERNAME="sanchezcos"
-MONGO_PASSWORD="!w3irdP@ssw0rd#2024"
-MONGO_DB_NAME="sanchezdns"
-MONGO_SSL="false"
-
-# Must have at least 32 characters
-JWT_SECRET="essa senha é mt dificil de ser quebrada :o"
-
-# This must be a base64-encoded string that decodes to 32 bytes (AES-256)
-CRYPT_KEY="essa senha é mt dificil de ser quebrada :o meu deussss"
-```
-
-✅ To generate a valid encryption key, run:
-
-```bash
-openssl rand -base64 32
-```
-
-> ⚠️ Keep your environment file safe. Never share your `JWT_SECRET` or `CRYPT_KEY`.
-
-Download and prepare your `.env` file:
-
-<details>
-<summary>🔽 Using curl</summary>
-
-```bash
-curl -L -o .env https://raw.githubusercontent.com/rafinhacuri/sanchezdns/main/.env.example
-```
-
-</details>
-
-<details>
-<summary>🔽 Using wget</summary>
-
-```bash
-wget -O .env https://raw.githubusercontent.com/rafinhacuri/sanchezdns/main/.env.example
-```
-
-</details>
-
----
-
-## 🐳 Run with Docker
-
-### ▶️ Option 1 — Use Local MongoDB (full setup)
-
-Use this command to **download and start** SanchezDNS **along with the local MongoDB**:
+O caminho mais simples é usar o `docker-compose.yaml` da raiz do repositório.
 
 ```bash
 docker compose pull
 docker compose up -d --force-recreate
 ```
 
----
+O stack cria:
 
-### ▶️ Option 2 — Use an External MongoDB Cluster (e.g., Atlas)
+- `sanchezdns` na porta `3000`
+- `mongo` na porta `27017`
+- `redis` na porta `6379`
+- `s3` na porta `9000` e console na `9001`
 
-Use this option if you **DO NOT want to run MongoDB locally** and already have an external database configured.
+Depois da subida, abra `http://localhost:3000`.
 
-This will start **only the SanchezDNS service**:
+## Variáveis de ambiente
+
+Crie um arquivo `.env` na raiz com os valores do seu ambiente:
 
 ```bash
-docker compose pull sanchezdns
-docker compose up -d --force-recreate sanchezdns
+NUXT_PUBLIC_PRODUCTION=true
+NUXT_PUBLIC_SITE_URL=https://dns.exemplo.com
+MONGO_URL=mongodb://mongo:27017
+REDIS_URL=redis://redis:6379
+DNS_HOST=http://powerdns:8081
+DNS_API_KEY=chave-da-api
+DNS_SERVER_ID=localhost
+FS_USERNAME=access-key
+FS_PASSWORD=secret-key
+FS_BUCKET=sanchezdns
+FS_ENDPOINT=http://s3:9000
 ```
 
----
+## PowerDNS
 
-### Verify Installation
+No servidor PowerDNS, a API precisa estar habilitada. Um exemplo mínimo:
 
-Check running containers:
+```ini
+api=yes
+api-key=chave-da-api
+webserver=yes
+webserver-address=0.0.0.0
+webserver-port=8081
+server-id=localhost
+```
+
+## Desenvolvimento local
+
+O repositório também possui scripts para rodar frontend e backend separadamente:
+
+- `bun app:dev` para o Nuxt.
+- `bun api:dev` para a API Go.
+- `bun dev` para subir os dois juntos.
+
+## Validação rápida
+
+Depois de subir o stack, confira se os containers estão ativos:
 
 ```bash
 docker compose ps
 ```
 
-The system will automatically start both backend and frontend containers.
+Se quiser uma checagem da API, use:
 
-Once running, open your browser and go to:
-
+```bash
+curl http://localhost:3000/server/healthcheck
 ```
-http://localhost:4000
-```
-
----
-
-## 🌍 Accessing the Interface
-
-When you first open SanchezDNS, you'll be guided through:
-
-1. Creating the **first admin user**
-2. Adding your **PowerDNS connection**
-3. Syncing zones and viewing server statistics
-
-The admin user automatically gains access to:
-
-- Logs
-- Connections
-- System configuration tools
-
----
-
-## 🧠 Notes
-
-- The backend and API are **fully preconfigured** — no manual edits are needed.
-- DNS records are synced automatically with your PowerDNS server.
-- You can safely update via Docker without losing data (persistent volumes).
-
-> _SanchezDNS is designed to be ready out of the box — focus on your zones, not the setup._
 
 ---

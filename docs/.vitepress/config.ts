@@ -6,15 +6,15 @@ export default defineConfig({
   cleanUrls: true,
   description:
     description ||
-    'A modern web interface for PowerDNS with real-time control, automation, and security.',
+    'Interface web para administrar PowerDNS Authoritative com automações, permissões por zona e auditoria.',
   head: [
     ['meta', { name: 'theme-color', content: '#00c850' }],
     ['meta', { name: 'og:type', content: 'website' }],
-    ['meta', { name: 'og:locale', content: 'en-US' }],
+    ['meta', { name: 'og:locale', content: 'pt-BR' }],
     ['meta', { name: 'og:site_name', content: 'SanchezDNS' }],
     ['link', { rel: 'icon', href: '/logo.png', type: 'image/png' }],
   ],
-  lang: 'en-US',
+  lang: 'pt-BR',
   lastUpdated: true,
   sitemap: {
     hostname: 'https://sanchezdns.curi.dev.br',
@@ -27,7 +27,7 @@ export default defineConfig({
     },
     socialLinks: [{ icon: 'github', link: 'https://github.com/rafinhacuri/sanchezdns' }],
     nav: [
-      { text: 'Home', link: '/' },
+      { text: 'Início', link: '/' },
       {
         text: `V${version}`,
         items: [
@@ -37,34 +37,34 @@ export default defineConfig({
             target: '_blank',
           },
           {
-            text: 'Report a Bug',
+            text: 'Reportar bug',
             link: 'https://github.com/rafinhacuri/sanchezdns/issues',
             target: '_blank',
           },
-          { text: 'Sponsor', link: 'https://github.com/sponsors/rafinhacuri', target: '_blank' },
+          { text: 'Apoiar', link: 'https://github.com/sponsors/rafinhacuri', target: '_blank' },
         ],
       },
     ],
     sidebar: [
       {
-        text: '📘 Introduction',
+        text: '📘 Introdução',
         items: [
-          { text: 'Why SanchezDNS', link: '/reason' },
-          { text: 'Setup', link: '/setup' },
+          { text: 'Por que SanchezDNS', link: '/reason' },
+          { text: 'Instalação', link: '/setup' },
         ],
       },
       {
-        text: '⚙️ Interface Overview',
+        text: '⚙️ Visão Geral',
         items: [
-          { text: 'Configuration', link: '/configuration' },
-          { text: 'Zones', link: '/zones' },
-          { text: 'Statistics', link: '/statistics' },
-          { text: 'Users', link: '/users' },
+          { text: 'Configuração', link: '/configuration' },
+          { text: 'Zonas', link: '/zones' },
+          { text: 'Estatísticas', link: '/statistics' },
+          { text: 'Usuários', link: '/users' },
           { text: 'Logs', link: '/logs' },
         ],
       },
       {
-        text: '📄 Resources',
+        text: '📄 Recursos',
         items: [
           {
             text: 'License',
@@ -76,15 +76,15 @@ export default defineConfig({
     ],
     editLink: {
       pattern: 'https://github.com/rafinhacuri/sanchezdns/edit/main/docs/:path',
-      text: 'Suggest an edit on GitHub',
+      text: 'Sugerir edição no GitHub',
     },
     docFooter: {
-      prev: '← Previous',
-      next: 'Next →',
+      prev: '← Anterior',
+      next: 'Próximo →',
     },
     footer: {
-      message: 'Open‑source project licensed under MIT.',
-      copyright: '© 2025 Rafael Curi — SanchezDNS',
+      message: 'Projeto open-source sob licença MIT.',
+      copyright: '© 2026 Rafael Curi — SanchezDNS',
     },
   },
   title: 'SanchezDNS',
