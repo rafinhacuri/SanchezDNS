@@ -1,80 +1,115 @@
-import { z } from 'zod'
+import {
+  check,
+  integer,
+  minValue,
+  nonEmpty,
+  number,
+  object,
+  optional,
+  picklist,
+  pipe,
+  string,
+} from 'valibot'
+import type { InferInput } from 'valibot'
 
-export const EditSOASchema = z.object({
-  startOfAuthority: z.string().min(1, 'Start of Authority is required'),
-  email: z.string().min(1, 'Email is required'),
-  refresh: z.number().int().positive('Refresh must be a positive integer'),
-  retry: z.number().int().positive('Retry must be a positive integer'),
-  expire: z.number().int().positive('Expire must be a positive integer'),
-  negativeCacheTtl: z.number().int().positive('Negative Cache TTL must be a positive integer'),
+export const EditSOASchema = object({
+  startOfAuthority: pipe(
+    string('Start of Authority é uma string'),
+    nonEmpty('Start of Authority é obrigatório'),
+  ),
+  email: pipe(string('Email é uma string'), nonEmpty('Email é obrigatório')),
+  refresh: pipe(
+    number('Refresh é um número'),
+    integer('Refresh must be a positive integer'),
+    minValue(1, 'Refresh must be a positive integer'),
+  ),
+  retry: pipe(
+    number('Retry é um número'),
+    integer('Retry must be a positive integer'),
+    minValue(1, 'Retry must be a positive integer'),
+  ),
+  expire: pipe(
+    number('Expire é um número'),
+    integer('Expire must be a positive integer'),
+    minValue(1, 'Expire must be a positive integer'),
+  ),
+  negativeCacheTtl: pipe(
+    number('Negative Cache TTL é um número'),
+    integer('Negative Cache TTL must be a positive integer'),
+    minValue(1, 'Negative Cache TTL must be a positive integer'),
+  ),
 })
 
-export type EditSOASchemaType = z.infer<typeof EditSOASchema>
+export type EditSOASchemaType = InferInput<typeof EditSOASchema>
 
-export const RecordSchema = z.object({
-  zone: z.string().min(1, 'Zone ID is required'),
-  type: z.enum([
-    'A',
-    'AAAA',
-    'ALIAS',
-    'CAA',
-    'CNAME',
-    'HTTPS',
-    'MX',
-    'NS',
-    'TXT',
-    'SRV',
-  ]),
-  name: z.string().optional(),
-  vl: z.string().optional(),
-  ttl: z.number().min(60, 'TTL must be at least 60 seconds'),
-  comment: z.string().optional(),
-  svcPriority: z.number().optional(),
-  targetName: z.string().optional(),
-  svcParams: z.string().optional(),
-  weight: z.number().optional(),
-  port: z.number().optional(),
-  target: z.string().optional(),
-  priority: z.number().optional(),
-})
-  .refine(data => ['HTTPS', 'SRV'].includes(data.type) || (data.vl && data.vl.trim() !== ''), {
-    message: 'Value is required for this record type',
-    path: ['vl'],
-  })
-  .refine(data => data.type !== 'HTTPS' || (data.svcPriority !== undefined && data.svcPriority !== null), {
-    message: 'Service Priority is required for HTTPS records',
-    path: ['svcPriority'],
-  })
-  .refine(data => data.type !== 'HTTPS' || (data.targetName && data.targetName.trim() !== ''), {
-    message: 'Target Name is required for HTTPS records',
-    path: ['targetName'],
-  })
-  .refine(data => data.type !== 'SRV' || (data.weight !== undefined && data.weight !== null), {
-    message: 'Weight is required for SRV records',
-    path: ['weight'],
-  })
-  .refine(data => data.type !== 'SRV' || (data.port !== undefined && data.port !== null), {
-    message: 'Port is required for SRV records',
-    path: ['port'],
-  })
-  .refine(data => data.type !== 'SRV' || (data.target && data.target.trim() !== ''), {
-    message: 'Target is required for SRV records',
-    path: ['target'],
-  })
-  .refine(data => data.type !== 'SRV' || (data.priority !== undefined && data.priority !== null), {
-    message: 'Priority is required for SRV records',
-    path: ['priority'],
-  })
-  .refine(data => data.type !== 'MX' || (data.priority !== undefined && data.priority !== null), {
-    message: 'Priority is required for MX records',
-    path: ['priority'],
-  })
+export const RecordSchema = pipe(
+  object({
+    zone: pipe(string('Zone ID é uma string'), nonEmpty('Zone ID é obrigatório')),
+    type: picklist([
+      'A',
+      'AAAA',
+      'ALIAS',
+      'CAA',
+      'CNAME',
+      'HTTPS',
+      'MX',
+      'NS',
+      'PTR',
+      'TXT',
+      'SRV',
+      'TLSA',
+    ]),
+    name: optional(string('Name é uma string')),
+    vl: optional(string('Value é uma string')),
+    ttl: pipe(number('TTL é um número'), minValue(60, 'TTL must be at least 60 seconds')),
+    comment: optional(string('Comment é uma string')),
+    svcPriority: optional(number('Service Priority é um número')),
+    targetName: optional(string('Target Name é uma string')),
+    svcParams: optional(string('Service Params é uma string')),
+    weight: optional(number('Weight é um número')),
+    port: optional(number('Port é um número')),
+    target: optional(string('Target é uma string')),
+    priority: optional(number('Priority é um número')),
+  }),
+  check(
+    (data) => ['HTTPS', 'SRV'].includes(data.type) || Boolean(data.vl?.trim()),
+    'Value is required for this record type',
+  ),
+  check(
+    (data) => data.type !== 'HTTPS' || data.svcPriority !== undefined,
+    'Service Priority is required for HTTPS records',
+  ),
+  check(
+    (data) => data.type !== 'HTTPS' || Boolean(data.targetName?.trim()),
+    'Target Name is required for HTTPS records',
+  ),
+  check(
+    (data) => data.type !== 'SRV' || data.weight !== undefined,
+    'Weight is required for SRV records',
+  ),
+  check(
+    (data) => data.type !== 'SRV' || data.port !== undefined,
+    'Port is required for SRV records',
+  ),
+  check(
+    (data) => data.type !== 'SRV' || Boolean(data.target?.trim()),
+    'Target is required for SRV records',
+  ),
+  check(
+    (data) => data.type !== 'SRV' || data.priority !== undefined,
+    'Priority is required for SRV records',
+  ),
+  check(
+    (data) => data.type !== 'MX' || data.priority !== undefined,
+    'Priority is required for MX records',
+  ),
+)
 
-export type RecordForm = z.infer<typeof RecordSchema>
+export type RecordForm = InferInput<typeof RecordSchema>
 
-export const EditRecordSchema = z.object({
+export const EditRecordSchema = object({
   oldValue: RecordSchema,
   newValue: RecordSchema,
 })
 
-export type EditRecordForm = z.infer<typeof EditRecordSchema>
+export type EditRecordForm = InferInput<typeof EditRecordSchema>

@@ -1,17 +1,29 @@
-# 📊 Statistics
+# 📊 Estatísticas
 
-## Overview
-This page provides real-time operational metrics from the connected PowerDNS Authoritative Server. It helps administrators monitor performance, uptime, and server activity, enabling effective management of the DNS infrastructure.
+## Visão geral
 
-## Metrics Available
-The main metrics displayed include:
+A página de estatísticas mostra uma visão operacional da instância PowerDNS configurada no ambiente.
 
-- **Zones** – Total number of DNS zones managed by the server.  
-- **Records** – Total number of resource records across all zones.  
-- **Users** – Number of system users assigned to the connection.  
-- **Uptime** – Time since the server started or was last restarted.  
-- **QPS (Queries Per Second)** – Current query rate handled by the DNS server.  
-- **UDP Queries / TCP Queries** – Breakdown of queries by protocol type.  
+## Métricas exibidas
 
+- quantidade de zonas
+- quantidade total de registros
+- uptime formatado
+- status da instância
+- `UDP Queries`
+- `TCP Queries`
+- `Server ID`
+- momento de início calculado a partir do uptime
 
-> SanchezDNS provides clear visibility into your DNS infrastructure, helping you maintain performance, stability, and trust in every query.
+## Atualização
+
+- os dados são buscados no backend;
+- a interface atualiza automaticamente a cada 60 segundos.
+
+## Fonte dos dados
+
+O backend consulta a API de estatísticas do PowerDNS e também percorre as zonas para contar os registros.
+
+## Limite atual
+
+Essa tela reflete uma única instância PowerDNS por ambiente. Não há agregação entre vários servidores.

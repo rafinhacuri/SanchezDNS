@@ -6,12 +6,15 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func BCrypt(password string) (string, error) {
-	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+func BCrypt(password *string) error {
+	hashed, err := bcrypt.GenerateFromPassword([]byte(*password), bcrypt.DefaultCost)
 	if err != nil {
-		return "", err
+		return err
 	}
-	return "{BCRYPT}" + string(hashed), nil
+
+	*password = "{BCRYPT}" + string(hashed)
+
+	return nil
 }
 
 func VerifyBCrypt(password, hashed string) bool {
@@ -19,5 +22,6 @@ func VerifyBCrypt(password, hashed string) bool {
 	if strings.HasPrefix(hashed, "{CRYPT}") {
 		return false
 	}
+
 	return bcrypt.CompareHashAndPassword([]byte(hashed), []byte(password)) == nil
 }

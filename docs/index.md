@@ -2,34 +2,34 @@
 layout: home
 
 hero:
-  name: "SanchezDNS"
-  tagline: "🗄️ Web application to manage authoritative dns servers using PowerDNS"
+  name: 'SanchezDNS'
+  tagline: 'Plataforma web para operar zones, records, usuários e auditoria em PowerDNS'
   image:
     src: /logo.png
-    alt: "SanchezDNS"
+    alt: 'SanchezDNS'
   actions:
     - theme: brand
-      text: Get Started
+      text: Começar
       link: /setup
     - theme: alt
-      text: View on GitHub
+      text: Ver no GitHub
       link: https://github.com/rafinhacuri/SanchezDNS
 
 features:
-  - title: ⚙️ PowerDNS Integration
-    details: Manage authoritative zones and records with full PowerDNS API synchronization — instant updates and reliability.
-  - title: 🧭 Unified Control Panel
-    details: Centralized management for zones, users, records, and logs in a sleek, Nuxt 4 + Nuxt UI 4 interface.
-  - title: 🔒 AES‑256/ BCRYPT /DNSSEC Secure Encryption
-    details: All sensitive credentials and API keys are encrypted, ensuring enterprise‑grade security. Native DNSSEC support allows secure key management, signing, and validation of zones for maximum protection.
-  - title: 📊 Real‑Time Statistics
-    details: Track DNS queries, QPS, uptime, and record distribution — all updated live.
-  - title: 👥 Role‑Based Access
-    details: Fine‑grained permissions for users and administrators with complete audit logging.
-  - title: 🚀 Docker & Cloud Ready
-    details: Easily deploy SanchezDNS in Docker or cloud environments with zero‑configuration scaling.
+  - title: ⚙️ Integração com PowerDNS
+    details: O backend fala diretamente com a API authoritative para criar zonas, editar SOA e manipular registros sem sincronização manual.
+  - title: 🧭 Controle por zona
+    details: O acesso é calculado por zona, com permissões de leitura e escrita separadas e nível administrativo global.
+  - title: 🔁 Reverse automático
+    details: Registros A e AAAA mantêm PTR reverso automaticamente em zonas in-addr.arpa e ip6.arpa.
+  - title: 📊 Estatísticas em tempo real
+    details: Zonas, registros, uptime e tráfego UDP/TCP são atualizados periodicamente no painel.
+  - title: 🪵 Auditoria
+    details: Criação, edição e remoção de zonas, registros e permissões geram logs de auditoria.
+  - title: 🐳 Docker pronto
+    details: O projeto sobe em um stack composto por app, MongoDB, Redis e storage S3 compatível.
 
 footer: |
-  © 2025 SanchezDNS — Designed with ❤️ by Rafael Curi.  
-  Built using [VitePress](https://vitepress.dev) + [Nuxt 4](https://nuxt.com).
+  © 2026 SanchezDNS — desenvolvido por Rafael Curi.  
+  Documentação feita com [VitePress](https://vitepress.dev) e interface em [Nuxt 4](https://nuxt.com).
 ---

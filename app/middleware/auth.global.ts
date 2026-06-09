@@ -1,28 +1,21 @@
-export default defineNuxtRouteMiddleware(async to => {
-  const { isLoggedIn, setUserSession, clearUserSession, user } = useUserSession()
-  const { optionSelected, refreshConnections } = await useConnection()
+export default defineNuxtRouteMiddleware(async (to) => {
+  const { refresh, isLoggedIn, user } = useUser()
 
-  await refreshConnections()
+  // * Atualizando a sessão
+  await refresh()
 
-  const res = await useRequestFetch()<{ username: string, isAdmin: boolean }>('/server/api/check-session').catch(() => null)
-
-  if(!res){
-    clearUserSession()
-    if(to.fullPath !== '/') return navigateTo('/')
-    return
+  if (!isLoggedIn.value && to.path !== '/login') {
+    return navigateTo('/login')
   }
-  setUserSession({ username: res.username, admin: res.isAdmin })
 
-  // * Logado tentando acessar login
-  if(isLoggedIn.value && to.fullPath === '/') return navigateTo('/zones')
+  if (isLoggedIn.value && to.path === '/login') {
+    return navigateTo('/')
+  }
 
-  // * Não logado tentando qualquer rota exceto login
-  if(!isLoggedIn.value && to.fullPath !== '/') return navigateTo('/')
-
-  // * logado tentando acessar rota admin
-  if(!user.value?.admin && (to.fullPath.startsWith('/users') || to.fullPath.startsWith('/dns-connections') || to.fullPath.startsWith('/logs'))) return navigateTo('/zones')
-
-  // * nao selecionou conexao
-  if(!optionSelected.value && !['/', '/dns-connections', '/start'].includes(to.fullPath) && isLoggedIn) return navigateTo('/start')
-  if(optionSelected.value && ['/start'].includes(to.fullPath) && isLoggedIn) return navigateTo('/zones')
+  if (
+    (to.path === '/logs' || to.path === '/cadastros' || to.path === '/solicitacoes') &&
+    user.value.level !== 'admin'
+  ) {
+    return navigateTo('/')
+  }
 })

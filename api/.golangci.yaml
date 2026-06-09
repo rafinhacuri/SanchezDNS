@@ -1,0 +1,42 @@
+version: '2'
+
+linters:
+  default: all
+  disable:
+    - cyclop
+    - depguard
+    - err113
+    - exhaustruct
+    - goconst
+    - misspell
+    - mnd
+    - varnamelen
+    - wrapcheck
+  settings:
+    funlen:
+      lines: 200
+      statements: 120
+    revive:
+      rules:
+        - name: exported
+          disabled: true
+        - name: package-comments
+          disabled: true
+  exclusions:
+    rules:
+      - path: (^|.*[\\/])(mongo|redis)[\\/]
+        linters:
+          - tagliatelle
+        text: "json\\(camel\\): got '_id' want 'id'"
+
+formatters:
+  enable:
+    - gofumpt
+    - goimports
+  settings:
+    gofumpt:
+      module-path: github.com/rafinhacuri/SanchezDNS/api
+      extra-rules: true
+    goimports:
+      local-prefixes:
+        - github.com/rafinhacuri/SanchezDNS/api

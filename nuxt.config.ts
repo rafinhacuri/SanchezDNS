@@ -1,10 +1,17 @@
 import process from 'node:process'
-import { description, version } from './package.json'
 
-const { SITE_URL, DEV_URL, DEV_KEY, DEV_CERT } = process.env
+const { DEV_URL, DEV_KEY, DEV_CERT } = process.env
 
 export default defineNuxtConfig({
-  modules: ['@nuxt/image', '@nuxt/ui', '@nuxtjs/seo', '@vueuse/nuxt', 'nuxt-security'],
+  modules: [
+    '@nuxt/image',
+    '@vueuse/nuxt',
+    '@nuxtjs/seo',
+    'nuxt-security',
+    '@nuxt/ui',
+    '@nuxt/hints',
+    '@nuxt/a11y',
+  ],
   $development: {
     security: { headers: { crossOriginEmbedderPolicy: 'unsafe-none' } },
   },
@@ -12,26 +19,34 @@ export default defineNuxtConfig({
   app: { head: { templateParams: { separator: '•' } } },
   css: ['~/assets/main.css'],
   site: {
-    url: SITE_URL,
-    name: 'SanchezDNS',
-    description,
-  },
-  runtimeConfig: {
-    public: { version },
+    name: 'Sanchez DNS',
+    description: '🗄️ Web application to manage authoritative dns servers using PowerDNS',
   },
   routeRules: {
-    '/server/**': { proxy: { to: 'http://localhost:8080/**' } },
+    '/server/**': {
+      proxy: {
+        to: DEV_KEY && DEV_CERT ? `https://${DEV_URL}:8080/**` : 'http://localhost:8080/**',
+      },
+    },
   },
   devServer: {
     host: DEV_URL,
     https: DEV_KEY && DEV_CERT ? { key: DEV_KEY, cert: DEV_CERT } : undefined,
   },
-  compatibilityDate: '2025-07-15',
+  compatibilityDate: '2026-01-26',
+  nitro: {
+    preset: 'bun',
+  },
   linkChecker: { enabled: false },
+  ogImage: {
+    enabled: false,
+  },
   security: {
+    xssValidator: false,
     headers: {
-      contentSecurityPolicy: { 'default-src': ['\'self\''], 'img-src': ['\'self\'', 'data:', 'blob:'] },
+      contentSecurityPolicy: {
+        'img-src': ["'self'", 'data:', 'blob:'],
+      },
     },
   },
-  sitemap: { enabled: false },
 })

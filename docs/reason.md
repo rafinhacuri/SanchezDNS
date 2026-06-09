@@ -1,49 +1,28 @@
-# 💡 Why Choose SanchezDNS
+# 💡 Por que SanchezDNS
 
-SanchezDNS was built to make **DNS management effortless, secure, and powerful**.  
-It’s not just a dashboard — it’s a complete ecosystem for managing PowerDNS servers in real-time.
+SanchezDNS existe para resolver o trabalho repetitivo de operação DNS em um fluxo único, com regras claras de acesso e menos intervenção manual.
 
----
+## O foco do projeto
 
-## ⚙️ Designed for Professionals
+- Centralizar a operação de zonas e registros em uma UI só.
+- Automatizar o que puder ser derivado, como PTR reverso e sessão do usuário.
+- Separar leitura, escrita e administração sem complicar o modelo.
+- Manter auditoria das mudanças que realmente importam.
 
-SanchezDNS is ideal for teams, system administrators, and hosting providers who demand **efficiency, clarity, and automation**.
+## O que ele faz bem
 
-- **Centralized Management** – Control all your DNS zones, records, and servers in one clean interface.  
-- **Real-Time Sync** – Every change reflects instantly through the native PowerDNS Authoritative API.  
-- **Scalable Architecture** – Manage multiple DNS servers or distributed networks with ease.  
-- **Audit-Ready** – Every action is logged for transparency and compliance.  
-- **Secure by Design** – Built with AES‑256/ BCRYPT encryption, role-based access control, and safe API key storage.  
+- gera e mantém zonas no PowerDNS de forma direta;
+- trata zonas normais e reversas sem exigir procedimentos paralelos;
+- reduz erros de manutenção ao completar FQDNs e sincronizar reverse records;
+- expõe métricas úteis para operação diária;
+- permite aprovações e permissões sem espalhar a lógica em várias ferramentas.
 
----
+## O que o refactor removeu da visão anterior
 
-## 🧠 Built with Modern Technology
+- não há painel de múltiplas conexões;
+- não há “cluster” de servidores DNS dentro da interface;
+- a documentação antiga de storage e credenciais distribuídas não se aplica mais ao estado atual.
 
-SanchezDNS leverages the best of both worlds:
+## Resumo
 
-- **Backend:** Go + Gin framework for performance and reliability.  
-- **Frontend:** Nuxt 4 + Nuxt UI 4, providing a smooth and responsive UI.  
-- **Database:** MongoDB for scalability and fast queries.  
-- **Integration:** PowerDNS Authoritative API for direct synchronization.  
-
----
-
-## 🚀 Why It Stands Out
-
-Unlike many DNS panels, SanchezDNS is **not a static interface**.  
-It actively manages, syncs, and automates — giving you total visibility into your DNS ecosystem.
-
-- **Automatic zone propagation**
-- **DNSSEC-ready**
-- **Role-based user control**
-- **Live server statistics and uptime**
-- **Admin-only access to logs and connections**
-
----
-
-## 🌍 The Mission
-
-To empower DNS administrators with **clarity, control, and confidence**.  
-SanchezDNS simplifies what used to be complex, offering modern DNS orchestration without the chaos.
-
-> _From hobby projects to enterprise-level deployments, SanchezDNS scales with your ambition._
+O projeto ficou mais simples de operar e mais explícito nas regras: uma instância PowerDNS, um conjunto de permissões por zona e automações nos pontos certos.

@@ -2,8 +2,13 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/rafinhacuri/SanchezDNS/controllers"
-	"github.com/rafinhacuri/SanchezDNS/middleware"
+
+	"github.com/rafinhacuri/SanchezDNS/api/controller"
+	"github.com/rafinhacuri/SanchezDNS/api/controller/fetch"
+	"github.com/rafinhacuri/SanchezDNS/api/controller/insert"
+	"github.com/rafinhacuri/SanchezDNS/api/controller/remove"
+	"github.com/rafinhacuri/SanchezDNS/api/controller/update"
+	"github.com/rafinhacuri/SanchezDNS/api/middleware"
 )
 
 func RegisterRoutes(server *gin.Engine) {
@@ -13,35 +18,42 @@ func RegisterRoutes(server *gin.Engine) {
 		})
 	})
 
-	server.GET("/healthcheck", controllers.HealthCheck)
+	server.GET("/healthcheck", controller.HealthCheck)
 
-	server.POST("/login", controllers.Auth)
-	server.PUT("/api/user", controllers.InsertUser)
+	api := server.Group("/api")
+	auth := api.Group("/", middleware.ValidateSession)
 
-	api := server.Group("/api", middleware.Authenticate)
-	apiAdmin := api.Group("/", middleware.AuthenticateAdmin)
-	api.GET("/check-session", middleware.CheckSession)
+	api.POST("/login", controller.Login)
+	auth.POST("/logout", controller.Logout)
+	auth.GET("/session", controller.Session)
 
-	api.PATCH("/user/password", controllers.ChangePassword)
-	api.GET("/statistics", controllers.GetStatistics)
-	api.GET("/connections", controllers.GetConnections)
-	api.GET("/connection", controllers.GetConnection)
-	api.PATCH("/connection/apikey", controllers.EditConnectionApiKey)
-	api.PATCH("/connection", controllers.EditConnection)
-	api.DELETE("/connection", controllers.DeleteConnection)
-	api.GET("/zones", controllers.GetZones)
-	api.PUT("/zone", controllers.CreateZone)
-	api.DELETE("/zone", controllers.DeleteZone)
-	api.PATCH("/zone/soa", controllers.UpdateSOA)
-	api.GET("/zone/records", controllers.GetRecords)
-	api.PUT("/zone/records", controllers.InsertRecord)
-	api.DELETE("/zone/records", controllers.DeleteRecord)
-	api.PATCH("/zone/records", controllers.EditRecord)
+	api.GET("/file/:id", fetch.File)
+	api.PUT("/file", insert.File)
 
-	apiAdmin.GET("/users", controllers.GetUsers)
-	apiAdmin.GET("/logs", controllers.GetLogs)
-	apiAdmin.PUT("/connections", controllers.InsertConnection)
-	apiAdmin.GET("/full-connections", controllers.GetFullConnections)
-	apiAdmin.POST("/connection/user", controllers.AddUser)
-	apiAdmin.DELETE("/connection/user", controllers.RemoveUser)
+	auth.GET("/zones", fetch.Zones)
+	auth.GET("/records", fetch.Records)
+	auth.PUT("/records", insert.Record)
+	auth.DELETE("/records", remove.Record)
+	auth.PATCH("/records", update.Record)
+	auth.GET("/statistics", fetch.Statistics)
+
+	api.POST("/cadastro", insert.Cadastro)
+
+	admin := auth.Group("/", middleware.AdminOnly)
+
+	admin.PUT("/solicitacoes-status", update.SolicitacaoStatus)
+	admin.GET("/logs", fetch.Logs)
+	admin.PUT("/zone", insert.Zone)
+	admin.DELETE("/zone", remove.Zone)
+	admin.PATCH("/soa", update.SOA)
+	admin.POST("/user", insert.User)
+	admin.PATCH("/user", update.User)
+	admin.DELETE("/user", remove.User)
+	admin.GET("/users", fetch.Users)
+	admin.GET("/members", fetch.Membros)
+	admin.GET("/solicitacoes", fetch.Solicitacoes)
+	admin.GET("/cadastros", fetch.Cadastros)
+	admin.DELETE("/cadastro", remove.Cadastro)
+	admin.PUT("/cadastro", update.Cadastro)
+	admin.PATCH("/level", update.Level)
 }

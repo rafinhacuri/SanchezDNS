@@ -1,25 +1,21 @@
 <script setup lang="ts">
-const error = useError()
+  import type { NuxtError } from '#app'
 
-const statusCode = ref(500)
-const message = ref('Something went wrong...')
+  const props = defineProps({
+    error: {
+      type: Object as PropType<NuxtError>,
+      default() {
+        return {
+          status: 500,
+          message: 'Server error',
+        }
+      },
+    },
+  })
 
-if(error.value && 'statusCode' in error.value && 'message' in error.value){
-  statusCode.value = error.value.statusCode
-  message.value = error.value.message
-}
-
-useHead({
-  title: String(statusCode.value),
-})
+  useHead({ title: String(props.error.status || 500) })
 </script>
 
 <template>
-  <UError
-    :error="{
-      statusCode: statusCode,
-      statusMessage: message,
-      message: message,
-    }"
-  />
+  <UError :error="error" />
 </template>

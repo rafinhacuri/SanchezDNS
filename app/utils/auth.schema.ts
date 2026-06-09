@@ -1,13 +1,13 @@
-import { z } from 'zod'
+import { email, nonEmpty, object, pipe, string } from 'valibot'
+import type { InferInput } from 'valibot'
 
-export const AuthSchema = z.object({
-  email: z.email('Invalid email'),
-  password: z
-    .string()
-    .min(8, 'At least 8 characters - Requirement not met')
-    .regex(/\d/, 'At least 1 number - Requirement not met')
-    .regex(/[a-z]/, 'At least 1 lowercase letter - Requirement not met')
-    .regex(/[A-Z]/, 'At least 1 uppercase letter - Requirement not met'),
+export const AuthSchema = object({
+  email: pipe(
+    string('Email é uma string'),
+    email('Email é inválido'),
+    nonEmpty('Email é obrigatório'),
+  ),
+  senha: pipe(string('Senha é uma string'), nonEmpty('Senha é obrigatória')),
 })
 
-export type Auth = z.infer<typeof AuthSchema>
+export type Auth = InferInput<typeof AuthSchema>
