@@ -18,6 +18,8 @@ services:
       - FS_PASSWORD=${FS_PASSWORD}
       - FS_BUCKET=${FS_BUCKET}
       - FS_ENDPOINT=${FS_ENDPOINT}
+      - AWS_REQUEST_CHECKSUM_CALCULATION=WHEN_REQUIRED
+      - AWS_RESPONSE_CHECKSUM_VALIDATION=WHEN_REQUIRED
     depends_on:
       - mongo
       - redis
@@ -33,7 +35,7 @@ services:
 
   mongo:
     image: mongo:latest
-    container_name: sanchezdns-mongo
+    container_name: mongo
     restart: unless-stopped
     ports:
       - 27017:27017
@@ -42,7 +44,7 @@ services:
 
   redis:
     image: redis:latest
-    container_name: sanchezdns-redis
+    container_name: redis
     restart: unless-stopped
     ports:
       - 6379:6379
@@ -51,22 +53,27 @@ services:
     command: redis-server --appendonly yes
 
   s3:
-    image: minio/minio:latest
-    container_name: sanchezdns-s3
+    image: rustfs/rustfs:latest
+    container_name: s3
     restart: unless-stopped
     environment:
-      - MINIO_ROOT_USER=${FS_USERNAME}
-      - MINIO_ROOT_PASSWORD=${FS_PASSWORD}
+      - RUSTFS_ACCESS_KEY=${FS_USERNAME}
+      - RUSTFS_SECRET_KEY=${FS_PASSWORD}
+      - RUSTFS_CONSOLE_ENABLE=true
     ports:
       - 9000:9000
       - 9001:9001
     volumes:
       - s3_data:/data
-    command: server /data --console-address ':9001'
+      - s3_logs:/logs
+    command: >
+      --address :9000
+      --console-enable
+      /data
 
   s3-create-bucket:
     image: minio/mc:latest
-    container_name: sanchezdns-s3-create-bucket
+    container_name: s3-create-bucket
     depends_on:
       - s3
     environment:
@@ -85,3 +92,4 @@ volumes:
   mongo_data:
   redis_data:
   s3_data:
+  s3_logs:
