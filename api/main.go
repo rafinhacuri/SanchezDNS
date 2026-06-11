@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 
+	"github.com/rafinhacuri/SanchezDNS/api/cron"
 	"github.com/rafinhacuri/SanchezDNS/api/env"
 	"github.com/rafinhacuri/SanchezDNS/api/mongo"
 	"github.com/rafinhacuri/SanchezDNS/api/redis"
@@ -24,6 +25,8 @@ func main() {
 	s3.Connect()
 
 	go mongo.Setup()
+
+	cron.TimeoutSessions()
 
 	gin.DefaultWriter = io.Discard
 

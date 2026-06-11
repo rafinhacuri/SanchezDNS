@@ -11,6 +11,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/mileusna/useragent v1.3.5
 	github.com/redis/go-redis/v9 v9.20.0
+	github.com/robfig/cron/v3 v3.0.1
 	github.com/tkrajina/typescriptify-golang-structs v0.2.0
 	go.mongodb.org/mongo-driver/v2 v2.4.2
 	golang.org/x/crypto v0.41.0
