@@ -34,20 +34,20 @@ Editar a zona é, na prática, **regravar o RRset SOA** ([update-soa.go](https:/
 
 O editor trabalha com estes tipos. Entender cada um ajuda a justificar por que o backend precisa tratá-los de forma diferente:
 
-| Tipo | Para que serve |
-|---|---|
-| `A` | aponta um nome para um endereço **IPv4** |
-| `AAAA` | aponta um nome para um endereço **IPv6** |
-| `CNAME` | apelido: aponta um nome para **outro nome** |
-| `ALIAS` | como CNAME, mas pode ser usado no apex da zona (raiz do domínio) |
-| `MX` | define o **servidor de email** do domínio, com prioridade |
-| `NS` | delega uma subzona a outros servidores de nomes |
-| `TXT` | texto livre — usado por SPF, DKIM, verificações de propriedade |
-| `PTR` | o **reverso**: mapeia IP → nome (vive nas zonas `.arpa`) |
-| `SRV` | localiza serviços (host + porta) para protocolos como SIP, XMPP |
-| `CAA` | diz **quais autoridades certificadoras** podem emitir certificados para o domínio |
-| `HTTPS` | parâmetros de conexão HTTPS (ALPN, etc.) já na resolução do nome |
-| `TLSA` | associa um certificado/chave TLS ao nome (DANE) |
+| Tipo    | Para que serve                                                                    |
+| ------- | --------------------------------------------------------------------------------- |
+| `A`     | aponta um nome para um endereço **IPv4**                                          |
+| `AAAA`  | aponta um nome para um endereço **IPv6**                                          |
+| `CNAME` | apelido: aponta um nome para **outro nome**                                       |
+| `ALIAS` | como CNAME, mas pode ser usado no apex da zona (raiz do domínio)                  |
+| `MX`    | define o **servidor de email** do domínio, com prioridade                         |
+| `NS`    | delega uma subzona a outros servidores de nomes                                   |
+| `TXT`   | texto livre — usado por SPF, DKIM, verificações de propriedade                    |
+| `PTR`   | o **reverso**: mapeia IP → nome (vive nas zonas `.arpa`)                          |
+| `SRV`   | localiza serviços (host + porta) para protocolos como SIP, XMPP                   |
+| `CAA`   | diz **quais autoridades certificadoras** podem emitir certificados para o domínio |
+| `HTTPS` | parâmetros de conexão HTTPS (ALPN, etc.) já na resolução do nome                  |
+| `TLSA`  | associa um certificado/chave TLS ao nome (DANE)                                   |
 
 ## Normalização: por que o valor é ajustado antes de gravar
 

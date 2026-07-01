@@ -24,7 +24,7 @@ O sistema gera logs para as operações que realmente importam para auditoria:
 
 ## Como os logs são gravados — e por que de forma assíncrona
 
-Os logs são escritos no **MongoDB**, mas de um jeito específico: em **segundo plano**, via *goroutine*. Repare no padrão que aparece em todo o backend:
+Os logs são escritos no **MongoDB**, mas de um jeito específico: em **segundo plano**, via _goroutine_. Repare no padrão que aparece em todo o backend:
 
 ```go
 go logs.InsertLog(name, user, "insert_record", "Criado registro ...")

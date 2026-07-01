@@ -124,39 +124,27 @@ A resposta descreve a zona inteira, e dentro dela o array `rrsets` — cada item
       "name": "rafael.teste.com.",
       "type": "A",
       "ttl": 3600,
-      "records": [
-        { "content": "152.20.120.224", "disabled": false }
-      ],
-      "comments": [
-        { "account": "", "content": "teste", "modified_at": 1780500082 }
-      ]
+      "records": [{ "content": "152.20.120.224", "disabled": false }],
+      "comments": [{ "account": "", "content": "teste", "modified_at": 1780500082 }]
     },
     {
       "name": "teste.com.",
       "type": "HTTPS",
       "ttl": 3600,
-      "records": [
-        { "content": "3 teste.com. alpn=h2", "disabled": false }
-      ],
-      "comments": [
-        { "account": "", "content": "dscscd", "modified_at": 1771535023 }
-      ]
+      "records": [{ "content": "3 teste.com. alpn=h2", "disabled": false }],
+      "comments": [{ "account": "", "content": "dscscd", "modified_at": 1771535023 }]
     },
     {
       "name": "teste.com.",
       "type": "SRV",
       "ttl": 3600,
-      "records": [
-        { "content": "60 4 80 teste.com.", "disabled": false }
-      ]
+      "records": [{ "content": "60 4 80 teste.com.", "disabled": false }]
     },
     {
       "name": "teste.com.",
       "type": "MX",
       "ttl": 3600,
-      "records": [
-        { "content": "50 mo.mo.com.", "disabled": false }
-      ]
+      "records": [{ "content": "50 mo.mo.com.", "disabled": false }]
     },
     {
       "name": "teste.com.",

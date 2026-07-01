@@ -33,7 +33,7 @@ Isso é coerente com o modelo de **RRset** explicado em [PowerDNS a fundo](/powe
 
 ### Tratamento dos valores das métricas
 
-As estatísticas do PowerDNS vêm com valores de tipos variados (string, número, booleano) dentro de um JSON. O backend faz um *parsing* tolerante: tenta interpretar cada valor como string, depois booleano, depois inteiro, depois float, guardando tudo normalizado em um mapa. Assim ele consegue extrair com segurança números como `uptime` e `udp-queries` sem quebrar se o formato de uma métrica variar entre versões do PowerDNS.
+As estatísticas do PowerDNS vêm com valores de tipos variados (string, número, booleano) dentro de um JSON. O backend faz um _parsing_ tolerante: tenta interpretar cada valor como string, depois booleano, depois inteiro, depois float, guardando tudo normalizado em um mapa. Assim ele consegue extrair com segurança números como `uptime` e `udp-queries` sem quebrar se o formato de uma métrica variar entre versões do PowerDNS.
 
 ### Uptime e "momento de início"
 

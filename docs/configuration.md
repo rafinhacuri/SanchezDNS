@@ -42,39 +42,39 @@ FS_ENDPOINT="http://s3:9000"
 
 ### Frontend e sessão
 
-| Variável | Papel |
-|---|---|
+| Variável                 | Papel                                                                                                                                                                               |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `NUXT_PUBLIC_PRODUCTION` | Quando `true`, ativa comportamentos de produção — em especial, marca o cookie de sessão como **`Secure`** (só trafega por HTTPS). Deixe `false` em desenvolvimento local sem HTTPS. |
-| `NUXT_PUBLIC_SITE_URL` | URL pública do site, exposta ao cliente. É a base para o frontend montar as chamadas à API (`.../go`). |
-| `NUXT_SITE_URL` | URL do site usada pelo servidor Nuxt (SSR), para SEO e metadados. |
+| `NUXT_PUBLIC_SITE_URL`   | URL pública do site, exposta ao cliente. É a base para o frontend montar as chamadas à API (`.../go`).                                                                              |
+| `NUXT_SITE_URL`          | URL do site usada pelo servidor Nuxt (SSR), para SEO e metadados.                                                                                                                   |
 
 **Por que `PRODUCTION` controla o cookie?** Porque em desenvolvimento você acessa por `http://localhost` (sem TLS); se o cookie fosse `Secure`, o navegador não o enviaria e o login não funcionaria. Em produção, atrás de HTTPS, `Secure` é obrigatório para não expor o token. Ver [Autenticação](/authentication#o-cookie-de-sessao).
 
 ### Persistência e cache
 
-| Variável | Papel |
-|---|---|
-| `MONGO_URL` | Conexão com o MongoDB — a **fonte da verdade** de cadastros, sessões, permissões, solicitações e logs. |
+| Variável    | Papel                                                                                                                 |
+| ----------- | --------------------------------------------------------------------------------------------------------------------- |
+| `MONGO_URL` | Conexão com o MongoDB — a **fonte da verdade** de cadastros, sessões, permissões, solicitações e logs.                |
 | `REDIS_URL` | Conexão com o Redis — **cache** de sessão e de nível de acesso. Ver [Autenticação](/authentication#o-papel-do-redis). |
 
 ### PowerDNS
 
-| Variável | Papel | Deve corresponder a |
-|---|---|---|
-| `DNS_HOST` | URL da **API HTTP** do PowerDNS (não a porta 53 do DNS). | `webserver-address:webserver-port` do `pdns.conf` |
-| `DNS_API_KEY` | Chave secreta enviada no cabeçalho `X-API-Key`. | `api-key` do `pdns.conf` |
-| `DNS_SERVER_ID` | Identificador do servidor usado no caminho da API (`/servers/<id>/...`). | `server-id` do `pdns.conf` (padrão `localhost`) |
+| Variável        | Papel                                                                    | Deve corresponder a                               |
+| --------------- | ------------------------------------------------------------------------ | ------------------------------------------------- |
+| `DNS_HOST`      | URL da **API HTTP** do PowerDNS (não a porta 53 do DNS).                 | `webserver-address:webserver-port` do `pdns.conf` |
+| `DNS_API_KEY`   | Chave secreta enviada no cabeçalho `X-API-Key`.                          | `api-key` do `pdns.conf`                          |
+| `DNS_SERVER_ID` | Identificador do servidor usado no caminho da API (`/servers/<id>/...`). | `server-id` do `pdns.conf` (padrão `localhost`)   |
 
 Se qualquer um dos três não bater com a configuração do PowerDNS, as rotas de zona, registro e estatística falham. A relação completa está em [PowerDNS a fundo](/powerdns#o-elo-entre-a-config-do-powerdns-e-as-variaveis-do-sanchezdns).
 
 ### Upload de arquivos (S3)
 
-| Variável | Papel |
-|---|---|
-| `FS_USERNAME` | Access key do storage S3 compatível. |
-| `FS_PASSWORD` | Secret key do storage S3. |
-| `FS_BUCKET` | Nome do bucket onde as fotos de perfil ficam. É criado automaticamente pelo serviço `s3-create-bucket` do compose. |
-| `FS_ENDPOINT` | Endpoint do storage (ex.: `http://s3:9000`). Permite usar RustFS, MinIO ou AWS S3 sem mudar código. |
+| Variável      | Papel                                                                                                              |
+| ------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `FS_USERNAME` | Access key do storage S3 compatível.                                                                               |
+| `FS_PASSWORD` | Secret key do storage S3.                                                                                          |
+| `FS_BUCKET`   | Nome do bucket onde as fotos de perfil ficam. É criado automaticamente pelo serviço `s3-create-bucket` do compose. |
+| `FS_ENDPOINT` | Endpoint do storage (ex.: `http://s3:9000`). Permite usar RustFS, MinIO ou AWS S3 sem mudar código.                |
 
 **Por que S3 em vez de disco?** Para manter o container sem estado — ver [Arquitetura](/architecture#s3-compativel-rustfs-minio-arquivos).
 
