@@ -9,6 +9,8 @@
 
   const { isLoading, start, finish } = useLoadingIndicator()
 
+  const baseUrl = useApiUrl()
+
   const page = ref(1)
   const itemsPerPage = ref(9)
   const filter = ref('')
@@ -222,7 +224,7 @@
           <div class="flex items-start justify-between gap-4">
             <div class="flex min-w-0 items-center gap-3">
               <img
-                :src="`/server/api/file/${solicitacao.foto}`"
+                :src="`${baseUrl}/file/${solicitacao.foto}`"
                 :alt="solicitacao.email"
                 class="size-12 rounded-2xl object-cover ring-2 ring-primary/10" />
               <div class="min-w-0">
@@ -310,7 +312,7 @@
           <div class="rounded-3xl border border-default bg-gray-50 p-5 dark:bg-gray-900/60">
             <div class="flex items-center gap-4">
               <img
-                :src="`/server/api/file/${selectedSolicitacao.foto}`"
+                :src="`${baseUrl}/file/${selectedSolicitacao.foto}`"
                 :alt="selectedSolicitacao.email"
                 class="size-16 rounded-2xl object-cover ring-2 ring-primary/10" />
               <div class="min-w-0">

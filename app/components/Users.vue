@@ -6,6 +6,7 @@
   import { UBadge, UButton, UPopover } from '#components'
 
   const toast = useToast()
+  const baseUrl = useApiUrl()
   const { isLoading, start, finish } = useLoadingIndicator()
 
   const zoneId = defineModel<string>('zoneId', { required: true })
@@ -113,7 +114,7 @@
       cell: ({ row }) =>
         h('div', { class: 'flex items-center gap-3' }, [
           h('img', {
-            src: `/server/api/file/${row.original.email}`,
+            src: `${baseUrl}/file/${row.original.email}`,
             alt: row.original.email,
             class: 'size-6 cursor-pointer rounded-full',
           }),
@@ -215,7 +216,7 @@
           <template #item-label="{ item }">
             <div class="flex items-center gap-3">
               <img
-                :src="`/server/api/file/${item.email}`"
+                :src="`${baseUrl}/file/${item.email}`"
                 :alt="item.nome"
                 class="size-6 cursor-pointer rounded-full" />
               <p>{{ item.nome }}</p>

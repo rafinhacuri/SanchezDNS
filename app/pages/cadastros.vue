@@ -9,12 +9,14 @@
 
   const { isLoading, start, finish } = useLoadingIndicator()
 
+  const baseUrl = useApiUrl()
+
   const page = ref(1)
   const itemsPerPage = ref(9)
   const filter = ref('')
   const filterDebounced = refDebounced(filter, 300)
 
-  const { data, refresh } = await useApi<CadastroResponse>('/fcadastros', {
+  const { data, refresh } = await useApi<CadastroResponse>('/cadastros', {
     method: 'GET',
     query: { page, limit: itemsPerPage, filter: filterDebounced },
     default: () => ({ cadastros: [], total: 0 }),
@@ -315,7 +317,7 @@
           <div class="flex items-start justify-between gap-4">
             <div class="flex min-w-0 items-center gap-3">
               <img
-                :src="`/server/api/file/${cadastro.foto}`"
+                :src="`${baseUrl}/file/${cadastro.foto}`"
                 :alt="cadastro.email"
                 class="size-12 rounded-2xl object-cover ring-2 ring-primary/10" />
               <div class="min-w-0">

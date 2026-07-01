@@ -3,14 +3,13 @@
 
   const { user, useLogout } = useUser()
 
+  const baseUrl = useApiUrl()
+
   const itemsDropdown = computed<DropdownMenuItem[][]>(() => [
     [
       {
         label: user.value.email,
         icon: 'i-lucide-user',
-        onClick: async (): Promise<void> => {
-          await navigateTo('/perfil')
-        },
       },
       {
         label: user.value.level === 'admin' ? 'Administrador' : 'Usuário',
@@ -42,7 +41,7 @@
       class="group relative grid size-10 place-items-center rounded-full ring-1 ring-gray-200/70 transition hover:scale-[1.02] hover:ring-blue-500/30 dark:ring-gray-800/70"
       :aria-label="`Menu do usuário ${user.email}`">
       <img
-        :src="`/server/api/file/${user.email}`"
+        :src="`${baseUrl}/file/${user.email}`"
         :alt="user.email"
         class="size-9 rounded-full object-cover shadow-sm" />
       <span
