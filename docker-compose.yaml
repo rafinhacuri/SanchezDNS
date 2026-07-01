@@ -6,32 +6,16 @@ services:
     ports:
       - 3000:3000
     environment:
-      - NUXT_PUBLIC_PRODUCTION=${NUXT_PUBLIC_PRODUCTION}
-      - NUXT_SITE_URL=${NUXT_SITE_URL}
-      - NUXT_PUBLIC_SITE_URL=${NUXT_PUBLIC_SITE_URL}
-      - MONGO_URL=${MONGO_URL}
-      - REDIS_URL=${REDIS_URL}
-      - DNS_HOST=${DNS_HOST}
-      - DNS_API_KEY=${DNS_API_KEY}
-      - DNS_SERVER_ID=${DNS_SERVER_ID}
-      - FS_USERNAME=${FS_USERNAME}
-      - FS_PASSWORD=${FS_PASSWORD}
-      - FS_BUCKET=${FS_BUCKET}
-      - FS_ENDPOINT=${FS_ENDPOINT}
-      - AWS_REQUEST_CHECKSUM_CALCULATION=WHEN_REQUIRED
-      - AWS_RESPONSE_CHECKSUM_VALIDATION=WHEN_REQUIRED
+     - AWS_REQUEST_CHECKSUM_CALCULATION=WHEN_REQUIRED
+     - AWS_RESPONSE_CHECKSUM_VALIDATION=WHEN_REQUIRED
+    env_file:
+      - .env
     depends_on:
       - mongo
       - redis
       - s3
       - s3-create-bucket
     restart: unless-stopped
-    healthcheck:
-      test: [CMD, curl, -f, 'http://127.0.0.1:3000/server/healthcheck']
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
 
   mongo:
     image: mongo:latest

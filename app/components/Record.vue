@@ -12,8 +12,8 @@
   const zoneId = defineModel<string>('zoneId', { required: true })
   const nivel = defineModel<string>('nivel', { required: true })
 
-  const { data, refresh } = await useFetch<{ record: RecordForm[]; soa: EditSOASchemaType }>(
-    '/server/api/records',
+  const { data, refresh } = await useApi<{ record: RecordForm[]; soa: EditSOASchemaType }>(
+    '/records',
     { method: 'GET', query: { zone: zoneId } },
   )
 
@@ -166,7 +166,7 @@
       return finish({ error: true })
     }
 
-    const res = await $fetch<GoRes>('/server/api/records', {
+    const res = await $api('/ records', {
       method: 'PUT',
       body: body.output,
     }).catch((error) => {
@@ -228,7 +228,7 @@
       return finish({ error: true })
     }
 
-    const res = await $fetch<GoRes>('/server/api/records', {
+    const res = await $api('/ records', {
       method: 'PATCH',
       body: body.output,
     }).catch((error) => {
@@ -300,7 +300,7 @@
       return finish({ error: true })
     }
 
-    const res = await $fetch<GoRes>('/server/api/soa', {
+    const res = await $api('/ soa', {
       method: 'PATCH',
       body: body.output,
       query: { zone: zoneId.value },
@@ -379,7 +379,7 @@
       return finish({ error: true })
     }
 
-    const res = await $fetch<GoRes>('/server/api/records', {
+    const res = await $api('/ records', {
       method: 'DELETE',
       body: body.output,
     }).catch((error) => {
@@ -693,7 +693,11 @@
     class="mb-4"
     icon="i-lucide-arrow-left"
     label="Voltar para Zonas"
-    @click="zoneId = ''" />
+    @click="
+      () => {
+        zoneId = ''
+      }
+    " />
 
   <div class="my-6 flex items-center justify-between">
     <div>
@@ -709,14 +713,22 @@
         icon="i-lucide-users"
         label="Usuários"
         :loading="isLoading"
-        @click="modalUsers = true" />
+        @click="
+          () => {
+            modalUsers = true
+          }
+        " />
       <UButton
         v-if="nivel === 'ADMINISTRADOR'"
         variant="outline"
         icon="i-lucide-pen"
         label="Editar SOA"
         :loading="isLoading"
-        @click="modalEditSOA = true" />
+        @click="
+          () => {
+            modalEditSOA = true
+          }
+        " />
     </div>
   </div>
 
@@ -725,7 +737,11 @@
     :schema="RecordSchema"
     :state="state"
     class="mt-6 space-y-4 rounded-lg bg-slate-100 p-5 dark:bg-slate-950/40"
-    @submit="isEditing ? (modalEditSOA = true) : addRecord">
+    @submit="
+      () => {
+        isEditing ? (modalEditSOA = true) : addRecord
+      }
+    ">
     <div class="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-5">
       <UFormField label="Nome" name="name">
         <UInput
@@ -923,7 +939,11 @@
         label="Cancel"
         :loading="isLoading"
         variant="outline"
-        @click="modalEditSOA = false" />
+        @click="
+          () => {
+            modalEditSOA = false
+          }
+        " />
       <UButton label="Confirm" :loading="isLoading" @click="updateSOA" />
     </template>
   </UModal>
@@ -942,7 +962,15 @@
     </template>
 
     <template #footer>
-      <UButton label="Cancel" :loading="isLoading" variant="outline" @click="modalDelete = false" />
+      <UButton
+        label="Cancel"
+        :loading="isLoading"
+        variant="outline"
+        @click="
+          () => {
+            modalDelete = false
+          }
+        " />
       <UButton
         label="Confirm"
         color="error"

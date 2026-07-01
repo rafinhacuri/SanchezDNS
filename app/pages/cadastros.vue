@@ -14,7 +14,7 @@
   const filter = ref('')
   const filterDebounced = refDebounced(filter, 300)
 
-  const { data, refresh } = await useFetch<CadastroResponse>('/server/api/cadastros', {
+  const { data, refresh } = await useApi<CadastroResponse>('/fcadastros', {
     method: 'GET',
     query: { page, limit: itemsPerPage, filter: filterDebounced },
     default: () => ({ cadastros: [], total: 0 }),
@@ -65,7 +65,7 @@
       return finish({ error: true })
     }
 
-    const res = await $fetch<GoRes>('/server/api/cadastro', {
+    const res = await $api('/ cadastro', {
       method: 'DELETE',
       body: body.output,
     }).catch((error) => {
@@ -113,7 +113,7 @@
       return finish({ error: true })
     }
 
-    const res = await $fetch<GoRes>('/server/api/level', {
+    const res = await $api('/ level', {
       method: 'PATCH',
       body: body.output,
     }).catch((error) => {
@@ -202,7 +202,7 @@
       const formData = new FormData()
       formData.append('file', file)
 
-      const res = await $fetch<GoRes>('/server/api/file', {
+      const res = await $api('/ file', {
         method: 'PUT',
         body: formData,
       }).catch((error) => {
@@ -229,7 +229,7 @@
       return finish({ error: true })
     }
 
-    const res = await $fetch<GoRes>('/server/api/cadastro', {
+    const res = await $api('/ cadastro', {
       method: 'PUT',
       body: body.output,
     }).catch((error) => {
@@ -418,7 +418,11 @@
             label="Cancelar"
             variant="outline"
             color="neutral"
-            @click="modalDelete = false" />
+            @click="
+              () => {
+                modalDelete = false
+              }
+            " />
           <UButton :loading="isLoading" label="Excluir" color="error" @click="deleteCadastro" />
         </div>
       </template>
@@ -433,7 +437,15 @@
       </template>
       <template #footer>
         <div class="flex items-center justify-end gap-2">
-          <UButton label="Cancelar" variant="outline" color="neutral" @click="modalLevel = false" />
+          <UButton
+            label="Cancelar"
+            variant="outline"
+            color="neutral"
+            @click="
+              () => {
+                modalLevel = false
+              }
+            " />
           <UButton
             :loading="isLoading"
             label="confirmar"
@@ -524,7 +536,11 @@
                     :aria-label="show ? 'Esconder senha' : 'Mostrar senha'"
                     :aria-pressed="show"
                     aria-controls="password"
-                    @click="show = !show" />
+                    @click="
+                      () => {
+                        show = !show
+                      }
+                    " />
                 </template>
               </UInput>
             </UFormField>
@@ -547,7 +563,11 @@
                     :aria-label="showConfirm ? 'Esconder senha' : 'Mostrar senha'"
                     :aria-pressed="showConfirm"
                     aria-controls="password"
-                    @click="showConfirm = !showConfirm" />
+                    @click="
+                      () => {
+                        showConfirm = !showConfirm
+                      }
+                    " />
                 </template>
               </UInput>
               <p
@@ -585,7 +605,11 @@
           label="Cancelar"
           :loading="isLoading"
           variant="outline"
-          @click="modalEdit = false" />
+          @click="
+            () => {
+              modalEdit = false
+            }
+          " />
         <UButton label="Confirmar" :loading="isLoading" @click="editar" />
       </template>
     </UModal>

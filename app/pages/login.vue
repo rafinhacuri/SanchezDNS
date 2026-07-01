@@ -69,7 +69,7 @@
       return finish({ error: true })
     }
 
-    const res = await $fetch<GoRes>('/server/api/login', {
+    const res = await $api('/ login', {
       method: 'post',
       body: body.output,
     }).catch((error) => {
@@ -94,7 +94,7 @@
       const formData = new FormData()
       formData.append('file', file)
 
-      const res = await $fetch<GoRes>('/server/api/file', {
+      const res = await $api('/ file', {
         method: 'PUT',
         body: formData,
       }).catch((error) => {
@@ -121,7 +121,7 @@
       return finish({ error: true })
     }
 
-    const res = await $fetch<GoRes>('/server/api/cadastro', {
+    const res = await $api('/ cadastro', {
       method: 'post',
       body: body.output,
     }).catch((error) => {
@@ -176,12 +176,25 @@
                   :aria-label="show ? 'Esconder senha' : 'Mostrar senha'"
                   :aria-pressed="show"
                   aria-controls="password"
-                  @click="show = !show" />
+                  @click="
+                    () => {
+                      show = !show
+                    }
+                  " />
               </template>
             </UInput>
           </UFormField>
           <div class="flex justify-end">
-            <UButton variant="ghost" size="sm" @click="modal = true"> Cadastre-se... </UButton>
+            <UButton
+              variant="ghost"
+              size="sm"
+              @click="
+                () => {
+                  modal = true
+                }
+              ">
+              Cadastre-se...
+            </UButton>
           </div>
 
           <UButton type="submit" class="mt-5 flex w-full justify-center"> Login </UButton>
@@ -277,7 +290,11 @@
                     :aria-label="show ? 'Esconder senha' : 'Mostrar senha'"
                     :aria-pressed="show"
                     aria-controls="password"
-                    @click="show = !show" />
+                    @click="
+                      () => {
+                        show = !show
+                      }
+                    " />
                 </template>
               </UInput>
             </UFormField>
@@ -300,7 +317,11 @@
                     :aria-label="showConfirm ? 'Esconder senha' : 'Mostrar senha'"
                     :aria-pressed="showConfirm"
                     aria-controls="password"
-                    @click="showConfirm = !showConfirm" />
+                    @click="
+                      () => {
+                        showConfirm = !showConfirm
+                      }
+                    " />
                 </template>
               </UInput>
               <p
@@ -334,7 +355,15 @@
       </template>
 
       <template #footer>
-        <UButton label="Cancelar" :loading="isLoading" variant="outline" @click="modal = false" />
+        <UButton
+          label="Cancelar"
+          :loading="isLoading"
+          variant="outline"
+          @click="
+            () => {
+              modal = false
+            }
+          " />
         <UButton label="Confirmar" :loading="isLoading" @click="cadastrar" />
       </template>
     </UModal>

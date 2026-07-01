@@ -10,7 +10,7 @@
   const filter = ref('')
   const filterDebounced = refDebounced(filter, 300)
 
-  const { data } = await useFetch<LogsResponse>('/server/api/logs', {
+  const { data } = await useApi<LogsResponse>('/logs', {
     method: 'GET',
     query: { page, limit: itemsPerPage, filter: filterDebounced },
     default: () => ({ logs: [], total: 0 }),

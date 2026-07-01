@@ -11,17 +11,14 @@
   const zoneId = defineModel<string>('zoneId', { required: true })
   const modalUsers = defineModel<boolean>('open', { default: false })
 
-  const { data: userData, refresh: refreshUsers } = await useFetch<User[]>('/server/api/users', {
+  const { data: userData, refresh: refreshUsers } = await useApi<User[]>('/users', {
     method: 'GET',
     query: { zona: zoneId },
   })
 
-  const { data: members } = await useFetch<{ email: string; nome: string }[]>(
-    '/server/api/members',
-    {
-      method: 'GET',
-    },
-  )
+  const { data: members } = await useApi<{ email: string; nome: string }[]>('/members', {
+    method: 'GET',
+  })
 
   const roleOptions = ['escrita', 'leitura']
 
@@ -42,7 +39,7 @@
       return finish({ error: true })
     }
 
-    const res = await $fetch<GoRes>('/server/api/user', {
+    const res = await $api('/ user', {
       method: body.output.id ? 'PATCH' : 'POST',
       body: body.output,
     }).catch((error) => {
@@ -69,7 +66,7 @@
   async function deleteUser(zona: string, id: string): Promise<void> {
     start()
 
-    const res = await $fetch<GoRes>('/server/api/user', {
+    const res = await $api('/ user', {
       method: 'DELETE',
       body: { zona, id },
     }).catch((error) => {
@@ -264,7 +261,15 @@
     </template>
 
     <template #footer>
-      <UButton label="Fechar" :loading="isLoading" variant="outline" @click="modalUsers = false" />
+      <UButton
+        label="Fechar"
+        :loading="isLoading"
+        variant="outline"
+        @click="
+          () => {
+            modalUsers = false
+          }
+        " />
       <UButton
         :label="stateUser.id ? 'Editar' : 'Adicionar'"
         icon="i-lucide-user-plus"

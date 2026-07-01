@@ -1,5 +1,7 @@
 import process from 'node:process'
 
+import { name, version } from './package.json'
+
 const { DEV_URL, DEV_KEY, DEV_CERT } = process.env
 
 export default defineNuxtConfig({
@@ -22,11 +24,12 @@ export default defineNuxtConfig({
     name: 'Sanchez DNS',
     description: '🗄️ Web application to manage authoritative dns servers using PowerDNS',
   },
-  routeRules: {
-    '/server/**': {
-      proxy: {
-        to: DEV_KEY && DEV_CERT ? `https://${DEV_URL}:8080/**` : 'http://localhost:8080/**',
-      },
+  runtimeConfig: {
+    public: {
+      production: false,
+      siteUrl: '',
+      name,
+      version,
     },
   },
   devServer: {
@@ -36,6 +39,13 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-01-26',
   nitro: {
     preset: 'bun',
+    devProxy: {
+      '/go': {
+        target: 'http://localhost:8080',
+        ws: true,
+        changeOrigin: true,
+      },
+    },
   },
   linkChecker: { enabled: false },
   ogImage: {

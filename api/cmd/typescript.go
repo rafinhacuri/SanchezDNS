@@ -22,6 +22,7 @@ type GoRes struct {
 
 func main() {
 	converter := typescriptify.New()
+	converter.DontExport = true
 
 	converter.ManageType(time.Time{}, typescriptify.TypeOptions{
 		TSType: "string",
@@ -46,12 +47,12 @@ func main() {
 	converter.BackupDir = ""
 	converter.CreateInterface = true
 
-	err := os.MkdirAll("../../shared/types/", 0o750)
+  err := os.MkdirAll("../../app/types/", 0o750)
 	if err != nil {
-		panic("Failed to create shared/types dir: " + err.Error())
+		panic("Failed to create app/types dir: " + err.Error())
 	}
 
-	err = converter.ConvertToFile("../../shared/types/goServer.d.ts")
+	err = converter.ConvertToFile("../../app/types/go.d.ts")
 	if err != nil {
 		panic("Failed to generate types: " + err.Error())
 	}

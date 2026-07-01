@@ -14,7 +14,7 @@
   const type = defineModel<string>('type', { required: true })
   const nivel = defineModel<string>('nivel', { required: true })
 
-  const { data, refresh } = await useFetch<ZonesResponse>('/server/api/zones', {
+  const { data, refresh } = await useApi<ZonesResponse>('/zones', {
     method: 'GET',
     query: { type },
   })
@@ -226,7 +226,7 @@
       return finish({ error: true })
     }
 
-    const res = await $fetch<GoRes>('/server/api/zone', {
+    const res = await $api('/ zone', {
       method: 'DELETE',
       query: { id: idDelete.value },
     }).catch((error) => {
@@ -296,11 +296,9 @@
       return finish({ error: true })
     }
 
-    const res = await $fetch<GoRes>('/server/api/zone', { method: 'PUT', body: body.output }).catch(
-      (error) => {
-        toast.add({ title: error.data.message, icon: 'i-lucide-shield-alert', color: 'error' })
-      },
-    )
+    const res = await $api('/ zone', { method: 'PUT', body: body.output }).catch((error) => {
+      toast.add({ title: error.data.message, icon: 'i-lucide-shield-alert', color: 'error' })
+    })
 
     if (!res) return finish({ error: true })
 
@@ -335,7 +333,11 @@
         "
         icon="i-lucide-plus"
         variant="soft"
-        @click="modal = true" />
+        @click="
+          () => {
+            modal = true
+          }
+        " />
       <UInput v-model="globalFilter" placeholder="Pesquisar zonas..." />
     </div>
   </div>
@@ -430,7 +432,15 @@
     </template>
 
     <template #footer>
-      <UButton label="Cancelar" :loading="isLoading" variant="outline" @click="modal = false" />
+      <UButton
+        label="Cancelar"
+        :loading="isLoading"
+        variant="outline"
+        @click="
+          () => {
+            modal = false
+          }
+        " />
       <UButton label="Confirmar" :loading="isLoading" @click="createZone" />
     </template>
   </UModal>
@@ -457,7 +467,11 @@
         label="Cancelar"
         :loading="isLoading"
         variant="outline"
-        @click="modalDelete = false" />
+        @click="
+          () => {
+            modalDelete = false
+          }
+        " />
       <UButton
         label="Confirmar"
         color="error"

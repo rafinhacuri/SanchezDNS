@@ -56,12 +56,7 @@ func main() {
 
 	routes.RegisterRoutes(server)
 
-	if env.C.DevKey == "" || env.C.DevCert == "" {
-		err = server.Run(":8080")
-	} else {
-		err = server.RunTLS(":8080", env.C.DevCert, env.C.DevKey)
-	}
-
+	err = server.Run(":8080")
 	if err != nil {
 		panic("Failed to start gin: " + err.Error())
 	}

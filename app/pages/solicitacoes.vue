@@ -14,7 +14,7 @@
   const filter = ref('')
   const filterDebounced = refDebounced(filter, 300)
 
-  const { data, refresh } = await useFetch<SolicitacaoResponse>('/server/api/solicitacoes', {
+  const { data, refresh } = await useApi<SolicitacaoResponse>('/solicitacoes', {
     method: 'GET',
     query: { page, limit: itemsPerPage, filter: filterDebounced },
     default: () => ({ solicitacoes: [], total: 0 }),
@@ -97,7 +97,7 @@
       return finish({ error: true })
     }
 
-    const res = await $fetch<GoRes>('/server/api/solicitacoes-status', {
+    const res = await $api('/ solicitacoes-status', {
       method: 'PUT',
       body: body.output,
     }).catch((error) => {
@@ -386,7 +386,11 @@
             color="neutral"
             variant="soft"
             block
-            @click="slideover = false" />
+            @click="
+              () => {
+                slideover = false
+              }
+            " />
           <UButton
             @click="status"
             :loading="isLoading"

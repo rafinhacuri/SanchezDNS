@@ -20,8 +20,8 @@ func RegisterRoutes(server *gin.Engine) {
 
 	server.GET("/healthcheck", controller.HealthCheck)
 
-	api := server.Group("/api")
-	auth := api.Group("/", middleware.ValidateSession)
+	api := server.Group("/")
+	auth := server.Group("/", middleware.ValidateSession)
 
 	api.POST("/login", controller.Login)
 	auth.POST("/logout", controller.Logout)
@@ -41,7 +41,7 @@ func RegisterRoutes(server *gin.Engine) {
 
 	admin := auth.Group("/", middleware.AdminOnly)
 
-	admin.PUT("/solicitacoes-status", update.SolicitacaoStatus)
+	admin.PUT("/solicitacoes/status", update.SolicitacaoStatus)
 	admin.GET("/logs", fetch.Logs)
 	admin.PUT("/zone", insert.Zone)
 	admin.DELETE("/zone", remove.Zone)

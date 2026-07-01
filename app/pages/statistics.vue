@@ -1,7 +1,7 @@
 <script setup lang="ts">
   useHead({ title: 'Estatísticas' })
 
-  const { data, refresh } = await useFetch<StatisticsResponse>('/server/api/statistics')
+  const { data, refresh } = await useApi<StatisticsResponse>('/statistics')
 
   onNuxtReady(() => setInterval(refresh, 60_000))
 </script>
