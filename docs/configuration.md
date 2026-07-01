@@ -1,82 +1,97 @@
 # ⚙️ Configuração
 
-Esta página resume o que o projeto espera do PowerDNS e quais variáveis controlam a aplicação.
+Esta página reúne **todas as variáveis de ambiente** do SanchezDNS, o que cada uma faz e por que existe. É a referência para montar o arquivo `.env`. Para a configuração do servidor PowerDNS em si, veja [PowerDNS a fundo](/powerdns); para o modelo de sessão, veja [Autenticação](/authentication).
 
-## Modelo atual
+## O modelo: uma instância PowerDNS por ambiente
 
-SanchezDNS trabalha com **uma instância PowerDNS Authoritative por ambiente**.
+O SanchezDNS opera **uma única instância PowerDNS Authoritative** por ambiente. Não existe tela de múltiplas conexões nem "cluster" de servidores dentro da interface. Toda a integração é definida por três variáveis: `DNS_HOST`, `DNS_API_KEY` e `DNS_SERVER_ID`.
 
-- Não existe tela de múltiplas conexões.
-- `DNS_HOST` define a URL da API do PowerDNS.
-- `DNS_SERVER_ID` define qual servidor será consultado nas rotas de zona, registros e estatísticas.
+**Por que um só servidor?** Porque isso mantém o modelo mental simples e a fonte da verdade única (ver [Por que SanchezDNS](/reason)). Se você precisa de redundância, ela é resolvida na camada de infraestrutura (réplicas do backend do PowerDNS), não multiplicando conexões no painel.
 
-## PowerDNS
+## O arquivo `.env`
 
-Exemplo mínimo de configuração do PowerDNS:
+Copie o exemplo e ajuste aos valores do seu ambiente:
 
-```ini
-api=yes
-api-key=chave-da-api
-webserver=yes
-webserver-address=0.0.0.0
-webserver-port=8081
-server-id=localhost
+```bash
+cp .env.example .env
 ```
 
-## DNSSEC
+```bash
+# Frontend / SSR
+NUXT_PUBLIC_PRODUCTION="false"
+NUXT_SITE_URL="http://localhost:3000"
+NUXT_PUBLIC_SITE_URL="http://localhost:3000"
 
-Quando uma nova zona é criada pela interface, o backend:
+# Persistência e cache
+MONGO_URL="mongodb://mongo:27017/dns"
+REDIS_URL="redis://redis:6379"
 
-- cria a zona como `Native`;
-- adiciona uma `cryptokey` ativa do tipo `ksk`;
-- grava o SOA inicial com os valores informados no formulário.
+# Integração PowerDNS
+DNS_HOST="http://powerdns:8081"
+DNS_API_KEY="sua-chave-de-api-aqui"
+DNS_SERVER_ID="localhost"
 
-Em outras palavras, as zonas criadas por SanchezDNS já nascem com DNSSEC ativado no PowerDNS, desde que o backend do servidor suporte isso.
+# Storage S3 (fotos de perfil)
+FS_USERNAME="minioadmin"
+FS_PASSWORD="minioadmin"
+FS_BUCKET="sanchez-dns"
+FS_ENDPOINT="http://s3:9000"
+```
 
-## Variáveis usadas pela aplicação
+## Variáveis, uma a uma
 
 ### Frontend e sessão
 
-- `NUXT_PUBLIC_PRODUCTION`
-- `NUXT_PUBLIC_SITE_URL`
-- `NUXT_SITE_URL`
+| Variável | Papel |
+|---|---|
+| `NUXT_PUBLIC_PRODUCTION` | Quando `true`, ativa comportamentos de produção — em especial, marca o cookie de sessão como **`Secure`** (só trafega por HTTPS). Deixe `false` em desenvolvimento local sem HTTPS. |
+| `NUXT_PUBLIC_SITE_URL` | URL pública do site, exposta ao cliente. É a base para o frontend montar as chamadas à API (`.../go`). |
+| `NUXT_SITE_URL` | URL do site usada pelo servidor Nuxt (SSR), para SEO e metadados. |
+
+**Por que `PRODUCTION` controla o cookie?** Porque em desenvolvimento você acessa por `http://localhost` (sem TLS); se o cookie fosse `Secure`, o navegador não o enviaria e o login não funcionaria. Em produção, atrás de HTTPS, `Secure` é obrigatório para não expor o token. Ver [Autenticação](/authentication#o-cookie-de-sessao).
 
 ### Persistência e cache
 
-- `MONGO_URL`
-- `REDIS_URL`
+| Variável | Papel |
+|---|---|
+| `MONGO_URL` | Conexão com o MongoDB — a **fonte da verdade** de cadastros, sessões, permissões, solicitações e logs. |
+| `REDIS_URL` | Conexão com o Redis — **cache** de sessão e de nível de acesso. Ver [Autenticação](/authentication#o-papel-do-redis). |
 
 ### PowerDNS
 
-- `DNS_HOST`
-- `DNS_API_KEY`
-- `DNS_SERVER_ID`
+| Variável | Papel | Deve corresponder a |
+|---|---|---|
+| `DNS_HOST` | URL da **API HTTP** do PowerDNS (não a porta 53 do DNS). | `webserver-address:webserver-port` do `pdns.conf` |
+| `DNS_API_KEY` | Chave secreta enviada no cabeçalho `X-API-Key`. | `api-key` do `pdns.conf` |
+| `DNS_SERVER_ID` | Identificador do servidor usado no caminho da API (`/servers/<id>/...`). | `server-id` do `pdns.conf` (padrão `localhost`) |
 
-### Upload de arquivos
+Se qualquer um dos três não bater com a configuração do PowerDNS, as rotas de zona, registro e estatística falham. A relação completa está em [PowerDNS a fundo](/powerdns#o-elo-entre-a-config-do-powerdns-e-as-variaveis-do-sanchezdns).
 
-- `FS_USERNAME`
-- `FS_PASSWORD`
-- `FS_BUCKET`
-- `FS_ENDPOINT`
+### Upload de arquivos (S3)
 
-## Sessão
+| Variável | Papel |
+|---|---|
+| `FS_USERNAME` | Access key do storage S3 compatível. |
+| `FS_PASSWORD` | Secret key do storage S3. |
+| `FS_BUCKET` | Nome do bucket onde as fotos de perfil ficam. É criado automaticamente pelo serviço `s3-create-bucket` do compose. |
+| `FS_ENDPOINT` | Endpoint do storage (ex.: `http://s3:9000`). Permite usar RustFS, MinIO ou AWS S3 sem mudar código. |
 
-O login cria o cookie `sanchezdns_session_id`.
+**Por que S3 em vez de disco?** Para manter o container sem estado — ver [Arquitetura](/architecture#s3-compativel-rustfs-minio-arquivos).
 
-- Em produção o cookie é marcado como seguro.
-- A sessão é validada no backend a cada requisição protegida.
-- O nível do usuário vem do cadastro e pode ser `admin` ou `member`.
+## DNSSEC nas zonas criadas
 
-## Permissões por zona
+Quando uma zona é criada pela interface, o backend a cria como `Native`, adiciona uma `cryptokey` ativa do tipo `ksk` e grava o SOA inicial. Em outras palavras, **as zonas nascem com DNSSEC ativado** — desde que o backend do PowerDNS suporte (por exemplo, `gsqlite3-dnssec=yes` no SQLite). Detalhes em [PowerDNS a fundo](/powerdns#ativar-dnssec-post-zones-zona-cryptokeys).
 
-O acesso aos registros é controlado pela coleção `users` no MongoDB.
+## Sessão e permissões (resumo)
 
-- `leitura` permite visualizar registros da zona.
-- `escrita` permite criar, editar e remover registros.
-- `admin` bypassa essas restrições e pode administrar zonas, logs, cadastros e solicitações.
+- O login cria o cookie **`sanchezdns_session_id`** (`HttpOnly`; `Secure` em produção), validado no backend a cada requisição protegida.
+- O nível do usuário é **`admin`** ou **`member`**, lido a cada request (não embutido em token).
+- O acesso aos registros de cada zona é controlado pelas listas **`leitura`** e **`escrita`** na coleção `users`. `admin` ignora essas restrições.
+
+O funcionamento detalhado está em [Autenticação](/authentication) e [Usuários](/users).
 
 ## Observações importantes
 
-- A aplicação não usa JWT para autenticação de usuário no fluxo atual.
-- O armazenamento de fotos passa por um bucket S3 compatível.
-- O sistema registra logs de operações administrativas e de DNS para auditoria.
+- A aplicação **não usa JWT**; a autenticação é por sessão do lado do servidor (justificado em [Autenticação](/authentication)).
+- Zonas e registros **não** ficam no MongoDB — a fonte da verdade do DNS é o PowerDNS.
+- O sistema registra logs das operações administrativas e de DNS para auditoria (ver [Logs](/logs)).

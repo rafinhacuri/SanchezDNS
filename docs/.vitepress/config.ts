@@ -55,13 +55,22 @@ export default defineConfig({
         ],
       },
       {
+        text: '🏗️ Como funciona',
+        items: [
+          { text: 'Arquitetura', link: '/architecture' },
+          { text: 'A imagem Docker', link: '/docker' },
+          { text: 'PowerDNS a fundo', link: '/powerdns' },
+          { text: 'Autenticação e Sessões', link: '/authentication' },
+        ],
+      },
+      {
         text: '⚙️ Visão Geral',
         items: [
           { text: 'Configuração', link: '/configuration' },
-          { text: 'Zonas', link: '/zones' },
+          { text: 'Zonas e Registros', link: '/zones' },
           { text: 'Estatísticas', link: '/statistics' },
-          { text: 'Usuários', link: '/users' },
-          { text: 'Logs', link: '/logs' },
+          { text: 'Usuários e Permissões', link: '/users' },
+          { text: 'Logs e Auditoria', link: '/logs' },
         ],
       },
       {
