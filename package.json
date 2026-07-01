@@ -35,7 +35,7 @@
     "dev": "concurrently -n APP,API -c green,blue \"bun app:dev\" \"bun api:dev\"",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
-    "gentypes": "bun run --cwd api/cmd go run typescript.go && oxfmt shared/types/goServer.d.ts && oxlint shared/types/goServer.d.ts --fix",
+    "gentypes": "bun run --cwd api/cmd go run typescript.go && oxfmt app/types/go.d.ts && oxlint app/types/go.d.ts --fix",
     "fmt": "oxfmt --check",
     "fmt:fix": "oxfmt",
     "lint": "oxlint --type-aware",
