@@ -47,7 +47,7 @@ func main() {
 	converter.BackupDir = ""
 	converter.CreateInterface = true
 
-  err := os.MkdirAll("../../app/types/", 0o750)
+	err := os.MkdirAll("../../app/types/", 0o750)
 	if err != nil {
 		panic("Failed to create app/types dir: " + err.Error())
 	}

@@ -12,6 +12,35 @@ import {
 } from 'valibot'
 import type { InferInput } from 'valibot'
 
+const RecordObjectSchema = object({
+  zone: pipe(string('Zone ID é uma string'), nonEmpty('Zone ID é obrigatório')),
+  type: picklist([
+    'A',
+    'AAAA',
+    'ALIAS',
+    'CAA',
+    'CNAME',
+    'HTTPS',
+    'MX',
+    'NS',
+    'PTR',
+    'TXT',
+    'SRV',
+    'TLSA',
+  ]),
+  name: optional(string('Name é uma string')),
+  vl: optional(string('Value é uma string')),
+  ttl: pipe(number('TTL é um número'), minValue(60, 'TTL must be at least 60 seconds')),
+  comment: optional(string('Comment é uma string')),
+  svcPriority: optional(number('Service Priority é um número')),
+  targetName: optional(string('Target Name é uma string')),
+  svcParams: optional(string('Service Params é uma string')),
+  weight: optional(number('Weight é um número')),
+  port: optional(number('Port é um número')),
+  target: optional(string('Target é uma string')),
+  priority: optional(number('Priority é um número')),
+})
+
 export const EditSOASchema = object({
   startOfAuthority: pipe(
     string('Start of Authority é uma string'),
@@ -43,34 +72,7 @@ export const EditSOASchema = object({
 export type EditSOASchemaType = InferInput<typeof EditSOASchema>
 
 export const RecordSchema = pipe(
-  object({
-    zone: pipe(string('Zone ID é uma string'), nonEmpty('Zone ID é obrigatório')),
-    type: picklist([
-      'A',
-      'AAAA',
-      'ALIAS',
-      'CAA',
-      'CNAME',
-      'HTTPS',
-      'MX',
-      'NS',
-      'PTR',
-      'TXT',
-      'SRV',
-      'TLSA',
-    ]),
-    name: optional(string('Name é uma string')),
-    vl: optional(string('Value é uma string')),
-    ttl: pipe(number('TTL é um número'), minValue(60, 'TTL must be at least 60 seconds')),
-    comment: optional(string('Comment é uma string')),
-    svcPriority: optional(number('Service Priority é um número')),
-    targetName: optional(string('Target Name é uma string')),
-    svcParams: optional(string('Service Params é uma string')),
-    weight: optional(number('Weight é um número')),
-    port: optional(number('Port é um número')),
-    target: optional(string('Target é uma string')),
-    priority: optional(number('Priority é um número')),
-  }),
+  RecordObjectSchema,
   check(
     (data) => ['HTTPS', 'SRV'].includes(data.type) || Boolean(data.vl?.trim()),
     'Value is required for this record type',

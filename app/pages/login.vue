@@ -68,7 +68,7 @@
       }
       return finish({ error: true })
     }
-    
+
     const res = await $api('/login', {
       method: 'post',
       body: body.output,
