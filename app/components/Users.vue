@@ -39,7 +39,7 @@
       return finish({ error: true })
     }
 
-    const res = await $api('/ user', {
+    const res = await $api('/user', {
       method: body.output.id ? 'PATCH' : 'POST',
       body: body.output,
     }).catch((error) => {
@@ -66,7 +66,7 @@
   async function deleteUser(zona: string, id: string): Promise<void> {
     start()
 
-    const res = await $api('/ user', {
+    const res = await $api('/user', {
       method: 'DELETE',
       body: { zona, id },
     }).catch((error) => {

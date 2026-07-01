@@ -97,7 +97,7 @@
       return finish({ error: true })
     }
 
-    const res = await $api('/ solicitacoes-status', {
+    const res = await $api('/solicitacoes-status', {
       method: 'PUT',
       body: body.output,
     }).catch((error) => {

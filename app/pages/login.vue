@@ -68,8 +68,8 @@
       }
       return finish({ error: true })
     }
-
-    const res = await $api('/ login', {
+    
+    const res = await $api('/login', {
       method: 'post',
       body: body.output,
     }).catch((error) => {
@@ -94,7 +94,7 @@
       const formData = new FormData()
       formData.append('file', file)
 
-      const res = await $api('/ file', {
+      const res = await $api('/file', {
         method: 'PUT',
         body: formData,
       }).catch((error) => {
@@ -121,7 +121,7 @@
       return finish({ error: true })
     }
 
-    const res = await $api('/ cadastro', {
+    const res = await $api('/cadastro', {
       method: 'post',
       body: body.output,
     }).catch((error) => {

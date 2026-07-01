@@ -65,7 +65,7 @@
       return finish({ error: true })
     }
 
-    const res = await $api('/ cadastro', {
+    const res = await $api('/cadastro', {
       method: 'DELETE',
       body: body.output,
     }).catch((error) => {
@@ -113,7 +113,7 @@
       return finish({ error: true })
     }
 
-    const res = await $api('/ level', {
+    const res = await $api('/level', {
       method: 'PATCH',
       body: body.output,
     }).catch((error) => {
@@ -202,7 +202,7 @@
       const formData = new FormData()
       formData.append('file', file)
 
-      const res = await $api('/ file', {
+      const res = await $api('/file', {
         method: 'PUT',
         body: formData,
       }).catch((error) => {
@@ -229,7 +229,7 @@
       return finish({ error: true })
     }
 
-    const res = await $api('/ cadastro', {
+    const res = await $api('/cadastro', {
       method: 'PUT',
       body: body.output,
     }).catch((error) => {

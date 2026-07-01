@@ -226,7 +226,7 @@
       return finish({ error: true })
     }
 
-    const res = await $api('/ zone', {
+    const res = await $api('/zone', {
       method: 'DELETE',
       query: { id: idDelete.value },
     }).catch((error) => {
@@ -296,7 +296,7 @@
       return finish({ error: true })
     }
 
-    const res = await $api('/ zone', { method: 'PUT', body: body.output }).catch((error) => {
+    const res = await $api('/zone', { method: 'PUT', body: body.output }).catch((error) => {
       toast.add({ title: error.data.message, icon: 'i-lucide-shield-alert', color: 'error' })
     })
 

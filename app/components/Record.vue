@@ -166,7 +166,7 @@
       return finish({ error: true })
     }
 
-    const res = await $api('/ records', {
+    const res = await $api('/records', {
       method: 'PUT',
       body: body.output,
     }).catch((error) => {
@@ -228,7 +228,7 @@
       return finish({ error: true })
     }
 
-    const res = await $api('/ records', {
+    const res = await $api('/records', {
       method: 'PATCH',
       body: body.output,
     }).catch((error) => {
@@ -300,7 +300,7 @@
       return finish({ error: true })
     }
 
-    const res = await $api('/ soa', {
+    const res = await $api('/soa', {
       method: 'PATCH',
       body: body.output,
       query: { zone: zoneId.value },
@@ -379,7 +379,7 @@
       return finish({ error: true })
     }
 
-    const res = await $api('/ records', {
+    const res = await $api('/records', {
       method: 'DELETE',
       body: body.output,
     }).catch((error) => {
