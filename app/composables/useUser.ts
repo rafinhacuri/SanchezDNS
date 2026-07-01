@@ -1,6 +1,6 @@
 // oxlint-disable-next-line harlanzw/vue-no-faux-composables
 async function useLogout(): Promise<void> {
-  await $fetch('/server/api/logout', {
+  await $api('/logout', {
     method: 'post',
   })
 
@@ -15,7 +15,7 @@ export function useUser(): {
 } {
   const headers = useRequestHeaders(['cookie'])
 
-  const { data, refresh: refreshU } = useFetch<SessionRes>('/server/api/session', {
+  const { data, refresh: refreshU } = useApi<SessionRes>('/session', {
     immediate: false,
     credentials: 'include',
     headers,
