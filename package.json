@@ -47,7 +47,9 @@
     "prerelease:fix": "bun run fmt:fix && bun run lint:fix && bun run typecheck && bun run golint:fix",
     "docker:build": "docker build --platform=linux/amd64 -t mizle/sanchezdns:latest -t mizle/sanchezdns:$(node -p \"require('./package.json').version\") .",
     "docker:push": "docker push mizle/sanchezdns:latest && docker push mizle/sanchezdns:$(node -p \"require('./package.json').version\")",
-    "release": "bun prerelease && bumpp && bun docker:build && bun docker:push"
+    "docker-vercel:build": "docker build --platform=linux/amd64 -t vcr.vercel.com/rafael-curis-projects/sanchez-dns/sanchezdns:latest -t vcr.vercel.com/rafael-curis-projects/sanchez-dns/sanchezdns:$(node -p \"require('./package.json').version\") .",
+    "docker-vercel:push": "docker push vcr.vercel.com/rafael-curis-projects/sanchez-dns/sanchezdns:latest && docker push vcr.vercel.com/rafael-curis-projects/sanchez-dns/sanchezdns:$(node -p \"require('./package.json').version\")",
+    "release": "bun prerelease && bumpp && bun docker:build && bun docker:push && bun docker-vercel:build && bun docker-vercel:push"
   },
   "dependencies": {
     "@iconify-json/gg": "^1.2.2",
