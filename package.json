@@ -47,7 +47,7 @@
     "prerelease:fix": "bun run fmt:fix && bun run lint:fix && bun run typecheck && bun run golint:fix",
     "docker:build": "docker build --platform=linux/amd64 -t mizle/sanchezdns:latest -t mizle/sanchezdns:$(node -p \"require('./package.json').version\") .",
     "docker:push": "docker push mizle/sanchezdns:latest && docker push mizle/sanchezdns:$(node -p \"require('./package.json').version\")",
-    "release": "bun prerelease && bumpp && bun docker:build && bun docker:push && bun docker-vercel:build && bun docker-vercel:push"
+    "release": "bun prerelease && bumpp && bun docker:build && bun docker:push"
   },
   "dependencies": {
     "@iconify-json/gg": "^1.2.2",
