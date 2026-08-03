@@ -35,6 +35,10 @@ func RegisterRoutes(server *gin.Engine) {
 	auth.PUT("/records", insert.Record)
 	auth.DELETE("/records", remove.Record)
 	auth.PATCH("/records", update.Record)
+	auth.GET("/reverses", fetch.Reversos)
+	auth.PUT("/reverses", insert.Reversos)
+	auth.GET("/reverses/orphans", fetch.Orfaos)
+	auth.DELETE("/reverses", remove.Reverso)
 	auth.GET("/statistics", fetch.Statistics)
 
 	api.POST("/cadastro", insert.Cadastro)

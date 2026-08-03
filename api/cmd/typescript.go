@@ -11,6 +11,7 @@ import (
 	"github.com/rafinhacuri/SanchezDNS/api/controller/fetch"
 	"github.com/rafinhacuri/SanchezDNS/api/logs"
 	"github.com/rafinhacuri/SanchezDNS/api/mongo"
+	"github.com/rafinhacuri/SanchezDNS/api/records"
 	"github.com/rafinhacuri/SanchezDNS/api/users"
 	"github.com/rafinhacuri/SanchezDNS/api/zonas"
 )
@@ -33,6 +34,8 @@ func main() {
 	converter.Add(GoRes{})
 	converter.Add(zonas.CreateZoneRequest{})
 	converter.Add(logs.LogsResponse{})
+	converter.Add(records.ReversoAusente{})
+	converter.Add(records.ReversoOrfao{})
 	converter.Add(fetch.PdnsZone{})
 	converter.Add(controller.SessionRes{})
 	converter.Add(fetch.StatisticsResponse{})

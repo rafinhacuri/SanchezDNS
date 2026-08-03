@@ -22,7 +22,6 @@ type LoginBody struct {
 func Login(c *gin.Context) {
 	ctx := c.Request.Context()
 
-
 	cookie, _ := c.Cookie("sanchezdns_session_id")
 	if cookie != "" {
 		c.AbortWithStatusJSON(400, gin.H{"message": "ja existe uma sessão ativa"})

@@ -1,3 +1,4 @@
+//nolint:dupl // endpoint distinto do fetch.Orfaos, compartilha apenas o boilerplate de validação
 package fetch
 
 import (
@@ -10,7 +11,7 @@ import (
 	"github.com/rafinhacuri/SanchezDNS/api/util"
 )
 
-func Records(c *gin.Context) {
+func Reversos(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	zona := c.Query("zone")
@@ -20,7 +21,7 @@ func Records(c *gin.Context) {
 		return
 	}
 
-	nivel, err := users.FetchNivel(ctx, zona, c.GetString("email"), c.GetString("level"))
+	pode, err := users.PodeLer(ctx, zona, c.GetString("email"), c.GetString("level"))
 	if err != nil {
 		log.Println(err)
 
@@ -29,20 +30,20 @@ func Records(c *gin.Context) {
 		return
 	}
 
-	if nivel == "" {
+	if !pode {
 		c.AbortWithStatusJSON(403, gin.H{"message": "Sem permissão para visualizar registros dessa zona"})
 
 		return
 	}
 
-	lista, soa, err := records.Fetch(ctx, util.PdnsClient(), zona)
+	ausentes, err := records.FetchReversosAusentes(ctx, util.PdnsClient(), zona)
 	if err != nil {
 		log.Println(err)
 
-		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao buscar registros no servidor DNS"})
+		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao verificar os reversos no servidor DNS"})
 
 		return
 	}
 
-	c.JSON(200, gin.H{"record": lista, "soa": soa})
+	c.JSON(200, ausentes)
 }
