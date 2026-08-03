@@ -176,7 +176,7 @@ Todas as chamadas vão para `DNS_HOST` (a URL da API), autenticadas pelo cabeça
 ### Criar uma zona — `POST /api/v1/servers/{id}/zones`
 
 ```go
-zonePayload := pdnsCreateZoneRequest{
+payload := createZonePayload{
     Name:       "exemplo.com.",
     Kind:       "Native",
     SOAEditAPI: "DEFAULT",
@@ -196,7 +196,7 @@ O SanchezDNS cria zonas como **`Native`** porque o modelo do projeto é de **uma
 Logo após criar a zona, o backend ativa DNSSEC:
 
 ```go
-dnssecPayload := pdnsCryptoKeyRequest{ Active: true, KeyType: "ksk" }
+payload := cryptoKeyPayload{ Active: true, KeyType: "ksk" }
 ```
 
 **O que é DNSSEC e por que ativar por padrão?** O DNS comum não tem autenticação: uma resposta pode ser forjada por um atacante no meio do caminho (cache poisoning). O **DNSSEC (DNS Security Extensions)** resolve isso assinando criptograficamente os registros da zona, de modo que o resolvedor consegue verificar que a resposta é autêntica e não foi adulterada.
@@ -220,7 +220,9 @@ Adicionar um registro é a operação mais elaborada, e o motivo é o RRset + co
 
 ### Registro reverso (PTR) automático
 
-Quando o registro é `A` ou `AAAA`, o backend chama `ensureReverseRecord` para manter o **PTR** (mapeamento reverso IP → nome) em sincronia. Essa lógica é detalhada na página de [Zonas e Registros](/zones), mas do ponto de vista da API ela: lista as zonas (`GET .../zones`), encontra por **maior sufixo em comum** a melhor zona reversa (`in-addr.arpa` para IPv4, `ip6.arpa` para IPv6), verifica se o PTR já existe e, se não, cria com um `PATCH`.
+Quando o registro é `A` ou `AAAA`, o backend chama `records.InsertReverso` (ou `UpdateReverso`/`DeleteReverso`) para manter o **PTR** (mapeamento reverso IP → nome) em sincronia. Essa lógica é detalhada na página de [Zonas e Registros](/zones), mas do ponto de vista da API ela: lista as zonas (`GET .../zones`), encontra por **maior sufixo em comum** a melhor zona reversa (`in-addr.arpa` para IPv4, `ip6.arpa` para IPv6), verifica se o PTR já existe e, se não, cria com um `PATCH`.
+
+Antes de **remover** um PTR, o backend ainda percorre as zonas normais para confirmar que nenhum outro `A`/`AAAA` ainda aponta para aquele IP — um mesmo IP pode ter vários nomes, e o reverso só deve cair quando o último deles sumir.
 
 ### Ler estatísticas — `GET .../statistics` e varredura de zonas
 

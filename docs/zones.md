@@ -16,11 +16,13 @@ Cada entrada mostra nome, serial, nível de acesso do usuário e status de DNSSE
 
 ## Criação de uma zona
 
-O formulário pede o domínio e os campos do SOA (`Start of Authority`, email do responsável, `refresh`, `retry`, `expire`, `negativeCacheTtl`). Ao submeter, o backend executa **três chamadas à API do PowerDNS em sequência** ([criar-zona.go](https://github.com/rafinhacuri/SanchezDNS/blob/main/api/zonas/criar-zona.go)):
+O formulário pede o domínio e os campos do SOA (`Start of Authority`, email do responsável, `refresh`, `retry`, `expire`, `negativeCacheTtl`). Ao submeter, o controlador executa **três chamadas à API do PowerDNS em sequência**, cada uma em uma função própria do pacote `zonas`:
 
-1. **`POST .../zones`** cria a zona como `Native` com `soa_edit_api: DEFAULT`.
-2. **`POST .../zones/{zona}/cryptokeys`** ativa DNSSEC com uma **KSK** ativa.
-3. **`PATCH .../zones/{zona}`** grava o RRset `SOA` inicial com os valores do formulário.
+1. **`POST .../zones`** cria a zona como `Native` com `soa_edit_api: DEFAULT` ([insert.go](https://github.com/rafinhacuri/SanchezDNS/blob/main/api/zonas/insert.go)).
+2. **`POST .../zones/{zona}/cryptokeys`** ativa DNSSEC com uma **KSK** ativa ([insert-dnssec.go](https://github.com/rafinhacuri/SanchezDNS/blob/main/api/zonas/insert-dnssec.go)).
+3. **`PATCH .../zones/{zona}`** grava o RRset `SOA` inicial com os valores do formulário ([update-soa.go](https://github.com/rafinhacuri/SanchezDNS/blob/main/api/zonas/update-soa.go)).
+
+Quem orquestra os três passos e decide a mensagem de cada falha é o controlador ([insert/zona.go](https://github.com/rafinhacuri/SanchezDNS/blob/main/api/controller/insert/zona.go)) — as funções do pacote `zonas` só executam a chamada e devolvem o erro cru.
 
 Se qualquer passo falhar, o backend retorna o erro exato vindo do PowerDNS (status + corpo), o que facilita diagnosticar problemas de configuração. Ao final, grava um log `create_zone` de forma assíncrona.
 
@@ -51,7 +53,7 @@ O editor trabalha com estes tipos. Entender cada um ajuda a justificar por que o
 
 ## Normalização: por que o valor é ajustado antes de gravar
 
-DNS tem convenções de formatação que, se o usuário tivesse que digitar perfeitamente, gerariam erros constantes. Por isso o backend **normaliza** o valor antes de montá-lo no RRset ([normalize-record-value.go](https://github.com/rafinhacuri/SanchezDNS/blob/main/api/records/normalize-record-value.go)). Cada regra existe por um motivo concreto:
+DNS tem convenções de formatação que, se o usuário tivesse que digitar perfeitamente, gerariam erros constantes. Por isso o backend **normaliza** o valor antes de montá-lo no RRset ([normalizar-valor.go](https://github.com/rafinhacuri/SanchezDNS/blob/main/api/records/normalizar-valor.go)). Cada regra existe por um motivo concreto:
 
 - **`TXT`** — o conteúdo é envolvido em aspas (`"..."`) se ainda não estiver. O formato de registro TXT exige aspas para delimitar a string; sem elas, o PowerDNS rejeitaria ou interpretaria errado.
 - **`CNAME`, `NS`, `ALIAS`, `MX`, `PTR`** — recebem um **ponto final** se não tiverem. Esses tipos apontam para **nomes**, e um nome sem ponto final seria interpretado como relativo à zona. O ponto o torna absoluto (FQDN), evitando que `mail.exemplo.com` vire `mail.exemplo.com.exemplo.com`.
@@ -60,19 +62,24 @@ DNS tem convenções de formatação que, se o usuário tivesse que digitar perf
 - **`SRV`** — montado como `prioridade peso porta alvo.`, cada parte vinda de um campo próprio da interface, com ponto final garantido no alvo.
 - **`HTTPS`** — montado como `prioridade alvo parâmetros` (por exemplo `1 . alpn=h2`), com um padrão sensato (`alpn=h2`) quando os parâmetros não são informados.
 
-Repare que `HTTPS` e `SRV` **não usam um único campo de valor** na interface — eles têm campos estruturados (`svcPriority`, `targetName`, `svcParams`, `weight`, `port`, `target`, `priority`), porque seu conteúdo é composto por várias partes. Por isso o `AddRecordRequest` no backend tem campos opcionais dedicados a esses tipos.
+Repare que `HTTPS` e `SRV` **não usam um único campo de valor** na interface — eles têm campos estruturados (`svcPriority`, `targetName`, `svcParams`, `weight`, `port`, `target`, `priority`), porque seu conteúdo é composto por várias partes. Por isso o `records.Registro` no backend tem campos opcionais dedicados a esses tipos.
 
 ## Como o nome do registro é completado (FQDN)
 
-Ao inserir, o backend ajusta o **nome** do registro para um FQDN absoluto:
+Ao inserir, o backend ajusta o **nome** do registro para um FQDN absoluto ([nome-completo.go](https://github.com/rafinhacuri/SanchezDNS/blob/main/api/records/nome-completo.go)):
 
 ```go
-if !strings.HasSuffix(name, ".") {
-    if !strings.HasSuffix(name, zone) {
-        name = fmt.Sprintf("%s.%s.", name, zone)   // "www" → "www.exemplo.com."
-    } else {
-        name += "."                                 // já tinha a zona, só falta o ponto
+func NomeCompleto(zona, name string) string {
+    if strings.HasSuffix(name, ".") {
+        return name                                  // já é absoluto
     }
+
+    zone := strings.TrimSuffix(zona, ".")
+    if strings.HasSuffix(name, zone) {
+        return name + "."                            // já tinha a zona, só falta o ponto
+    }
+
+    return fmt.Sprintf("%s.%s.", name, zone)         // "www" → "www.exemplo.com."
 }
 ```
 
@@ -95,7 +102,9 @@ Se o segundo `PATCH` (dos comentários) falhar, a operação retorna erro; se o 
 
 ## Reverse automático — o PTR que se cuida sozinho
 
-Este é o comportamento mais característico do SanchezDNS. Sempre que um registro **`A`** ou **`AAAA`** é criado, editado ou removido, o backend mantém o **PTR reverso** correspondente em sincronia, sem intervenção manual ([ensure-reverse-record.go](https://github.com/rafinhacuri/SanchezDNS/blob/main/api/records/ensure-reverse-record.go)).
+Este é o comportamento mais característico do SanchezDNS. Sempre que um registro **`A`** ou **`AAAA`** é criado, editado ou removido, o backend mantém o **PTR reverso** correspondente em sincronia, sem intervenção manual. Cada operação tem sua função: [insert-reverso.go](https://github.com/rafinhacuri/SanchezDNS/blob/main/api/records/insert-reverso.go), [update-reverso.go](https://github.com/rafinhacuri/SanchezDNS/blob/main/api/records/update-reverso.go) e [delete-reverso.go](https://github.com/rafinhacuri/SanchezDNS/blob/main/api/records/delete-reverso.go).
+
+As três compartilham os mesmos blocos de construção — `ParseIP`, `NomeReverso`, `ZonaReversa`, `TemForward`, `InsertPTR` e `DeletePTR` — o que faz IPv4 e IPv6 seguirem exatamente o mesmo caminho, em vez de terem implementações separadas.
 
 ### Por que isso importa
 
@@ -117,12 +126,18 @@ O PTR (reverso) é o que responde "qual nome corresponde a este IP?". Ele é exi
 
 ### Como o backend escolhe a zona reversa
 
-O backend lista todas as zonas (`GET .../zones`) e procura, entre as que terminam em `in-addr.arpa`/`ip6.arpa`, aquela cujo nome é o **maior sufixo** do nome reverso calculado:
+O backend lista todas as zonas (`GET .../zones`) e procura, entre as que terminam em `in-addr.arpa`/`ip6.arpa`, aquela cujo nome é o **maior sufixo** do nome reverso calculado ([zona-reversa.go](https://github.com/rafinhacuri/SanchezDNS/blob/main/api/records/zona-reversa.go)):
 
 ```go
-if strings.HasSuffix(fullRevNoDot, zNameNoDot) {
-    if len(zNameNoDot) > len(bestZone) {   // vence o sufixo mais longo/específico
-        bestZone = z.Name
+for _, zona := range zonas {
+    nome := strings.TrimSuffix(zona.Name, ".")
+
+    if !strings.HasSuffix(nome, sufixo) || !strings.HasSuffix(reverso, nome) {
+        continue
+    }
+
+    if len(nome) > len(strings.TrimSuffix(melhor, ".")) {   // vence o sufixo mais longo
+        melhor = zona.Name
     }
 }
 ```
@@ -138,6 +153,38 @@ Antes de criar, ele verifica se o PTR já existe naquela zona; se existir, não 
 - **remover** `A`/`AAAA` → remove o PTR junto.
 
 Tudo isso roda com um **timeout curto (6s)** e em caráter de "melhor esforço": se a parte reversa falhar, ela é registrada no log, mas **não derruba** a operação principal sobre o registro direto.
+
+## Conferência de reversos: ausentes e órfãos
+
+A automação acima só age no momento em que o registro é criado, editado ou removido. Ela não cobre dois casos que aparecem na prática:
+
+- registros `A`/`AAAA` que **já existiam** antes de a automação entrar em cena, ou criados enquanto a zona reversa ainda não existia;
+- PTRs que **sobraram** de registros diretos que foram apagados por fora do painel.
+
+Para isso a tela da zona tem dois botões de conferência sob demanda, que aparecem conforme o tipo de zona.
+
+### Reversos ausentes (zonas normais)
+
+O botão **Verificar reversos** varre a zona atual atrás de `A`/`AAAA` que **deveriam** ter PTR e não têm ([fetch-reversos-ausentes.go](https://github.com/rafinhacuri/SanchezDNS/blob/main/api/records/fetch-reversos-ausentes.go)):
+
+1. Lista os registros de IP da zona (`RegistrosIP`).
+2. Para cada IP, calcula o nome reverso e procura a zona reversa mais específica que o cobre.
+3. **Descarta** os IPs sem zona reversa cadastrada — não é erro, apenas não é um reverso que você gerencia.
+4. Dos que sobraram, mantém só os que **não têm PTR** na zona reversa (`semPTR`).
+
+O resultado abre em um modal com seleção múltipla, e você escolhe quais criar. O `PUT /reverses` recebe a lista de nomes reversos escolhidos, **recalcula os ausentes no servidor** e cria só os que estiverem de fato na interseção — assim uma lista desatualizada na tela nunca cria um PTR indevido.
+
+### Reversos órfãos (zonas reversas)
+
+Dentro de uma zona `in-addr.arpa`/`ip6.arpa`, o botão **Verificar órfãos** faz o caminho inverso ([fetch-reversos-orfaos.go](https://github.com/rafinhacuri/SanchezDNS/blob/main/api/records/fetch-reversos-orfaos.go)):
+
+1. Monta o conjunto de **todos os IPs** que aparecem em `A`/`AAAA` de todas as zonas normais (`IPsForward`).
+2. Percorre os PTRs da zona reversa, converte cada nome reverso de volta para IP (`IPDoReverso`).
+3. Marca como órfão todo PTR cujo IP **não aparece** em nenhum registro direto.
+
+Cada órfão pode ser removido individualmente, com confirmação. As duas operações de escrita (`PUT` e `DELETE /reverses`) exigem **escrita** na zona e geram log (`insert_reverses`, `delete_reverse`).
+
+**Por que sob demanda e não automático?** Porque as duas varreduras leem **todas** as zonas do servidor para montar o panorama — é uma operação cara demais para rodar a cada requisição. E remover PTR órfão é destrutivo: a decisão fica com o operador, não com uma rotina automática.
 
 ## Permissões na tela de zona
 
