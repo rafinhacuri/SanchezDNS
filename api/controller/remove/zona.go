@@ -29,7 +29,7 @@ func Zona(c *gin.Context) {
 		return
 	}
 
-	go logs.InsertLog(domain, c.GetString("email"), "delete_zone", "Excluída a zona "+domain)
+	go logs.Insert(domain, c.GetString("email"), "delete_zone", "Excluída a zona "+domain)
 
 	c.JSON(200, gin.H{"message": "Zona excluída com sucesso!"})
 }

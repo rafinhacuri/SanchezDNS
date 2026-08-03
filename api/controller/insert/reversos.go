@@ -78,7 +78,7 @@ func Reversos(c *gin.Context) {
 		return
 	}
 
-	go logs.InsertLog(
+	go logs.Insert(
 		zona,
 		email,
 		"insert_reverses",

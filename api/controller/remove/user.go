@@ -65,7 +65,7 @@ func User(c *gin.Context) {
 		return
 	}
 
-	go logs.InsertLog(
+	go logs.Insert(
 		body.Zona,
 		c.GetString("email"),
 		"delete_user",

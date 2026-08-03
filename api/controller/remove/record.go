@@ -77,7 +77,7 @@ func Record(c *gin.Context) {
 
 	name := records.NomeCompleto(body.Zone, body.Name)
 
-	go logs.InsertLog(
+	go logs.Insert(
 		name,
 		email,
 		"delete_record",

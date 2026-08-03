@@ -55,7 +55,7 @@ func Reverso(c *gin.Context) {
 		return
 	}
 
-	go logs.InsertLog(zona, email, "delete_reverse", "Excluído reverso órfão "+nome)
+	go logs.Insert(zona, email, "delete_reverse", "Excluído reverso órfão "+nome)
 
 	c.JSON(200, gin.H{"message": "Reverso excluído com sucesso!"})
 }

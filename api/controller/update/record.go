@@ -85,7 +85,7 @@ func Record(c *gin.Context) {
 		log.Println(err)
 	}
 
-	go logs.InsertLog(
+	go logs.Insert(
 		body.NewValue.Name,
 		email,
 		"edit_record",

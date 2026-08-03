@@ -68,7 +68,7 @@ func Zona(c *gin.Context) {
 		return
 	}
 
-	go logs.InsertLog(domain, c.GetString("email"), "create_zone", fmt.Sprintf("Criada zona %s do tipo %s", domain, tipo))
+	go logs.Insert(domain, c.GetString("email"), "create_zone", fmt.Sprintf("Criada zona %s do tipo %s", domain, tipo))
 
 	c.JSON(200, gin.H{"message": "Zona criada com sucesso!"})
 }

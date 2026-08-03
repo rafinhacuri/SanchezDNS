@@ -38,7 +38,7 @@ func Soa(c *gin.Context) {
 		return
 	}
 
-	go logs.InsertLog(zoneID, c.GetString("email"), "update_soa", "Atualizado registro SOA para a zona "+zoneID)
+	go logs.Insert(zoneID, c.GetString("email"), "update_soa", "Atualizado registro SOA para a zona "+zoneID)
 
 	c.JSON(200, gin.H{"message": "Registro SOA atualizado com sucesso!"})
 }
