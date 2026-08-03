@@ -79,7 +79,7 @@ func ensureReverseIPv4(ctx context.Context, vl, zona, name string) {
 	fullReverseName := fmt.Sprintf("%s.%s.%s.%s.in-addr.arpa.", octets[3], octets[2], octets[1], octets[0])
 
 	zoneListResp, err := httpc.R().SetContext(ctx).Get(fmt.Sprintf("/api/v1/servers/%s/zones", env.C.DnsServerId))
-	if err != nil || zoneListResp.IsError() {
+	if err != nil || zoneListResp.IsStatusFailure() {
 		return
 	}
 
@@ -113,7 +113,7 @@ func ensureReverseIPv4(ctx context.Context, vl, zona, name string) {
 	}
 
 	zoneResp, err := httpc.R().SetContext(ctx).Get(fmt.Sprintf("/api/v1/servers/%s/zones/%s", env.C.DnsServerId, bestZone))
-	if err != nil || zoneResp.IsError() {
+	if err != nil || zoneResp.IsStatusFailure() {
 		return
 	}
 
@@ -204,7 +204,7 @@ func ensureReverseIPv6(ctx context.Context, vl, zona, name string) {
 	fullReverseName := strings.Join(nibbles, ".") + ".ip6.arpa."
 
 	zoneListResp, err := httpc.R().SetContext(ctx).Get(fmt.Sprintf("/api/v1/servers/%s/zones", env.C.DnsServerId))
-	if err != nil || zoneListResp.IsError() {
+	if err != nil || zoneListResp.IsStatusFailure() {
 		return
 	}
 
@@ -238,7 +238,7 @@ func ensureReverseIPv6(ctx context.Context, vl, zona, name string) {
 	}
 
 	zoneResp, err := httpc.R().SetContext(ctx).Get(fmt.Sprintf("/api/v1/servers/%s/zones/%s", env.C.DnsServerId, bestZone))
-	if err != nil || zoneResp.IsError() {
+	if err != nil || zoneResp.IsStatusFailure() {
 		return
 	}
 

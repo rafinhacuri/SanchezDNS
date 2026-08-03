@@ -53,7 +53,7 @@ func FetchRecords(ctx context.Context, zone string) ([]Simplified, *Soa, error) 
 		return []Simplified{}, nil, errors.New("falha ao buscar registros: " + err.Error())
 	}
 
-	if resp.IsError() {
+	if resp.IsStatusFailure() {
 		return []Simplified{}, nil, errors.New("falha ao buscar registros:" + resp.String())
 	}
 

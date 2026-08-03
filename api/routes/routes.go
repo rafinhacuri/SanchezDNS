@@ -30,7 +30,7 @@ func RegisterRoutes(server *gin.Engine) {
 	api.GET("/file/:id", fetch.File)
 	api.PUT("/file", insert.File)
 
-	auth.GET("/zones", fetch.Zones)
+	auth.GET("/zones", fetch.Zonas)
 	auth.GET("/records", fetch.Records)
 	auth.PUT("/records", insert.Record)
 	auth.DELETE("/records", remove.Record)
@@ -43,9 +43,9 @@ func RegisterRoutes(server *gin.Engine) {
 
 	admin.PUT("/solicitacoes/status", update.SolicitacaoStatus)
 	admin.GET("/logs", fetch.Logs)
-	admin.PUT("/zone", insert.Zone)
-	admin.DELETE("/zone", remove.Zone)
-	admin.PATCH("/soa", update.SOA)
+	admin.PUT("/zone", insert.Zona)
+	admin.DELETE("/zone", remove.Zona)
+	admin.PATCH("/soa", update.Soa)
 	admin.POST("/user", insert.User)
 	admin.PATCH("/user", update.User)
 	admin.DELETE("/user", remove.User)

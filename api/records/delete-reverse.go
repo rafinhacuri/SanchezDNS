@@ -61,7 +61,7 @@ func deleteIPv4(ctx context.Context, vl string) {
 	}
 
 	zoneListResp, err := httpc.R().SetContext(ctx).Get(fmt.Sprintf("/api/v1/servers/%s/zones", env.C.DnsServerId))
-	if err != nil || zoneListResp.IsError() {
+	if err != nil || zoneListResp.IsStatusFailure() {
 		return
 	}
 
@@ -126,7 +126,7 @@ func deleteIPv6(ctx context.Context, vl string) {
 	}
 
 	zoneListResp, err := httpc.R().SetContext(ctx).Get(fmt.Sprintf("/api/v1/servers/%s/zones", env.C.DnsServerId))
-	if err != nil || zoneListResp.IsError() {
+	if err != nil || zoneListResp.IsStatusFailure() {
 		return
 	}
 

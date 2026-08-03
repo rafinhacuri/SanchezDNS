@@ -5,11 +5,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/rafinhacuri/SanchezDNS/api/controller/insert"
+	"github.com/rafinhacuri/SanchezDNS/api/logs"
+	"github.com/rafinhacuri/SanchezDNS/api/util"
 	"github.com/rafinhacuri/SanchezDNS/api/zonas"
 )
 
-func SOA(c *gin.Context) {
+func Soa(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	zoneID := c.Query("zone")
 	if zoneID == "" {
 		c.AbortWithStatusJSON(400, gin.H{"message": "ID da zona é obrigatório"})
@@ -17,42 +20,25 @@ func SOA(c *gin.Context) {
 		return
 	}
 
-	var req insert.Soa
+	var body zonas.Soa
 
-	err := c.ShouldBindJSON(&req)
+	err := c.ShouldBindJSON(&body)
 	if err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"message": "Requisição inválida"})
+		c.AbortWithStatusJSON(400, gin.H{"message": "Dados inválidos"})
 
 		return
 	}
 
-	err = req.Validate()
-	if err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"message": "Requisição inválida"})
-
-		return
-	}
-
-	ctx := c.Request.Context()
-
-	email := c.GetString("email")
-
-	_, err = zonas.UpdateSoa(
-		ctx,
-		zoneID,
-		req.StartOfAuthority,
-		req.Email,
-		req.Refresh,
-		req.Retry,
-		req.Expire,
-		req.NegativeCacheTtl,
-		email)
+	err = zonas.UpdateSoa(ctx, util.PdnsClient(), zoneID, body)
 	if err != nil {
 		log.Println(err)
-		c.AbortWithStatusJSON(502, gin.H{"message": "falha ao atualizar registro SOA"})
+
+		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao atualizar o SOA no servidor DNS"})
 
 		return
 	}
 
-	c.JSON(200, gin.H{"message": "registro SOA atualizado com sucesso"})
+	go logs.InsertLog(zoneID, c.GetString("email"), "update_soa", "Atualizado registro SOA para a zona "+zoneID)
+
+	c.JSON(200, gin.H{"message": "Registro SOA atualizado com sucesso!"})
 }

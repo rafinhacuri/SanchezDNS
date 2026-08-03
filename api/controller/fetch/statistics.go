@@ -80,7 +80,7 @@ func Statistics(c *gin.Context) {
 		return
 	}
 
-	if statResp.IsError() {
+	if statResp.IsStatusFailure() {
 		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao obter estatísticas"})
 
 		return
@@ -175,7 +175,7 @@ func Statistics(c *gin.Context) {
 		return
 	}
 
-	if zonesResp.IsError() {
+	if zonesResp.IsStatusFailure() {
 		c.AbortWithStatusJSON(500, gin.H{"message": "Erro nas zonas do PowerDNS: " + zonesResp.Status()})
 
 		return
@@ -190,7 +190,7 @@ func Statistics(c *gin.Context) {
 			SetContext(ctx).
 			SetResult(&zd).
 			Get(fmt.Sprintf("/api/v1/servers/%s/zones/%s", env.C.DnsServerId, z.ID))
-		if zerr != nil || zr.IsError() {
+		if zerr != nil || zr.IsStatusFailure() {
 			continue
 		}
 

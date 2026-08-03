@@ -65,7 +65,7 @@ func hasForwardRecordsForIPv4(ctx context.Context, httpc *resty.Client, zones []
 		}
 
 		zoneResp, err := httpc.R().SetContext(ctx).Get(fmt.Sprintf("/api/v1/servers/%s/zones/%s", env.C.DnsServerId, z.Name))
-		if err != nil || zoneResp.IsError() {
+		if err != nil || zoneResp.IsStatusFailure() {
 			continue
 		}
 
@@ -112,7 +112,7 @@ func hasForwardRecordsForIPv6(ctx context.Context, httpc *resty.Client, zones []
 		}
 
 		zoneResp, err := httpc.R().SetContext(ctx).Get(fmt.Sprintf("/api/v1/servers/%s/zones/%s", env.C.DnsServerId, z.Name))
-		if err != nil || zoneResp.IsError() {
+		if err != nil || zoneResp.IsStatusFailure() {
 			continue
 		}
 
@@ -177,7 +177,7 @@ func ensureReverseIPv4Update(ctx context.Context, vl, zona, name, oldVl string) 
 	}
 
 	zoneListResp, err := httpc.R().SetContext(ctx).Get(fmt.Sprintf("/api/v1/servers/%s/zones", env.C.DnsServerId))
-	if err != nil || zoneListResp.IsError() {
+	if err != nil || zoneListResp.IsStatusFailure() {
 		return
 	}
 
@@ -281,7 +281,7 @@ func fetchZones(ctx context.Context, httpc *resty.Client) ([]pdnsZoneInfo, bool)
 		SetContext(ctx).
 		Get(fmt.Sprintf("/api/v1/servers/%s/zones", env.C.DnsServerId))
 
-	if err != nil || resp.IsError() {
+	if err != nil || resp.IsStatusFailure() {
 		return nil, false
 	}
 
