@@ -27,6 +27,18 @@ interface LogsResponse {
   logs: Log[]
   total: number
 }
+interface ReversoAusente {
+  name: string
+  type: string
+  ip: string
+  nomeReverso: string
+  zonaReversa: string
+}
+interface ReversoOrfao {
+  nomeReverso: string
+  ip: string
+  alvo: string
+}
 interface PdnsZone {
   name: string
   id: string

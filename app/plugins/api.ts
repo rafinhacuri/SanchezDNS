@@ -1,7 +1,5 @@
 export default defineNuxtPlugin(() => {
-  const { siteUrl } = useRuntimeConfig().public
-
-  const baseURL = `${siteUrl.replace(/\/$/u, '')}/go`
+  const baseURL = useApiUrl()
 
   const api = $fetch.create({
     baseURL,

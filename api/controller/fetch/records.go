@@ -44,5 +44,5 @@ func Records(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, gin.H{"record": lista, "soa": soa})
+	c.JSON(200, gin.H{"record": lista, "soa": soa, "nivel": nivel})
 }
