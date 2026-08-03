@@ -12,6 +12,8 @@ import (
 )
 
 func Cadastro(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	var body struct {
 		Nome  string `binding:"required"       json:"nome"`
 		Email string `binding:"required,email" json:"email"`
@@ -21,79 +23,66 @@ func Cadastro(c *gin.Context) {
 
 	err := c.ShouldBindJSON(&body)
 	if err != nil {
-		log.Println("Cadastro request received" + err.Error())
-
-		c.AbortWithStatusJSON(400, gin.H{
-			"message": "Requisição inválida",
-		})
-	}
-
-	body.Email = strings.ToLower(body.Email)
-
-	valid := util.ValidateEmail(body.Email)
-	if !valid {
-		c.AbortWithStatusJSON(400, gin.H{
-			"message": "Email inválido",
-		})
+		c.AbortWithStatusJSON(400, gin.H{"message": "Requisição inválida"})
 
 		return
 	}
 
-	ctx := c.Request.Context()
+	body.Email = strings.ToLower(body.Email)
+
+	if !util.ValidateEmail(body.Email) {
+		c.AbortWithStatusJSON(400, gin.H{"message": "Email inválido"})
+
+		return
+	}
 
 	first, err := cadastro.First(ctx)
 	if err != nil {
-		c.AbortWithStatusJSON(500, gin.H{
-			"message": "Erro ao verificar cadastro",
-		})
+		log.Println(err)
+
+		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao verificar cadastro"})
 
 		return
 	}
 
 	if first {
-		res, err := cadastro.Insert(ctx, body.Email, body.Senha, body.Nome, body.Foto)
+		err = cadastro.Insert(ctx, body.Email, body.Senha, body.Nome, body.Foto)
 		if err != nil {
-			c.AbortWithStatusJSON(500, gin.H{
-				"message": "Erro ao criar cadastro",
-			})
+			log.Println(err)
+
+			c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao criar cadastro"})
 
 			return
 		}
 
-		c.JSON(200, gin.H{
-			"message": res,
-		})
+		c.JSON(200, gin.H{"message": "Cadastro realizado com sucesso"})
 
 		return
 	}
 
 	exist, err := solicitacoes.Exist(ctx, body.Email)
 	if err != nil {
-		c.AbortWithStatusJSON(500, gin.H{
-			"message": "Erro ao verificar existência da solicitação",
-		})
+		log.Println(err)
+
+		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao verificar existência da solicitação"})
 
 		return
 	}
 
 	if exist {
-		c.AbortWithStatusJSON(409, gin.H{
-			"message": "Usuário já existe",
-		})
+		c.AbortWithStatusJSON(409, gin.H{"message": "Usuário já existe"})
 
 		return
 	}
 
-	res, err := solicitacoes.Insert(ctx, body.Email, body.Senha, body.Nome, body.Foto)
+	err = solicitacoes.Insert(ctx, body.Email, body.Senha, body.Nome, body.Foto)
 	if err != nil {
-		c.AbortWithStatusJSON(500, gin.H{
-			"message": "Erro ao criar solicitação",
-		})
+		log.Println(err)
+
+		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao criar solicitação"})
 
 		return
 	}
 
-	c.JSON(200, gin.H{
-		"message": res,
-	})
+	c.JSON(200, gin.H{"message": "Solicitação realizada com sucesso e será analisada em breve"})
 }

@@ -9,10 +9,11 @@ import (
 	"github.com/rafinhacuri/SanchezDNS/api/mongo"
 )
 
-func Delete(ctx context.Context, zona, permissao, email string) error {
+func UpdatePermissao(ctx context.Context, zona, origem, destino, atual, novo string) error {
 	update := bson.M{
-		"$pull": bson.M{permissao: email},
-		"$set":  bson.M{"updatedAt": time.Now()},
+		"$pull":     bson.M{origem: atual},
+		"$addToSet": bson.M{destino: novo},
+		"$set":      bson.M{"updatedAt": time.Now()},
 	}
 
 	_, err := mongo.Dns.Collection("users").UpdateOne(ctx, bson.M{"zona": zona}, update)

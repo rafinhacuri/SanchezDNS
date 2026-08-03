@@ -24,9 +24,10 @@ func Cadastros(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	cadastros, total, err := cadastro.Fetch(ctx, page, limit, search, int64(skip))
+	cadastros, total, err := cadastro.Fetch(ctx, limit, search, int64(skip))
 	if err != nil {
 		log.Println(err)
+
 		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao buscar cadastros"})
 
 		return

@@ -15,6 +15,7 @@ node_modules
 .DS_Store
 .fleet
 .idea
+.claude
 
 # Local env files
 .env

@@ -11,6 +11,8 @@ import (
 )
 
 func SolicitacaoStatus(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	var body struct {
 		Id     bson.ObjectID `binding:"required" json:"id"`
 		Status string        `binding:"required" json:"status"`
@@ -18,30 +20,22 @@ func SolicitacaoStatus(c *gin.Context) {
 
 	err := c.ShouldBindJSON(&body)
 	if err != nil {
-		c.AbortWithStatusJSON(400, gin.H{
-			"message": "Requisição inválida",
-		})
+		c.AbortWithStatusJSON(400, gin.H{"message": "Requisição inválida"})
 
 		return
 	}
-
-	ctx := c.Request.Context()
 
 	exist, err := cadastro.ExistId(ctx, body.Id)
 	if err != nil {
 		log.Println(err)
 
-		c.AbortWithStatusJSON(500, gin.H{
-			"message": "Erro ao verificar existência do cadastro",
-		})
+		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao verificar existência do cadastro"})
 
 		return
 	}
 
 	if exist {
-		c.AbortWithStatusJSON(400, gin.H{
-			"message": "Cadastro já existe",
-		})
+		c.AbortWithStatusJSON(400, gin.H{"message": "Cadastro já existe"})
 
 		return
 	}
@@ -50,33 +44,25 @@ func SolicitacaoStatus(c *gin.Context) {
 	if err != nil {
 		log.Println(err)
 
-		c.AbortWithStatusJSON(500, gin.H{
-			"message": "Erro ao verificar existência do solicitação",
-		})
+		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao verificar existência do solicitação"})
 
 		return
 	}
 
 	if !exist {
-		c.AbortWithStatusJSON(400, gin.H{
-			"message": "Solicitação não encontrada",
-		})
+		c.AbortWithStatusJSON(400, gin.H{"message": "Solicitação não encontrada"})
 
 		return
 	}
 
-	res, err := solicitacoes.Status(ctx, body.Id, body.Status)
+	err = solicitacoes.Status(ctx, body.Id, body.Status)
 	if err != nil {
 		log.Println(err)
 
-		c.AbortWithStatusJSON(500, gin.H{
-			"message": "Erro ao atualizar status da solicitação",
-		})
+		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao atualizar status da solicitação"})
 
 		return
 	}
 
-	c.JSON(200, gin.H{
-		"message": res,
-	})
+	c.JSON(200, gin.H{"message": "Solicitação atualizada com sucesso"})
 }

@@ -2,8 +2,6 @@ package cadastro
 
 import (
 	"context"
-	"errors"
-	"log"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
@@ -11,32 +9,18 @@ import (
 	"github.com/rafinhacuri/SanchezDNS/api/mongo"
 )
 
-func Fetch(
-	ctx context.Context,
-	page,
-	limit int,
-	search string,
-	skip int64,
-) ([]mongo.Cadastro, int64, error) {
+func Fetch(ctx context.Context, limit int, search string, skip int64) ([]mongo.Cadastro, int64, error) {
 	filter := bson.M{}
-
-	var orFilters []bson.M
 	if search != "" {
-		orFilters = []bson.M{
+		filter = bson.M{"$or": []bson.M{
 			{"nome": bson.M{"$regex": search, "$options": "i"}},
 			{"email": bson.M{"$regex": search, "$options": "i"}},
-		}
-	}
-
-	if len(orFilters) > 0 {
-		filter = bson.M{"$or": orFilters}
+		}}
 	}
 
 	total, err := mongo.Dns.Collection("cadastros").CountDocuments(ctx, filter)
 	if err != nil {
-		log.Println(err.Error())
-
-		return nil, 0, errors.New("falha ao contar documento")
+		return nil, 0, err
 	}
 
 	opts := options.Find().
@@ -51,24 +35,14 @@ func Fetch(
 
 	cursor, err := mongo.Dns.Collection("cadastros").Find(ctx, filter, opts)
 	if err != nil {
-		log.Println(err.Error())
-
-		return nil, 0, errors.New("falha ao buscar cadastros")
+		return nil, 0, err
 	}
 
 	var cadastros []mongo.Cadastro
 
-	for cursor.Next(ctx) {
-		var cadastro mongo.Cadastro
-
-		err := cursor.Decode(&cadastro)
-		if err != nil {
-			log.Println(err.Error())
-
-			return nil, 0, errors.New("falha ao decodificar cadastro")
-		}
-
-		cadastros = append(cadastros, cadastro)
+	err = cursor.All(ctx, &cadastros)
+	if err != nil {
+		return nil, 0, err
 	}
 
 	return cadastros, total, nil

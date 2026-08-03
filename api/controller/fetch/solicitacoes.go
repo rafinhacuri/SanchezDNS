@@ -24,7 +24,7 @@ func Solicitacoes(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	solicitacoes, total, err := solicitacoes.Fetch(ctx, page, limit, search, int64(skip))
+	solicitacoes, total, err := solicitacoes.Fetch(ctx, limit, search, int64(skip))
 	if err != nil {
 		log.Println(err)
 

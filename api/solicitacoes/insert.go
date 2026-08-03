@@ -7,10 +7,10 @@ import (
 	"github.com/rafinhacuri/SanchezDNS/api/passwords"
 )
 
-func Insert(ctx context.Context, email, senha, nome, foto string) (string, error) {
+func Insert(ctx context.Context, email, senha, nome, foto string) error {
 	err := passwords.BCrypt(&senha)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	solicitacao := mongo.Solicitacao{
@@ -22,13 +22,10 @@ func Insert(ctx context.Context, email, senha, nome, foto string) (string, error
 
 	err = solicitacao.Validate()
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	_, err = mongo.Dns.Collection("solicitacoes").InsertOne(ctx, solicitacao)
-	if err != nil {
-		return "", err
-	}
 
-	return "Solicitação realizada com sucesso e será analisada em breve", nil
+	return err
 }
