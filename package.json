@@ -1,6 +1,6 @@
 {
   "name": "sanchezdns",
-  "version": "2.1.2",
+  "version": "3.0.0",
   "private": true,
   "description": "🗄️ Web application to manage authoritative dns servers using PowerDNS",
   "keywords": [
