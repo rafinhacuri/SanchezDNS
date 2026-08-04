@@ -1,15 +1,26 @@
 <script setup lang="ts">
   import type { TableColumn } from '@nuxt/ui'
+  import type { Column } from '@tanstack/vue-table'
   import { getPaginationRowModel } from '@tanstack/vue-table'
   import { safeParse } from 'valibot'
+  import type { VNode } from 'vue'
 
-  import { UBadge, UButton, UPopover } from '#components'
+  import { UButton, UPopover } from '#components'
+
+  const baseUrl = useApiUrl()
+
+  const tableUsers = useTemplateRef('tableUsers')
 
   const toast = useToast()
-  const baseUrl = useApiUrl()
   const { isLoading, start, finish } = useLoadingIndicator()
+  const { insertUserSchema } = useUserSchema()
 
-  const zoneId = defineModel<string>('zoneId', { required: true })
+  const props = defineProps({
+    zone: { type: String, required: true },
+  })
+
+  const zoneId = computed(() => props.zone)
+
   const modalUsers = defineModel<boolean>('open', { default: false })
 
   const { data: userData, refresh: refreshUsers } = await useApi<User[]>('/users', {
@@ -23,7 +34,7 @@
 
   const roleOptions = ['escrita', 'leitura']
 
-  const stateUser = ref<InsertUserType>({ email: '', permissao: 'leitura', id: '', zona: '' })
+  const stateUser = ref<InsertUserSchema>({ email: '', permissao: 'leitura', id: '', zona: '' })
   const isEditingUser = ref(false)
 
   async function addUser(): Promise<void> {
@@ -31,7 +42,7 @@
 
     stateUser.value.zona = zoneId.value
 
-    const body = safeParse(InsertUserSchema, stateUser.value)
+    const body = safeParse(insertUserSchema, stateUser.value)
 
     if (!body.success) {
       for (const e of body.issues) {
@@ -85,8 +96,6 @@
     finish()
   }
 
-  const tableUsers = useTemplateRef('tableUsers')
-
   const paginationUsers = ref({ pageIndex: 0, pageSize: 5 })
   const globalFilterUsers = ref('')
 
@@ -94,74 +103,87 @@
     paginationUsers.value.pageIndex = 0
   })
 
+  function sortableHeader(column: Column<User>, label: string): VNode {
+    const sorted = column.getIsSorted()
+    let icon = 'i-lucide-chevrons-up-down'
+    if (sorted === 'asc') icon = 'i-lucide-arrow-up'
+    else if (sorted === 'desc') icon = 'i-lucide-arrow-down'
+
+    return h(UButton, {
+      color: 'neutral',
+      variant: 'ghost',
+      size: 'xs',
+      label,
+      icon,
+      class: '-mx-2 font-semibold uppercase tracking-wider text-xs',
+      onClick: () => column.toggleSorting(sorted === 'asc'),
+    })
+  }
+
   const columnsUsers: TableColumn<User>[] = [
     {
       accessorKey: 'email',
-      header: ({ column }) => {
-        const isSorted = column.getIsSorted()
-        let icon = 'i-heroicons-arrows-up-down'
-        if (isSorted === 'asc') icon = 'i-heroicons-bars-arrow-up'
-        else if (isSorted === 'desc') icon = 'i-heroicons-bars-arrow-down'
-        return h(UButton, {
-          color: 'neutral',
-          variant: 'ghost',
-          label: 'Usuário',
-          icon,
-          class: '-mx-2.5',
-          onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-        })
-      },
+      header: ({ column }) => sortableHeader(column, 'Usuário'),
       cell: ({ row }) =>
-        h('div', { class: 'flex items-center gap-3' }, [
+        h('div', { class: 'flex items-center gap-2.5' }, [
           h('img', {
             src: `${baseUrl}/file/${row.original.email}`,
             alt: row.original.email,
-            class: 'size-6 cursor-pointer rounded-full',
+            class: 'size-7 rounded-full object-cover ring-1 ring-default',
           }),
-          h('p', {}, row.original.email),
+          h('span', { class: 'data text-sm font-medium text-highlighted' }, row.original.email),
         ]),
     },
     {
       accessorKey: 'permissao',
-      header: ({ column }) => {
-        const isSorted = column.getIsSorted()
-        let icon = 'i-heroicons-arrows-up-down'
-        if (isSorted === 'asc') icon = 'i-heroicons-bars-arrow-up'
-        else if (isSorted === 'desc') icon = 'i-heroicons-bars-arrow-down'
-        return h(UButton, {
-          color: 'neutral',
-          variant: 'ghost',
-          label: 'Permissão',
-          icon,
-          class: '-mx-2.5',
-          onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-        })
+      header: ({ column }) => sortableHeader(column, 'Permissão'),
+      cell: ({ row }) => {
+        const write = row.original.permissao === 'escrita'
+
+        return h(
+          'span',
+          {
+            class: `inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ring-1 ring-inset ${
+              write
+                ? 'bg-blue-500/10 text-blue-600 ring-blue-500/25 dark:text-blue-400'
+                : 'bg-slate-500/10 text-slate-600 ring-slate-500/25 dark:text-slate-300'
+            }`,
+          },
+          write ? 'Escrita' : 'Leitura',
+        )
       },
-      cell: ({ row }) =>
-        row.original.permissao === 'escrita'
-          ? h(UBadge, { variant: 'outline', label: 'Escrita' })
-          : h(UBadge, { color: 'neutral', variant: 'outline', label: 'Leitura' }),
     },
     {
       accessorKey: 'actions',
-      header: 'Ações',
+      header: (): VNode => h('span', { class: 'sr-only' }, 'Ações'),
       cell: ({ row }) =>
-        h('div', { class: 'space-x-2' }, [
+        h('div', { class: 'flex items-center justify-end gap-1.5' }, [
           !stateUser.value.id &&
             stateUser.value.id !== row.original.id &&
             h(UButton, {
-              icon: 'i-lucide-user-pen',
-              variant: 'outline',
+              icon: 'i-lucide-pencil',
+              color: 'neutral',
+              variant: 'ghost',
+              size: 'sm',
+              'aria-label': `Editar ${row.original.email}`,
               onClick: () => {
                 isEditingUser.value = true
-                stateUser.value = { ...row.original }
+                stateUser.value = {
+                  id: row.original.id,
+                  email: row.original.email,
+                  zona: row.original.zona,
+                  permissao: row.original.permissao === 'escrita' ? 'escrita' : 'leitura',
+                }
               },
             }),
 
           stateUser.value.id === row.original.id &&
             h(UButton, {
               icon: 'i-lucide-x',
-              variant: 'outline',
+              color: 'neutral',
+              variant: 'ghost',
+              size: 'sm',
+              'aria-label': 'Cancelar edição',
               onClick: () => {
                 isEditingUser.value = false
                 stateUser.value = { email: '', permissao: 'leitura', id: '', zona: '' }
@@ -171,112 +193,166 @@
           !stateUser.value.id &&
             h(UPopover, null, {
               default: () =>
-                h(UButton, { icon: 'i-lucide-user-minus', color: 'error', variant: 'outline' }),
+                h(UButton, {
+                  icon: 'i-lucide-user-minus',
+                  color: 'error',
+                  variant: 'ghost',
+                  size: 'sm',
+                  'aria-label': `Remover ${row.original.email}`,
+                }),
               content: ({ close }: { close: () => void }) =>
-                h('div', { class: 'space-y-3 p-2' }, [
+                h('div', { class: 'w-64 space-y-3 p-3' }, [
                   h(
                     'p',
-                    { class: 'text-sm' },
-                    'Tem certeza que deseja remover este usuário desta zona?',
+                    { class: 'text-sm text-toned' },
+                    `Remover ${row.original.email} desta zona?`,
                   ),
-                  h(UButton, {
-                    color: 'error',
-                    variant: 'solid',
-                    icon: 'i-lucide-check',
-                    label: 'Confirmar',
-                    onClick: () => {
-                      deleteUser(row.original.zona, row.original.id)
-                      close()
-                    },
-                  }),
+                  h('div', { class: 'flex justify-end gap-2' }, [
+                    h(UButton, {
+                      color: 'neutral',
+                      variant: 'ghost',
+                      size: 'sm',
+                      label: 'Cancelar',
+                      onClick: () => close(),
+                    }),
+                    h(UButton, {
+                      color: 'error',
+                      size: 'sm',
+                      label: 'Remover',
+                      onClick: () => {
+                        deleteUser(row.original.zona, row.original.id)
+                        close()
+                      },
+                    }),
+                  ]),
                 ]),
             }),
         ]),
     },
   ]
+
+  const totalUsers = computed(() => userData.value?.length ?? 0)
 </script>
 
 <template>
   <UModal
     v-model:open="modalUsers"
-    title="Usuários"
-    description="Gerencie os usuários associados a esta zona"
-    :ui="{ footer: 'justify-end', content: 'max-w-4xl' }">
+    title="Usuários da zona"
+    :description="`Quem pode ler e escrever registros em ${zoneId}`"
+    :ui="{ footer: 'justify-end', content: 'max-w-3xl' }">
     <template #body>
-      <div class="flex items-center justify-center space-x-3">
-        <USelectMenu
-          :disabled="isEditingUser"
-          v-model="stateUser.email"
-          label-key="nome"
-          value-key="email"
-          :items="members || []"
-          icon="i-lucide-search"
-          placeholder="Selecione o usuário..."
-          class="mb-4">
-          <template #item-label="{ item }">
-            <div class="flex items-center gap-3">
-              <img
-                :src="`${baseUrl}/file/${item.email}`"
-                :alt="item.nome"
-                class="size-6 cursor-pointer rounded-full" />
-              <p>{{ item.nome }}</p>
-            </div>
-          </template>
-        </USelectMenu>
-        <USelect
-          v-model="stateUser.permissao"
-          :items="roleOptions"
-          class="mb-4"
-          placeholder="Selecione a permissão..."
-          icon="i-lucide-shield-check" />
-      </div>
+      <div class="space-y-5">
+        <div class="space-y-3 rounded-lg border border-default bg-muted/40 p-4">
+          <p class="text-sm font-semibold text-highlighted">
+            {{ isEditingUser ? 'Editar permissão' : 'Adicionar usuário' }}
+          </p>
 
-      <UInput
-        v-model="globalFilterUsers"
-        class="mt-10 mb-4"
-        placeholder="Buscar usuário..."
-        icon="i-lucide-search" />
+          <div class="flex flex-col gap-3 sm:flex-row">
+            <USelectMenu
+              v-model="stateUser.email"
+              :disabled="isEditingUser"
+              label-key="nome"
+              value-key="email"
+              :items="members || []"
+              icon="i-lucide-search"
+              placeholder="Selecione o usuário..."
+              class="w-full sm:flex-1"
+              :ui="{ base: 'data' }">
+              <template #item-label="{ item }">
+                <div class="flex items-center gap-2.5">
+                  <img
+                    :src="`${baseUrl}/file/${item.email}`"
+                    :alt="item.nome"
+                    class="size-6 rounded-full object-cover ring-1 ring-default" />
+                  <div class="min-w-0">
+                    <p class="truncate text-sm font-medium text-highlighted">{{ item.nome }}</p>
+                    <p class="truncate data text-xs text-dimmed">{{ item.email }}</p>
+                  </div>
+                </div>
+              </template>
+            </USelectMenu>
 
-      <ClientOnly>
-        <UTable
-          ref="tableUsers"
-          v-model:global-filter="globalFilterUsers"
-          v-model:pagination="paginationUsers"
-          class="mb-10"
-          :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }"
-          :data="userData"
-          :columns="columnsUsers" />
-      </ClientOnly>
+            <USelect
+              v-model="stateUser.permissao"
+              :items="roleOptions"
+              icon="i-lucide-shield-check"
+              placeholder="Permissão..."
+              class="w-full sm:w-44" />
 
-      <div
-        v-if="userData && userData.length > paginationUsers.pageSize"
-        class="flex justify-center border-t border-default pt-4">
-        <UPagination
-          active-
-          active-variant="subtle"
-          :default-page="(tableUsers?.tableApi?.getState().pagination.pageIndex || 0) + 1"
-          :items-per-page="tableUsers?.tableApi?.getState().pagination.pageSize"
-          :total="tableUsers?.tableApi?.getFilteredRowModel().rows.length"
-          @update:page="(p) => tableUsers?.tableApi?.setPageIndex(p - 1)" />
+            <UButton
+              :label="stateUser.id ? 'Salvar' : 'Adicionar'"
+              :icon="stateUser.id ? 'i-lucide-check' : 'i-lucide-user-plus'"
+              class="justify-center sm:w-auto"
+              :loading="isLoading"
+              @click="addUser" />
+          </div>
+        </div>
+
+        <div class="overflow-hidden rounded-lg border border-default">
+          <div
+            class="flex items-center justify-between gap-3 border-b border-default bg-muted/40 p-2.5">
+            <p class="text-xs font-medium text-muted">
+              <span class="data text-highlighted tnum">{{ totalUsers }}</span>
+              {{ totalUsers === 1 ? 'usuário' : 'usuários' }}
+            </p>
+            <UInput
+              v-model="globalFilterUsers"
+              icon="i-lucide-search"
+              size="sm"
+              placeholder="Filtrar..."
+              class="w-48"
+              :ui="{ base: 'data' }" />
+          </div>
+
+          <ClientOnly>
+            <UTable
+              ref="tableUsers"
+              v-model:global-filter="globalFilterUsers"
+              v-model:pagination="paginationUsers"
+              :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }"
+              :data="userData"
+              :columns="columnsUsers"
+              :ui="{
+                tr: 'transition-colors duration-150 hover:bg-elevated/60',
+                th: 'py-2',
+                td: 'py-2',
+              }">
+              <template #empty>
+                <div class="flex flex-col items-center gap-1.5 py-10 text-center">
+                  <UIcon name="i-lucide-users" class="size-6 text-dimmed" />
+                  <p class="text-sm font-medium text-toned">Nenhum usuário nesta zona</p>
+                  <p class="text-xs text-dimmed">Adicione alguém no campo acima.</p>
+                </div>
+              </template>
+            </UTable>
+          </ClientOnly>
+
+          <div
+            v-if="userData && userData.length > paginationUsers.pageSize"
+            class="flex justify-center border-t border-default bg-muted/40 p-2.5">
+            <UPagination
+              size="sm"
+              active-variant="subtle"
+              :default-page="(tableUsers?.tableApi?.getState().pagination.pageIndex || 0) + 1"
+              :items-per-page="tableUsers?.tableApi?.getState().pagination.pageSize"
+              :total="tableUsers?.tableApi?.getFilteredRowModel().rows.length"
+              @update:page="(p) => tableUsers?.tableApi?.setPageIndex(p - 1)" />
+          </div>
+        </div>
       </div>
     </template>
 
     <template #footer>
       <UButton
         label="Fechar"
+        color="neutral"
+        variant="ghost"
         :loading="isLoading"
-        variant="outline"
         @click="
           () => {
             modalUsers = false
           }
         " />
-      <UButton
-        :label="stateUser.id ? 'Editar' : 'Adicionar'"
-        icon="i-lucide-user-plus"
-        :loading="isLoading"
-        variant="outline"
-        @click="addUser" />
     </template>
   </UModal>
 </template>

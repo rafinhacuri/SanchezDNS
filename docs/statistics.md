@@ -14,7 +14,7 @@ A página de estatísticas dá uma visão operacional da instância PowerDNS con
 
 ## De onde vêm os dados
 
-O backend combina **duas fontes da API do PowerDNS** ([statistics.go](https://github.com/rafinhacuri/SanchezDNS/blob/main/api/controller/fetch/statistics.go)):
+O backend combina **duas fontes da API do PowerDNS** (pacote [statistics](https://github.com/rafinhacuri/SanchezDNS/tree/main/api/statistics), orquestrado por [fetch/statistics.go](https://github.com/rafinhacuri/SanchezDNS/blob/main/api/controller/fetch/statistics.go)):
 
 1. **`GET /api/v1/servers/{id}/statistics`** — a lista de métricas internas do servidor (uptime, `udp-queries`, `tcp-queries`, entre muitas outras).
 2. **`GET /api/v1/servers/{id}/zones`** + um `GET` por zona — para **contar zonas e registros**.
@@ -24,8 +24,8 @@ O backend combina **duas fontes da API do PowerDNS** ([statistics.go](https://gi
 O endpoint de estatísticas do PowerDNS **não entrega uma contagem pronta de registros por zona** no formato que o painel precisa. Então o backend lista as zonas e, para cada uma, busca seus detalhes e **soma o tamanho de cada RRset**:
 
 ```go
-for _, rr := range zd.RRsets {
-    records += len(rr.Records)
+for _, rrset := range detalhes.RRsets {
+    total += len(rrset.Records)
 }
 ```
 
@@ -37,7 +37,7 @@ As estatísticas do PowerDNS vêm com valores de tipos variados (string, número
 
 ### Uptime e "momento de início"
 
-O uptime vem em segundos e é formatado para leitura humana (`humanUptime`). O **momento de início** é derivado subtraindo o uptime do horário atual (`startedAtFromNow`) — ou seja, não é um dado bruto do servidor, é um cálculo feito no backend para exibir "desde quando o servidor está no ar".
+O uptime vem em segundos e é formatado para leitura humana (`statistics.Uptime`). O **momento de início** é derivado subtraindo o uptime do horário atual (`statistics.IniciadoEm`) — ou seja, não é um dado bruto do servidor, é um cálculo feito no backend para exibir "desde quando o servidor está no ar".
 
 ## Atualização automática
 

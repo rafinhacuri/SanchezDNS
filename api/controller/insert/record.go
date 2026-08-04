@@ -6,103 +6,77 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/v2/bson"
 
-	"github.com/rafinhacuri/SanchezDNS/api/mongo"
+	"github.com/rafinhacuri/SanchezDNS/api/logs"
 	"github.com/rafinhacuri/SanchezDNS/api/records"
+	"github.com/rafinhacuri/SanchezDNS/api/users"
+	"github.com/rafinhacuri/SanchezDNS/api/util"
 )
 
-type AddRecordRequest struct {
-	Zone        string `json:"zone"`
-	Type        string `json:"type"`
-	Name        string `json:"name"`
-	VL          string `json:"vl,omitempty"`
-	TTL         int    `json:"ttl"`
-	Comment     string `json:"comment,omitempty"`
-	SvcPriority *int   `json:"svcPriority,omitempty"`
-	TargetName  string `json:"targetName,omitempty"`
-	SvcParams   string `json:"svcParams,omitempty"`
-	Weight      *int   `json:"weight,omitempty"`
-	Port        *int   `json:"port,omitempty"`
-	Target      string `json:"target,omitempty"`
-	Priority    *int   `json:"priority,omitempty"`
-}
-
 func Record(c *gin.Context) {
-	var request AddRecordRequest
+	ctx := c.Request.Context()
 
-	err := c.ShouldBindJSON(&request)
+	var body records.Registro
+
+	err := c.ShouldBindJSON(&body)
 	if err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"message": fmt.Sprintf("corpo da requisição inválido: %v", err)})
+		c.AbortWithStatusJSON(400, gin.H{"message": "Dados inválidos"})
 
 		return
 	}
 
-	if request.Comment == "" {
-		request.Comment = ""
+	if body.Zone == "" || body.Type == "" || body.Name == "" {
+		c.AbortWithStatusJSON(400, gin.H{"message": "Dados inválidos"})
+
+		return
 	}
 
-	ctx := c.Request.Context()
+	if body.Type != "HTTPS" && body.Type != "SRV" && strings.TrimSpace(body.VL) == "" {
+		c.AbortWithStatusJSON(400, gin.H{"message": "Valor do registro é obrigatório"})
 
-	level := c.GetString("level")
+		return
+	}
+
 	email := c.GetString("email")
 
-	if level == "member" {
-		coll := mongo.Dns.Collection("users")
-
-		var perm struct {
-			Escrita []string `bson:"escrita"`
-		}
-
-		err := coll.FindOne(ctx, bson.M{"zona": request.Zone}).Decode(&perm)
-		if err != nil {
-			log.Println(err)
-			c.AbortWithStatusJSON(403, gin.H{"message": "Zona não encontrada ou sem permissão"})
-
-			return
-		}
-
-		userKey := strings.ToLower(strings.TrimSpace(email))
-		allowed := false
-
-		for _, u := range perm.Escrita {
-			if strings.ToLower(strings.TrimSpace(u)) == userKey {
-				allowed = true
-
-				break
-			}
-		}
-
-		if !allowed {
-			c.AbortWithStatusJSON(403, gin.H{"message": "Sem permissão para visualizar registros"})
-
-			return
-		}
-	}
-
-	_, err = records.InsertRecord(
-		ctx,
-		request.Zone,
-		request.Type,
-		request.Name,
-		request.VL,
-		request.TTL,
-		request.Comment,
-		request.SvcPriority,
-		request.TargetName,
-		request.SvcParams,
-		request.Weight,
-		request.Port,
-		request.Target,
-		request.Priority,
-		email)
+	pode, err := users.PodeEscrever(ctx, body.Zone, email, c.GetString("level"))
 	if err != nil {
 		log.Println(err)
 
-		c.AbortWithStatusJSON(500, gin.H{"message": "falha ao adicionar registro"})
+		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao verificar permissão"})
 
 		return
 	}
 
-	c.JSON(201, gin.H{"message": "registro adicionado com sucesso"})
+	if !pode {
+		c.AbortWithStatusJSON(403, gin.H{"message": "Sem permissão para alterar registros dessa zona"})
+
+		return
+	}
+
+	httpc := util.PdnsClient()
+
+	err = records.Insert(ctx, httpc, body)
+	if err != nil {
+		log.Println(err)
+
+		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao adicionar o registro no servidor DNS"})
+
+		return
+	}
+
+	err = records.InsertReverso(ctx, httpc, body.Type, records.NormalizarValor(body), body.Zone, body.Name)
+	if err != nil {
+		log.Println(err)
+	}
+
+	name := records.NomeCompleto(body.Zone, body.Name)
+
+	go logs.Insert(
+		name,
+		email,
+		"insert_record",
+		fmt.Sprintf("Criado registro %s do tipo %s na zona %s", name, body.Type, body.Zone))
+
+	c.JSON(200, gin.H{"message": "Registro adicionado com sucesso!"})
 }

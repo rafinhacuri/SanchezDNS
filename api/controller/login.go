@@ -22,7 +22,6 @@ type LoginBody struct {
 func Login(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	// O erro é ignorado porque se o cookie não existir, cookie será uma string vazia.
 	cookie, _ := c.Cookie("sanchezdns_session_id")
 	if cookie != "" {
 		c.AbortWithStatusJSON(400, gin.H{"message": "ja existe uma sessão ativa"})
@@ -41,6 +40,8 @@ func Login(c *gin.Context) {
 
 	panding, err := solicitacoes.Panding(ctx, credentials.Email)
 	if err != nil {
+		log.Println(err)
+
 		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao verificar existência da solicitação"})
 
 		return
@@ -52,7 +53,15 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	isValidPassword, mail := cadastro.ValidarSenha(ctx, credentials.Email, credentials.Password)
+	isValidPassword, mail, err := cadastro.ValidarSenha(ctx, credentials.Email, credentials.Password)
+	if err != nil {
+		log.Println(err)
+
+		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao validar as credenciais"})
+
+		return
+	}
+
 	if !isValidPassword {
 		c.AbortWithStatusJSON(401, gin.H{"message": "email ou senha incorretos"})
 

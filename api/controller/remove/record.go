@@ -1,88 +1,87 @@
 package remove
 
 import (
+	"fmt"
 	"log"
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/v2/bson"
 
-	"github.com/rafinhacuri/SanchezDNS/api/controller/insert"
-	"github.com/rafinhacuri/SanchezDNS/api/mongo"
+	"github.com/rafinhacuri/SanchezDNS/api/logs"
 	"github.com/rafinhacuri/SanchezDNS/api/records"
+	"github.com/rafinhacuri/SanchezDNS/api/users"
+	"github.com/rafinhacuri/SanchezDNS/api/util"
 )
 
 func Record(c *gin.Context) {
-	var request insert.AddRecordRequest
-
-	err := c.ShouldBindJSON(&request)
-	if err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"message": "Requisição inválida"})
-
-		return
-	}
-
 	ctx := c.Request.Context()
 
-	level := c.GetString("level")
-	email := c.GetString("email")
+	var body records.Registro
 
-	if level == "member" {
-		coll := mongo.Dns.Collection("users")
-
-		var perm struct {
-			Escrita []string `bson:"escrita"`
-		}
-
-		err := coll.FindOne(ctx, bson.M{"zona": request.Zone}).Decode(&perm)
-		if err != nil {
-			log.Println(err)
-
-			c.AbortWithStatusJSON(403, gin.H{"message": "Zona não encontrada ou sem permissão"})
-
-			return
-		}
-
-		userKey := strings.ToLower(strings.TrimSpace(email))
-		allowed := false
-
-		for _, u := range perm.Escrita {
-			if strings.ToLower(strings.TrimSpace(u)) == userKey {
-				allowed = true
-
-				break
-			}
-		}
-
-		if !allowed {
-			c.AbortWithStatusJSON(403, gin.H{"message": "Sem permissão para visualizar registros"})
-
-			return
-		}
-	}
-
-	_, err = records.DeleteRecord(
-		ctx,
-		request.Zone,
-		request.Type,
-		request.Name,
-		request.VL,
-		request.TTL,
-		request.Comment,
-		request.SvcPriority,
-		request.TargetName,
-		request.SvcParams,
-		request.Weight,
-		request.Port,
-		request.Target,
-		request.Priority,
-		email)
+	err := c.ShouldBindJSON(&body)
 	if err != nil {
-		log.Println(err)
-		c.AbortWithStatusJSON(500, gin.H{"message": "falha ao excluir registro"})
+		c.AbortWithStatusJSON(400, gin.H{"message": "Dados inválidos"})
 
 		return
 	}
 
-	c.JSON(200, gin.H{"message": "registro excluído com sucesso"})
+	if body.Zone == "" || body.Type == "" || body.Name == "" {
+		c.AbortWithStatusJSON(400, gin.H{"message": "Dados inválidos"})
+
+		return
+	}
+
+	if body.Type == "MX" {
+		partes := strings.Fields(body.VL)
+		if len(partes) < 2 {
+			c.AbortWithStatusJSON(400, gin.H{"message": "Valor MX inválido"})
+
+			return
+		}
+
+		body.VL = strings.Join(partes[1:], " ")
+	}
+
+	email := c.GetString("email")
+
+	pode, err := users.PodeEscrever(ctx, body.Zone, email, c.GetString("level"))
+	if err != nil {
+		log.Println(err)
+
+		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao verificar permissão"})
+
+		return
+	}
+
+	if !pode {
+		c.AbortWithStatusJSON(403, gin.H{"message": "Sem permissão para alterar registros dessa zona"})
+
+		return
+	}
+
+	httpc := util.PdnsClient()
+
+	err = records.Delete(ctx, httpc, body)
+	if err != nil {
+		log.Println(err)
+
+		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao excluir o registro no servidor DNS"})
+
+		return
+	}
+
+	err = records.DeleteReverso(ctx, httpc, body.Type, body.VL)
+	if err != nil {
+		log.Println(err)
+	}
+
+	name := records.NomeCompleto(body.Zone, body.Name)
+
+	go logs.Insert(
+		name,
+		email,
+		"delete_record",
+		fmt.Sprintf("Excluído registro %s do tipo %s na zona %s", name, body.Type, body.Zone))
+
+	c.JSON(200, gin.H{"message": "Registro excluído com sucesso!"})
 }

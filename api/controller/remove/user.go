@@ -1,58 +1,75 @@
 package remove
 
 import (
+	"errors"
+	"fmt"
 	"log"
-	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
+	mongodriver "go.mongodb.org/mongo-driver/v2/mongo"
 
+	"github.com/rafinhacuri/SanchezDNS/api/logs"
 	"github.com/rafinhacuri/SanchezDNS/api/users"
 )
 
 func User(c *gin.Context) {
-	var req struct {
-		Zona string `binding:"required" json:"zona"`
-		ID   string `binding:"required" json:"id"`
-	}
-
-	err := c.ShouldBindJSON(&req)
-	if err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"message": "Requisição inválida"})
-
-		return
-	}
-
-	zona := req.Zona
-
-	parts := strings.SplitN(strings.TrimSpace(req.ID), "-", 2)
-	if len(parts) != 2 {
-		c.AbortWithStatusJSON(400, gin.H{"message": "formato de id inválido"})
-
-		return
-	}
-
-	arrayName := parts[0]
-
-	index, err := strconv.Atoi(parts[1])
-	if err != nil {
-		c.AbortWithStatusJSON(400, gin.H{"message": "formato de id inválido"})
-
-		return
-	}
-
 	ctx := c.Request.Context()
 
-	email := c.GetString("email")
+	var body struct {
+		ID   string `binding:"required" json:"id"`
+		Zona string `binding:"required" json:"zona"`
+	}
 
-	_, err = users.DeleteUser(ctx, zona, arrayName, arrayName, index, email)
+	err := c.ShouldBindJSON(&body)
+	if err != nil {
+		c.AbortWithStatusJSON(400, gin.H{"message": "Dados inválidos"})
+
+		return
+	}
+
+	permissao, index, ok := users.ParseID(body.ID)
+	if !ok {
+		c.AbortWithStatusJSON(400, gin.H{"message": "Usuário inválido"})
+
+		return
+	}
+
+	zone, err := users.Fetch(ctx, body.Zona)
+	if errors.Is(err, mongodriver.ErrNoDocuments) {
+		c.AbortWithStatusJSON(404, gin.H{"message": "Zona não encontrada"})
+
+		return
+	}
+
 	if err != nil {
 		log.Println(err)
 
-		c.AbortWithStatusJSON(500, gin.H{"message": "falha ao excluir usuário"})
+		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao buscar usuários da zona"})
 
 		return
 	}
 
-	c.JSON(200, gin.H{"message": "user deleted"})
+	email, ok := users.FetchUser(zone, permissao, index)
+	if !ok {
+		c.AbortWithStatusJSON(404, gin.H{"message": "Usuário não encontrado nessa zona"})
+
+		return
+	}
+
+	err = users.Delete(ctx, body.Zona, permissao, email)
+	if err != nil {
+		log.Println(err)
+
+		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao remover usuário"})
+
+		return
+	}
+
+	go logs.Insert(
+		body.Zona,
+		c.GetString("email"),
+		"delete_user",
+		fmt.Sprintf("Removido usuário %s da zona %s", email, body.Zona))
+
+	c.JSON(200, gin.H{"message": "Usuário removido com sucesso!"})
 }

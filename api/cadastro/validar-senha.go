@@ -2,25 +2,26 @@ package cadastro
 
 import (
 	"context"
-	"log"
+	"errors"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
+	mongodriver "go.mongodb.org/mongo-driver/v2/mongo"
 
 	"github.com/rafinhacuri/SanchezDNS/api/mongo"
 	"github.com/rafinhacuri/SanchezDNS/api/passwords"
 )
 
-func ValidarSenha(ctx context.Context, email, senha string) (bool, string) {
+func ValidarSenha(ctx context.Context, email, senha string) (bool, string, error) {
 	var cadastro mongo.Cadastro
 
 	err := mongo.Dns.Collection("cadastros").FindOne(ctx, bson.M{"email": email}).Decode(&cadastro)
-	if err != nil {
-		return false, ""
+	if errors.Is(err, mongodriver.ErrNoDocuments) {
+		return false, "", nil
 	}
 
-	isValid := passwords.VerifyBCrypt(senha, cadastro.Senha)
-	log.Printf("Validando senha para o email %q, senha: %q, válida: %v", email, senha, isValid)
-	log.Println(cadastro)
+	if err != nil {
+		return false, "", err
+	}
 
-	return isValid, cadastro.Email
+	return passwords.VerifyBCrypt(senha, cadastro.Senha), cadastro.Email, nil
 }

@@ -22,6 +22,8 @@ features:
     details: O acesso é calculado por zona, com permissões de leitura e escrita separadas e nível administrativo global.
   - title: 🔁 Reverse automático
     details: Registros A e AAAA mantêm PTR reverso automaticamente em zonas in-addr.arpa e ip6.arpa.
+  - title: 🔎 Conferência de reversos
+    details: Encontre de uma vez os A e AAAA sem PTR e os PTR órfãos que sobraram, e corrija em lote.
   - title: 📊 Estatísticas em tempo real
     details: Zonas, registros, uptime e tráfego UDP/TCP são atualizados periodicamente no painel.
   - title: 🪵 Auditoria

@@ -2,8 +2,6 @@ package solicitacoes
 
 import (
 	"context"
-	"errors"
-	"log"
 	"sort"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -12,32 +10,18 @@ import (
 	"github.com/rafinhacuri/SanchezDNS/api/mongo"
 )
 
-func Fetch(
-	ctx context.Context,
-	page,
-	limit int,
-	search string,
-	skip int64,
-) ([]mongo.Solicitacao, int64, error) {
+func Fetch(ctx context.Context, limit int, search string, skip int64) ([]mongo.Solicitacao, int64, error) {
 	filter := bson.M{}
-
-	var orFilters []bson.M
 	if search != "" {
-		orFilters = []bson.M{
+		filter = bson.M{"$or": []bson.M{
 			{"nome": bson.M{"$regex": search, "$options": "i"}},
 			{"email": bson.M{"$regex": search, "$options": "i"}},
-		}
-	}
-
-	if len(orFilters) > 0 {
-		filter = bson.M{"$or": orFilters}
+		}}
 	}
 
 	total, err := mongo.Dns.Collection("solicitacoes").CountDocuments(ctx, filter)
 	if err != nil {
-		log.Println(err.Error())
-
-		return nil, 0, errors.New("falha ao contar documento")
+		return nil, 0, err
 	}
 
 	opts := options.Find().
@@ -48,24 +32,14 @@ func Fetch(
 
 	cursor, err := mongo.Dns.Collection("solicitacoes").Find(ctx, filter, opts)
 	if err != nil {
-		log.Println(err.Error())
-
-		return nil, 0, errors.New("falha ao buscar solicitações")
+		return nil, 0, err
 	}
 
 	var solicitacoes []mongo.Solicitacao
 
-	for cursor.Next(ctx) {
-		var solicitacao mongo.Solicitacao
-
-		err := cursor.Decode(&solicitacao)
-		if err != nil {
-			log.Println(err.Error())
-
-			return nil, 0, errors.New("falha ao decodificar solicitação")
-		}
-
-		solicitacoes = append(solicitacoes, solicitacao)
+	err = cursor.All(ctx, &solicitacoes)
+	if err != nil {
+		return nil, 0, err
 	}
 
 	sort.SliceStable(solicitacoes, func(i, j int) bool {

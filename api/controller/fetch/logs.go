@@ -10,15 +10,21 @@ import (
 )
 
 func Logs(c *gin.Context) {
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	search, _ := c.GetQuery("filter")
-
-	skip := (page - 1) * limit
-
 	ctx := c.Request.Context()
 
-	logs, total, err := logs.FetchLogs(ctx, page, limit, search, int64(skip))
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if page < 1 {
+		page = 1
+	}
+
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	if limit < 1 {
+		limit = 10
+	}
+
+	filter := logs.Filter(c.Query("filter"))
+
+	total, err := logs.FetchTotal(ctx, filter)
 	if err != nil {
 		log.Println(err)
 
@@ -27,5 +33,14 @@ func Logs(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, gin.H{"logs": logs, "total": total})
+	list, err := logs.Fetch(ctx, filter, int64(limit), int64((page-1)*limit))
+	if err != nil {
+		log.Println(err)
+
+		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao buscar logs"})
+
+		return
+	}
+
+	c.JSON(200, logs.LogsResponse{Logs: list, Total: total})
 }

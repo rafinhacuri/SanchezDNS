@@ -1,21 +1,30 @@
 <script setup lang="ts">
   import type { DropdownMenuItem, TableColumn } from '@nuxt/ui'
-  import type { Row } from '@tanstack/vue-table'
+  import type { Column, Row } from '@tanstack/vue-table'
   import { getPaginationRowModel } from '@tanstack/vue-table'
   import { safeParse } from 'valibot'
+  import type { VNode } from 'vue'
 
   import { UButton, UDropdownMenu, UPopover } from '#components'
 
   const toast = useToast()
   const { isLoading, start, finish } = useLoadingIndicator()
+  const { recordSchema, editSOASchema, editRecordSchema } = useRecordSchema()
+  const { recordTypes, typeMeta } = useRecordTypes()
 
-  const zoneId = defineModel<string>('zoneId', { required: true })
-  const nivel = defineModel<string>('nivel', { required: true })
+  const props = defineProps({
+    zone: { type: String, required: true },
+  })
 
-  const { data, refresh } = await useApi<{ record: RecordForm[]; soa: EditSOASchemaType }>(
-    '/records',
-    { method: 'GET', query: { zone: zoneId } },
-  )
+  const zoneId = computed(() => props.zone)
+
+  const { data, refresh } = await useApi<{
+    record: RecordSchema[]
+    soa: EditSOASchema
+    nivel: string
+  }>('/records', { method: 'GET', query: { zone: zoneId } })
+
+  const nivel = computed(() => data.value?.nivel ?? '')
 
   const globalFilter = ref('')
 
@@ -27,72 +36,8 @@
 
   const { copy } = useClipboard()
 
-  const recordsOpts = [
-    'A',
-    'AAAA',
-    'ALIAS',
-    'CAA',
-    'CNAME',
-    'HTTPS',
-    'MX',
-    'NS',
-    'PTR',
-    'TXT',
-    'SRV',
-    'TLSA',
-  ]
-
-  const state = ref<RecordForm>({
-    zone: '',
-    name: '',
-    type: 'A',
-    vl: '',
-    ttl: 3600,
-    priority: undefined,
-    svcPriority: undefined,
-    targetName: '',
-    comment: '',
-    port: undefined,
-    weight: undefined,
-    target: '',
-    svcParams: '',
-  })
-
-  const isEditing = ref(false)
-  const oldState = ref<RecordForm>({
-    zone: '',
-    name: '',
-    type: 'A',
-    vl: '',
-    ttl: 3600,
-    priority: undefined,
-    svcPriority: undefined,
-    targetName: '',
-    comment: '',
-    port: undefined,
-    weight: undefined,
-    target: '',
-    svcParams: '',
-  })
-
-  function cancelEdit(): void {
-    isEditing.value = false
-    state.value = {
-      zone: '',
-      name: '',
-      type: 'A',
-      vl: '',
-      ttl: 3600,
-      priority: undefined,
-      svcPriority: undefined,
-      targetName: '',
-      comment: '',
-      port: undefined,
-      weight: undefined,
-      target: '',
-      svcParams: '',
-    }
-    oldState.value = {
+  function blankRecord(): RecordSchema {
+    return {
       zone: '',
       name: '',
       type: 'A',
@@ -108,6 +53,28 @@
       svcParams: '',
     }
   }
+
+  const state = ref<RecordSchema>(blankRecord())
+
+  const isEditing = ref(false)
+  const oldState = ref<RecordSchema>(blankRecord())
+
+  const formOpen = ref(false)
+
+  function cancelEdit(): void {
+    isEditing.value = false
+    state.value = blankRecord()
+    oldState.value = blankRecord()
+  }
+
+  function openCreate(): void {
+    cancelEdit()
+    formOpen.value = true
+  }
+
+  watch(formOpen, (nv) => {
+    if (!nv) isEditing.value = false
+  })
 
   const placeholder = computed(() => {
     switch (state.value.type) {
@@ -145,20 +112,21 @@
     }
   })
 
+  function qualifyName(value: string | undefined): string {
+    if (!value || value === '') return zoneId.value
+    if (value === zoneId.value) return zoneId.value
+    if (!value.endsWith(`.${zoneId.value}`)) return `${value}.${zoneId.value}`
+    return value
+  }
+
   async function addRecord(): Promise<void> {
     start()
 
     state.value.zone = zoneId.value
+    state.value.name = qualifyName(state.value.name)
 
-    if (!state.value.name || state.value.name === '') {
-      state.value.name = zoneId.value
-    } else if (state.value.name === zoneId.value) {
-      state.value.name = zoneId.value
-    } else if (!state.value.name.endsWith(`.${zoneId.value}`)) {
-      state.value.name = `${state.value.name}.${zoneId.value}`
-    }
+    const body = safeParse(recordSchema, state.value)
 
-    const body = safeParse(RecordSchema, state.value)
     if (!body.success) {
       for (const e of body.issues) {
         toast.add({ title: e.message, icon: 'i-lucide-shield-alert', color: 'error' })
@@ -181,21 +149,8 @@
 
     toast.add({ title: res.message, icon: 'i-lucide-badge-check', color: 'success' })
     await refresh()
-    state.value = {
-      zone: '',
-      name: '',
-      type: 'A',
-      vl: '',
-      ttl: 3600,
-      priority: undefined,
-      svcPriority: undefined,
-      targetName: '',
-      comment: '',
-      port: undefined,
-      weight: undefined,
-      target: '',
-      svcParams: '',
-    }
+    state.value = blankRecord()
+    formOpen.value = false
     finish()
   }
 
@@ -205,21 +160,10 @@
     state.value.zone = zoneId.value
     oldState.value.zone = zoneId.value
 
-    if (!state.value.name || state.value.name === '') {
-      state.value.name = zoneId.value
-    } else if (state.value.name === zoneId.value) {
-      state.value.name = zoneId.value
-    } else if (!state.value.name.endsWith(`.${zoneId.value}`)) {
-      state.value.name = `${state.value.name}.${zoneId.value}`
-    }
+    state.value.name = qualifyName(state.value.name)
+    oldState.value.name = qualifyName(oldState.value.name)
 
-    if (!oldState.value.name || oldState.value.name === '') {
-      oldState.value.name = zoneId.value
-    } else if (!oldState.value.name.endsWith(`.${zoneId.value}`)) {
-      oldState.value.name = `${oldState.value.name}.${zoneId.value}`
-    }
-
-    const body = safeParse(EditRecordSchema, { oldValue: oldState.value, newValue: state.value })
+    const body = safeParse(editRecordSchema, { oldValue: oldState.value, newValue: state.value })
 
     if (!body.success) {
       for (const e of body.issues) {
@@ -243,55 +187,30 @@
 
     toast.add({ title: res.message, icon: 'i-lucide-badge-check', color: 'success' })
     await refresh()
-    state.value = {
-      zone: '',
-      name: '',
-      type: 'A',
-      vl: '',
-      ttl: 3600,
-      priority: undefined,
-      svcPriority: undefined,
-      targetName: '',
-      comment: '',
-      port: undefined,
-      weight: undefined,
-      target: '',
-      svcParams: '',
-    }
-    oldState.value = {
-      zone: '',
-      name: '',
-      type: 'A',
-      vl: '',
-      ttl: 3600,
-      priority: undefined,
-      svcPriority: undefined,
-      targetName: '',
-      comment: '',
-      port: undefined,
-      weight: undefined,
-      target: '',
-      svcParams: '',
-    }
+    formOpen.value = false
     isEditing.value = false
     finish()
   }
 
   const modalEditSOA = ref(false)
 
-  const stateSOA = ref<EditSOASchemaType>({
-    startOfAuthority: data.value?.soa?.startOfAuthority || '',
-    email: data.value?.soa?.email || '',
-    refresh: data.value?.soa?.refresh || 0,
-    retry: data.value?.soa?.retry || 0,
-    expire: data.value?.soa?.expire || 0,
-    negativeCacheTtl: data.value?.soa?.negativeCacheTtl || 0,
-  })
+  function soaFromData(): EditSOASchema {
+    return {
+      startOfAuthority: data.value?.soa?.startOfAuthority || '',
+      email: data.value?.soa?.email || '',
+      refresh: data.value?.soa?.refresh || 0,
+      retry: data.value?.soa?.retry || 0,
+      expire: data.value?.soa?.expire || 0,
+      negativeCacheTtl: data.value?.soa?.negativeCacheTtl || 0,
+    }
+  }
+
+  const stateSOA = ref<EditSOASchema>(soaFromData())
 
   async function updateSOA(): Promise<void> {
     start()
 
-    const body = safeParse(EditSOASchema, stateSOA.value)
+    const body = safeParse(editSOASchema, stateSOA.value)
 
     if (!body.success) {
       for (const e of body.issues) {
@@ -306,7 +225,7 @@
       query: { zone: zoneId.value },
     }).catch((error) => {
       toast.add({
-        title: error?.data?.message || error?.message || 'Erro ao atualizar record',
+        title: error?.data?.message || error?.message || 'Erro ao atualizar SOA',
         icon: 'i-lucide-shield-alert',
         color: 'error',
       })
@@ -321,37 +240,14 @@
   }
 
   watch(modalEditSOA, (nv) => {
-    if (nv) {
-      stateSOA.value = {
-        startOfAuthority: data.value?.soa?.startOfAuthority || '',
-        email: data.value?.soa?.email || '',
-        refresh: data.value?.soa?.refresh || 0,
-        retry: data.value?.soa?.retry || 0,
-        expire: data.value?.soa?.expire || 0,
-        negativeCacheTtl: data.value?.soa?.negativeCacheTtl || 0,
-      }
-    }
+    if (nv) stateSOA.value = soaFromData()
   })
 
   const modalDelete = ref(false)
   const confirmDelete = ref('')
-  const stateDelete = ref<RecordForm>({
-    zone: '',
-    name: '',
-    type: 'A',
-    vl: '',
-    ttl: 3600,
-    priority: undefined,
-    svcPriority: undefined,
-    targetName: '',
-    comment: '',
-    port: undefined,
-    weight: undefined,
-    target: '',
-    svcParams: '',
-  })
+  const stateDelete = ref<RecordSchema>(blankRecord())
 
-  function openDeleteModal(record: RecordForm): void {
+  function openDeleteModal(record: RecordSchema): void {
     stateDelete.value = record
     modalDelete.value = true
   }
@@ -370,7 +266,7 @@
 
     stateDelete.value.zone = zoneId.value
 
-    const body = safeParse(RecordSchema, stateDelete.value)
+    const body = safeParse(recordSchema, stateDelete.value)
 
     if (!body.success) {
       for (const e of body.issues) {
@@ -400,246 +296,269 @@
 
   watch(modalDelete, (nv) => {
     if (!nv) {
-      stateDelete.value = {
-        zone: '',
-        name: '',
-        type: 'A',
-        vl: '',
-        ttl: 3600,
-        priority: undefined,
-        svcPriority: undefined,
-        targetName: '',
-        comment: '',
-        port: undefined,
-        weight: undefined,
-        target: '',
-        svcParams: '',
-      }
+      stateDelete.value = blankRecord()
       confirmDelete.value = ''
     }
   })
 
   watch(isEditing, (nv) => {
     if (!nv) {
-      state.value = {
-        zone: '',
-        name: '',
-        type: 'A',
-        vl: '',
-        ttl: 3600,
-        priority: undefined,
-        svcPriority: undefined,
-        targetName: '',
-        comment: '',
-        port: undefined,
-        weight: undefined,
-        target: '',
-        svcParams: '',
-      }
-      oldState.value = {
-        zone: '',
-        name: '',
-        type: 'A',
-        vl: '',
-        ttl: 3600,
-        priority: undefined,
-        svcPriority: undefined,
-        targetName: '',
-        comment: '',
-        port: undefined,
-        weight: undefined,
-        target: '',
-        svcParams: '',
-      }
+      state.value = blankRecord()
+      oldState.value = blankRecord()
     }
   })
 
   const modalUsers = ref(false)
 
+  function openUsers(): void {
+    modalUsers.value = true
+  }
+
+  function openSOA(): void {
+    modalEditSOA.value = true
+  }
+
+  const modalReversos = ref(false)
+  const reversosAusentes = ref<ReversoAusente[]>([])
+  const reversosSelecionados = ref<string[]>([])
+
+  function toggleReverso(nomeReverso: string, marcado: boolean): void {
+    reversosSelecionados.value = marcado
+      ? [...reversosSelecionados.value, nomeReverso]
+      : reversosSelecionados.value.filter((item) => item !== nomeReverso)
+  }
+
+  const selecaoReversos = computed(() => {
+    if (reversosSelecionados.value.length === 0) return false
+    if (reversosSelecionados.value.length === reversosAusentes.value.length) return true
+    return 'indeterminate' as const
+  })
+
+  function toggleTodosReversos(marcado: boolean | 'indeterminate'): void {
+    reversosSelecionados.value =
+      marcado === true ? reversosAusentes.value.map((reverso) => reverso.nomeReverso) : []
+  }
+
+  async function checkReversos(): Promise<void> {
+    start()
+
+    const res = await $api<ReversoAusente[]>('/reverses', {
+      method: 'GET',
+      query: { zone: zoneId.value },
+    }).catch((error) => {
+      toast.add({
+        title: error?.data?.message || error?.message || 'Erro ao verificar reversos',
+        icon: 'i-lucide-shield-alert',
+        color: 'error',
+      })
+    })
+
+    if (!res) return finish({ error: true })
+
+    reversosAusentes.value = res
+    reversosSelecionados.value = []
+    modalReversos.value = true
+    finish()
+  }
+
+  async function createReversos(): Promise<void> {
+    start()
+
+    const res = await $api('/reverses', {
+      method: 'PUT',
+      query: { zone: zoneId.value },
+      body: { reversos: reversosSelecionados.value },
+    }).catch((error) => {
+      toast.add({
+        title: error?.data?.message || error?.message || 'Erro ao criar reversos',
+        icon: 'i-lucide-shield-alert',
+        color: 'error',
+      })
+    })
+
+    if (!res) return finish({ error: true })
+
+    toast.add({ title: res.message, icon: 'i-lucide-badge-check', color: 'success' })
+    modalReversos.value = false
+    reversosAusentes.value = []
+    reversosSelecionados.value = []
+    await refresh()
+    finish()
+  }
+
+  const modalOrfaos = ref(false)
+  const reversosOrfaos = ref<ReversoOrfao[]>([])
+
+  async function checkOrfaos(): Promise<void> {
+    start()
+
+    const res = await $api<ReversoOrfao[]>('/reverses/orphans', {
+      method: 'GET',
+      query: { zone: zoneId.value },
+    }).catch((error) => {
+      toast.add({
+        title: error?.data?.message || error?.message || 'Erro ao verificar reversos órfãos',
+        icon: 'i-lucide-shield-alert',
+        color: 'error',
+      })
+    })
+
+    if (!res) return finish({ error: true })
+
+    reversosOrfaos.value = res
+    modalOrfaos.value = true
+    finish()
+  }
+
+  async function deleteOrfao(nome: string, close: () => void): Promise<void> {
+    close()
+    start()
+
+    const res = await $api('/reverses', {
+      method: 'DELETE',
+      query: { zone: zoneId.value, name: nome },
+    }).catch((error) => {
+      toast.add({
+        title: error?.data?.message || error?.message || 'Erro ao excluir reverso',
+        icon: 'i-lucide-shield-alert',
+        color: 'error',
+      })
+    })
+
+    if (!res) return finish({ error: true })
+
+    toast.add({ title: res.message, icon: 'i-lucide-badge-check', color: 'success' })
+    reversosOrfaos.value = reversosOrfaos.value.filter((orfao) => orfao.nomeReverso !== nome)
+    await refresh()
+    finish()
+  }
+
+  async function backToZones(): Promise<void> {
+    await navigateTo('/')
+  }
+
   const table = useTemplateRef('table')
 
-  const columns: TableColumn<RecordForm>[] = [
+  function shortName(name: string | undefined): string {
+    if (name?.split(zoneId.value)[0] === '') return '@'
+    return name?.split(`.${zoneId.value}`)[0] || '@'
+  }
+
+  function sortableHeader(column: Column<RecordSchema>, label: string): VNode {
+    const sorted = column.getIsSorted()
+    let icon = 'i-lucide-chevrons-up-down'
+    if (sorted === 'asc') icon = 'i-lucide-arrow-up'
+    else if (sorted === 'desc') icon = 'i-lucide-arrow-down'
+
+    return h(UButton, {
+      color: 'neutral',
+      variant: 'ghost',
+      size: 'xs',
+      label,
+      icon,
+      class: '-mx-2 font-semibold uppercase tracking-wider text-xs',
+      onClick: () => column.toggleSorting(sorted === 'asc'),
+    })
+  }
+
+  function truncatedCell(value: string, extraClass = ''): VNode {
+    const isLong = value.length > 30
+    const display = isLong ? `${value.slice(0, 30)}…` : value
+
+    if (!isLong) return h('p', { class: `w-60 truncate ${extraClass}` }, display)
+
+    return h(
+      UPopover,
+      {
+        mode: 'hover',
+        ui: { content: 'max-w-[360px] p-3 rounded-lg shadow-lg' },
+      },
+      {
+        default: () => h('p', { class: `w-60 cursor-help truncate ${extraClass}` }, display),
+        content: () =>
+          h(
+            'p',
+            { class: 'data text-xs leading-relaxed break-all whitespace-pre-wrap text-toned' },
+            value,
+          ),
+      },
+    )
+  }
+
+  const columns: TableColumn<RecordSchema>[] = [
     {
       accessorKey: 'name',
-      header: ({ column }) => {
-        const isSorted = column.getIsSorted()
-        let icon = 'i-heroicons-arrows-up-down'
-        if (isSorted === 'asc') icon = 'i-heroicons-bars-arrow-up'
-        else if (isSorted === 'desc') icon = 'i-heroicons-bars-arrow-down'
-        return h(UButton, {
-          color: 'neutral',
-          variant: 'ghost',
-          label: 'Nome',
-          icon,
-          class: '-mx-2.5',
-          onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-        })
-      },
+      header: ({ column }) => sortableHeader(column, 'Nome'),
       cell: ({ row }) =>
-        row.original.name?.split(zoneId.value)[0] === ''
-          ? '@'
-          : row.original.name?.split(`.${zoneId.value}`)[0],
+        h('span', { class: 'data font-medium text-highlighted' }, shortName(row.original.name)),
     },
     {
       accessorKey: 'type',
-      header: ({ column }) => {
-        const isSorted = column.getIsSorted()
-        let icon = 'i-heroicons-arrows-up-down'
-        if (isSorted === 'asc') icon = 'i-heroicons-bars-arrow-up'
-        else if (isSorted === 'desc') icon = 'i-heroicons-bars-arrow-down'
-        return h(UButton, {
-          color: 'neutral',
-          variant: 'ghost',
-          label: 'Tipo',
-          icon,
-          class: '-mx-2.5',
-          onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-        })
-      },
+      header: ({ column }) => sortableHeader(column, 'Tipo'),
+      cell: ({ row }) =>
+        h(
+          'span',
+          {
+            class: `data inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset ${typeMeta(row.original.type).chip}`,
+          },
+          row.original.type,
+        ),
     },
     {
       accessorKey: 'vl',
-      header: ({ column }) => {
-        const isSorted = column.getIsSorted()
-        let icon = 'i-heroicons-arrows-up-down'
-        if (isSorted === 'asc') icon = 'i-heroicons-bars-arrow-up'
-        else if (isSorted === 'desc') icon = 'i-heroicons-bars-arrow-down'
-        return h(UButton, {
-          color: 'neutral',
-          variant: 'ghost',
-          label: 'Valor',
-          icon,
-          class: '-mx-2.5',
-          onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-        })
-      },
-      cell: ({ row }) => {
-        const valor = row.original.vl || ''
-        const isLong = valor.length > 30
-        const display = isLong ? `${valor.slice(0, 30)}...` : valor
-
-        if (!isLong) return h('p', { class: 'w-60 truncate' }, display)
-
-        return h(
-          UPopover,
-          {
-            mode: 'hover',
-            ui: {
-              content:
-                'max-w-[320px] whitespace-pre-wrap break-all text-sm p-3 rounded-lg shadow-lg',
-            },
-          },
-          {
-            default: () =>
-              h('p', { class: 'cursor-help dark:text-gray-400 w-60 truncate' }, display),
-            content: () =>
-              h(
-                'p',
-                { class: 'whitespace-pre-wrap break-all text-sm leading-snug dark:text-gray-200' },
-                valor,
-              ),
-          },
-        )
-      },
+      header: ({ column }) => sortableHeader(column, 'Valor'),
+      cell: ({ row }) => truncatedCell(row.original.vl || '', 'data text-toned'),
     },
     {
       accessorKey: 'ttl',
-      header: ({ column }) => {
-        const isSorted = column.getIsSorted()
-        let icon = 'i-heroicons-arrows-up-down'
-        if (isSorted === 'asc') icon = 'i-heroicons-bars-arrow-up'
-        else if (isSorted === 'desc') icon = 'i-heroicons-bars-arrow-down'
-        return h(UButton, {
-          color: 'neutral',
-          variant: 'ghost',
-          label: 'TTL',
-          icon,
-          class: '-mx-2.5',
-          onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-        })
-      },
+      header: ({ column }) => sortableHeader(column, 'TTL'),
+      cell: ({ row }) => h('span', { class: 'data tnum text-muted' }, row.original.ttl),
     },
     {
       accessorKey: 'comment',
-      header: ({ column }) => {
-        const isSorted = column.getIsSorted()
-        let icon = 'i-heroicons-arrows-up-down'
-        if (isSorted === 'asc') icon = 'i-heroicons-bars-arrow-up'
-        else if (isSorted === 'desc') icon = 'i-heroicons-bars-arrow-down'
-        return h(UButton, {
-          color: 'neutral',
-          variant: 'ghost',
-          label: 'Descrição',
-          icon,
-          class: '-mx-2.5',
-          onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
-        })
-      },
-      cell: ({ row }) => {
-        const comment = row.original.comment || ''
-        const isLong = comment.length > 30
-        const display = isLong ? `${comment.slice(0, 30)}...` : comment
-
-        if (!isLong) return h('p', { class: 'w-60 truncate' }, display)
-
-        return h(
-          UPopover,
-          {
-            mode: 'hover',
-            ui: {
-              content:
-                'max-w-[320px] whitespace-pre-wrap break-all text-sm p-3 rounded-lg shadow-lg',
-            },
-          },
-          {
-            default: () =>
-              h('p', { class: 'cursor-help dark:text-gray-400 w-60 truncate' }, display),
-            content: () =>
-              h(
-                'p',
-                { class: 'whitespace-pre-wrap break-all text-sm leading-snug dark:text-gray-200' },
-                comment,
-              ),
-          },
-        )
-      },
+      header: ({ column }) => sortableHeader(column, 'Descrição'),
+      cell: ({ row }) => truncatedCell(row.original.comment || '', 'text-dimmed'),
     },
     {
       id: 'actions',
       cell: ({ row }) => {
-        if (nivel.value !== 'LEITURA') {
-          return h(
+        if (nivel.value === 'LEITURA') return null
+
+        return h(
+          'div',
+          { class: 'text-right' },
+          h(
             UDropdownMenu,
             {
               content: { align: 'end' },
               items: getRowItems(row),
-              'aria-label': 'Actions dropdown',
+              'aria-label': 'Ações do record',
             },
             () =>
               h(UButton, {
                 icon: 'i-lucide-ellipsis-vertical',
                 color: 'neutral',
                 variant: 'ghost',
+                size: 'sm',
                 class: 'ml-auto',
-                'aria-label': 'Actions dropdown',
+                'aria-label': `Ações do record ${row.original.name}`,
               }),
-          )
-        }
-        return null
+          ),
+        )
       },
     },
   ]
 
-  function getRowItems(row: Row<RecordForm>): DropdownMenuItem[] {
+  function getRowItems(row: Row<RecordSchema>): DropdownMenuItem[] {
     return [
-      { type: 'label', label: `Ações` },
+      { type: 'label', label: shortName(row.original.name) },
       {
-        label: 'Copiar valor do record',
+        label: 'Copiar valor',
         icon: 'i-lucide-copy',
         onSelect(): void {
           copy(row.original.vl || '')
           toast.add({
-            title: 'Valor do record copiado para a área de transferência!',
+            title: 'Valor copiado para a área de transferência',
             color: 'success',
             icon: 'i-lucide-circle-check',
           })
@@ -647,7 +566,7 @@
       },
       { type: 'separator' },
       {
-        label: 'Editar Record',
+        label: 'Editar record',
         icon: 'i-lucide-pencil',
         onSelect(): void {
           isEditing.value = true
@@ -673,11 +592,13 @@
                 ? ''
                 : row.original.name?.split(`.${zoneId.value}`)[0] || '',
           }
+          formOpen.value = true
         },
       },
+      { type: 'separator' },
       {
-        label: 'Delete Record',
-        icon: 'i-lucide-trash',
+        label: 'Deletar record',
+        icon: 'i-lucide-trash-2',
         color: 'error',
         onSelect(): void {
           openDeleteModal(row.original)
@@ -685,294 +606,428 @@
       },
     ]
   }
+
+  const totalRecords = computed(() => data.value?.record?.length ?? 0)
+
+  const isAdmin = computed(() => nivel.value === 'ADMINISTRADOR')
+  const canWrite = computed(() => nivel.value !== 'LEITURA')
+  const isReverse = computed(() => /\.(?:in-addr|ip6)\.arpa\.?$/u.test(zoneId.value))
+  const isReverseIpv6 = computed(() => /\.ip6\.arpa\.?$/u.test(zoneId.value))
+
+  const zoneLabel = computed(() => zoneId.value)
+  const nameHelp = computed(() => qualifyName(state.value.name))
 </script>
 
 <template>
-  <UButton
-    variant="outline"
-    class="mb-4"
-    icon="i-lucide-arrow-left"
-    label="Voltar para Zonas"
-    @click="
-      () => {
-        zoneId = ''
-      }
-    " />
-
-  <div class="my-6 flex items-center justify-between">
-    <div>
-      <h1 class="text-3xl font-bold">{{ zoneId }} Records</h1>
-      <p class="text-sm text-gray-500">
-        Controle e gerencie os records DNS para o seu domínio aqui.
-      </p>
-    </div>
-    <div class="flex flex-wrap items-center justify-center gap-2">
-      <UButton
-        v-if="nivel === 'ADMINISTRADOR'"
-        variant="outline"
-        icon="i-lucide-users"
-        label="Usuários"
-        :loading="isLoading"
-        @click="
-          () => {
-            modalUsers = true
-          }
-        " />
-      <UButton
-        v-if="nivel === 'ADMINISTRADOR'"
-        variant="outline"
-        icon="i-lucide-pen"
-        label="Editar SOA"
-        :loading="isLoading"
-        @click="
-          () => {
-            modalEditSOA = true
-          }
-        " />
-    </div>
-  </div>
-
-  <UForm
-    v-if="nivel !== 'LEITURA'"
-    :schema="RecordSchema"
-    :state="state"
-    class="mt-6 space-y-4 rounded-lg bg-slate-100 p-5 dark:bg-slate-950/40"
-    @submit="
-      () => {
-        isEditing ? (modalEditSOA = true) : addRecord
-      }
-    ">
-    <div class="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-5">
-      <UFormField label="Nome" name="name">
-        <UInput
-          v-model="state.name"
-          :disabled="isEditing"
-          icon="i-lucide-computer"
-          class="w-full"
-          placeholder="subdomínio" />
-      </UFormField>
-      <UFormField label="Tipo" name="type">
-        <USelect v-model="state.type" :disabled="isEditing" :items="recordsOpts" class="w-full" />
-      </UFormField>
-      <UFormField label="Valor" name="vl">
-        <UInput
-          v-model="state.vl"
-          icon="i-lucide-database"
-          class="w-full"
-          :placeholder="placeholder"
-          :disabled="state.type === 'HTTPS' || state.type === 'SRV'" />
-      </UFormField>
-      <UFormField label="TTL" name="ttl">
-        <UInputNumber v-model="state.ttl" :min="60" />
-      </UFormField>
-      <UFormField v-if="state.type !== 'HTTPS'" label="Prioridade" name="priority">
-        <UInputNumber
-          v-model="state.priority"
-          :min="0"
-          :disabled="state.type !== 'SRV' && state.type !== 'MX'"
-          placeholder="10" />
-      </UFormField>
-    </div>
-
-    <div v-if="state.type === 'HTTPS'" class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-      <UFormField label="SvcPriority" name="svcPriority">
-        <UInputNumber
-          v-model="state.svcPriority"
-          :min="1"
-          :max="65535"
-          placeholder="0"
-          class="w-full" />
-      </UFormField>
-      <UFormField label="TargetName" name="targetName">
-        <UInput v-model="state.targetName" icon="i-lucide-target" class="w-full" placeholder="." />
-      </UFormField>
-      <UFormField label="SvcParams (Opcional)" name="svcParams">
-        <UInput
-          v-model="state.svcParams"
-          icon="i-lucide-settings"
-          class="w-full"
-          placeholder="alpn=h2,h3 foo=..." />
-      </UFormField>
-    </div>
-
-    <div v-if="state.type === 'SRV'" class="grid grid-cols-1 gap-4 md:grid-cols-3">
-      <UFormField label="Weight" name="weight">
-        <UInputNumber
-          v-model="state.weight"
-          :min="0"
-          :max="65535"
-          placeholder="10"
-          class="w-full" />
-      </UFormField>
-      <UFormField label="Port" name="port">
-        <UInputNumber v-model="state.port" :min="1" :max="65535" placeholder="80" class="w-full" />
-      </UFormField>
-      <UFormField label="Target" name="target">
-        <UInput
-          v-model="state.target"
-          icon="i-lucide-target"
-          class="w-full"
-          placeholder="service.example.com" />
-      </UFormField>
-    </div>
-
-    <UFormField label="Comentário" name="comment">
-      <UTextarea v-model="state.comment" class="w-full" placeholder="Comentário opcional" />
-    </UFormField>
-
-    <div v-if="isEditing" class="flex w-full items-center gap-2">
-      <UButton
-        variant="outline"
-        class="mt-5 flex w-full justify-center"
-        icon="i-lucide-pen"
-        label="Editar Record"
-        :loading="isLoading"
-        @click="editRecord" />
-      <UButton
-        variant="outline"
-        color="error"
-        class="mt-5 flex w-full max-w-32 justify-center"
-        icon="i-lucide-x"
-        label="Cancelar"
-        :loading="isLoading"
-        @click="cancelEdit" />
-    </div>
+  <div class="space-y-5">
     <UButton
-      v-else
-      variant="outline"
-      class="mt-5 flex w-full justify-center"
-      icon="i-lucide-plus"
-      label="Adicionar Record"
-      :loading="isLoading"
-      @click="addRecord" />
-  </UForm>
+      variant="link"
+      color="neutral"
+      size="sm"
+      class="-ml-2 gap-1.5"
+      icon="i-lucide-arrow-left"
+      label="Todas as zonas"
+      @click="backToZones" />
 
-  <div class="space-x-6">
-    <UInput
-      v-model="globalFilter"
-      class="mt-10 mb-4"
-      placeholder="Buscar records..."
-      icon="i-lucide-search" />
+    <PageHeader eyebrow="Zona" :title="zoneLabel" mono description="Registros DNS desta zona.">
+      <template #actions>
+        <UButton
+          v-if="isAdmin"
+          variant="outline"
+          color="neutral"
+          icon="i-lucide-users"
+          label="Usuários"
+          :loading="isLoading"
+          @click="openUsers" />
+        <UButton
+          v-if="isAdmin"
+          variant="outline"
+          color="neutral"
+          icon="i-lucide-file-cog"
+          label="Editar SOA"
+          :loading="isLoading"
+          @click="openSOA" />
+        <UButton
+          v-if="canWrite && !isReverse"
+          variant="outline"
+          color="neutral"
+          icon="i-lucide-network"
+          label="Verificar reversos"
+          :loading="isLoading"
+          @click="checkReversos" />
+        <UButton
+          v-if="canWrite && isReverse"
+          variant="outline"
+          color="neutral"
+          icon="i-lucide-unlink"
+          label="Verificar órfãos"
+          :loading="isLoading"
+          @click="checkOrfaos" />
+        <UButton
+          v-if="canWrite"
+          icon="i-lucide-plus"
+          label="Novo record"
+          :loading="isLoading"
+          @click="openCreate" />
+      </template>
+    </PageHeader>
+
+    <div class="overflow-hidden rounded-xl border border-default bg-default">
+      <div
+        class="flex flex-col gap-3 border-b border-default bg-muted/40 p-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex items-center gap-2.5">
+          <UIcon name="i-lucide-list" class="size-4 shrink-0 text-dimmed" />
+          <p class="text-sm font-medium text-toned">
+            <span class="data text-highlighted tnum">{{ totalRecords }}</span>
+            {{ totalRecords === 1 ? 'record' : 'records' }}
+          </p>
+        </div>
+
+        <UInput
+          v-model="globalFilter"
+          icon="i-lucide-search"
+          placeholder="Filtrar por nome, tipo ou valor..."
+          class="w-full sm:w-80"
+          :ui="{ base: 'data' }" />
+      </div>
+
+      <ClientOnly>
+        <UTable
+          ref="table"
+          v-model:global-filter="globalFilter"
+          v-model:pagination="pagination"
+          :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }"
+          :data="data?.record"
+          :columns="columns"
+          :ui="{
+            tr: 'transition-colors duration-150 hover:bg-elevated/60',
+            th: 'py-2',
+            td: 'py-2.5',
+          }">
+          <template #empty>
+            <div class="flex flex-col items-center gap-2 py-12 text-center">
+              <UIcon name="i-lucide-file-search" class="size-7 text-dimmed" />
+              <p class="text-sm font-medium text-toned">Nenhum record encontrado</p>
+              <p class="max-w-xs text-xs text-dimmed">
+                {{
+                  globalFilter
+                    ? 'Nenhum resultado para esse filtro. Tente outro termo.'
+                    : 'Esta zona ainda não possui registros DNS.'
+                }}
+              </p>
+              <UButton
+                v-if="canWrite && !globalFilter"
+                class="mt-2"
+                size="sm"
+                variant="outline"
+                icon="i-lucide-plus"
+                label="Adicionar o primeiro"
+                @click="openCreate" />
+            </div>
+          </template>
+        </UTable>
+      </ClientOnly>
+
+      <div
+        v-if="data?.record && data.record.length > pagination.pageSize"
+        class="flex justify-center border-t border-default bg-muted/40 p-3">
+        <UPagination
+          active-variant="subtle"
+          :default-page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
+          :items-per-page="table?.tableApi?.getState().pagination.pageSize"
+          :total="table?.tableApi?.getFilteredRowModel().rows.length"
+          @update:page="(p) => table?.tableApi?.setPageIndex(p - 1)" />
+      </div>
+    </div>
   </div>
 
-  <ClientOnly>
-    <UTable
-      ref="table"
-      v-model:global-filter="globalFilter"
-      v-model:pagination="pagination"
-      class="mb-10"
-      :pagination-options="{ getPaginationRowModel: getPaginationRowModel() }"
-      :data="data?.record"
-      :columns="columns" />
-  </ClientOnly>
-
-  <div
-    v-if="data?.record && data.record.length > pagination.pageSize"
-    class="flex justify-center border-t border-default pt-4">
-    <UPagination
-      active-
-      active-variant="subtle"
-      :default-page="(table?.tableApi?.getState().pagination.pageIndex || 0) + 1"
-      :items-per-page="table?.tableApi?.getState().pagination.pageSize"
-      :total="table?.tableApi?.getFilteredRowModel().rows.length"
-      @update:page="(p) => table?.tableApi?.setPageIndex(p - 1)" />
-  </div>
-
-  <UModal
-    v-model:open="modalEditSOA"
-    title="Editar SOA"
-    :description="`Editar o registro SOA para ${zoneId}`"
-    :ui="{ footer: 'justify-end' }">
+  <USlideover
+    v-model:open="formOpen"
+    :title="isEditing ? 'Editar record' : 'Novo record'"
+    :description="`Zona ${zoneLabel}`"
+    :ui="{ content: 'max-w-xl', footer: 'justify-end' }">
     <template #body>
-      <UForm :schema="EditSOASchema" :state="stateSOA" class="space-y-4">
-        <UFormField label="Start of Authority" name="startOfAuthority">
+      <UForm
+        :schema="recordSchema"
+        :state="state"
+        class="space-y-5"
+        @submit="isEditing ? editRecord() : addRecord()">
+        <div class="grid gap-4 sm:grid-cols-2">
+          <UFormField label="Nome" name="name" hint="subdomínio">
+            <UInput
+              v-model="state.name"
+              :disabled="isEditing"
+              icon="i-lucide-tag"
+              class="w-full"
+              placeholder="www"
+              :ui="{ base: 'data' }" />
+            <template v-if="!isReverseIpv6" #help>
+              <span
+                :title="qualifyName(state.name)"
+                class="block truncate data text-[11px] text-dimmed">
+                {{ nameHelp }}
+              </span>
+            </template>
+          </UFormField>
+
+          <UFormField label="Tipo" name="type">
+            <USelect
+              v-model="state.type"
+              :disabled="isEditing"
+              :items="recordTypes"
+              class="w-full"
+              :ui="{ base: 'data' }" />
+            <template #help>
+              <span class="text-[11px] text-dimmed">{{ typeMeta(state.type).hint }}</span>
+            </template>
+          </UFormField>
+        </div>
+
+        <UFormField
+          v-if="state.type !== 'HTTPS' && state.type !== 'SRV'"
+          label="Valor"
+          name="vl"
+          required>
+          <UTextarea
+            v-if="state.type === 'TXT'"
+            v-model="state.vl"
+            class="w-full"
+            :rows="4"
+            :placeholder="placeholder"
+            :ui="{ base: 'data' }" />
           <UInput
-            v-model="stateSOA.startOfAuthority"
-            icon="i-lucide-shield-check"
+            v-else
+            v-model="state.vl"
+            icon="i-lucide-database"
             class="w-full"
-            placeholder="Ex: ns1.example.com" />
+            :placeholder="placeholder"
+            :ui="{ base: 'data' }" />
         </UFormField>
-        <UFormField label="Email" name="email">
-          <UInput
-            v-model="stateSOA.email"
-            icon="i-lucide-mail"
+
+        <div v-if="state.type === 'HTTPS'" class="space-y-4 rounded-lg bg-muted/50 p-4">
+          <div class="grid gap-4 sm:grid-cols-2">
+            <UFormField label="SvcPriority" name="svcPriority" required>
+              <UInputNumber
+                v-model="state.svcPriority"
+                :min="1"
+                :max="65535"
+                class="w-full"
+                placeholder="1" />
+            </UFormField>
+            <UFormField label="TargetName" name="targetName" required>
+              <UInput
+                v-model="state.targetName"
+                icon="i-lucide-target"
+                class="w-full"
+                placeholder="."
+                :ui="{ base: 'data' }" />
+            </UFormField>
+          </div>
+          <UFormField label="SvcParams" name="svcParams" hint="opcional">
+            <UInput
+              v-model="state.svcParams"
+              icon="i-lucide-settings-2"
+              class="w-full"
+              placeholder="alpn=h2,h3"
+              :ui="{ base: 'data' }" />
+          </UFormField>
+        </div>
+
+        <div v-if="state.type === 'SRV'" class="space-y-4 rounded-lg bg-muted/50 p-4">
+          <div class="grid gap-4 sm:grid-cols-2">
+            <UFormField label="Weight" name="weight" required>
+              <UInputNumber
+                v-model="state.weight"
+                :min="0"
+                :max="65535"
+                class="w-full"
+                placeholder="10" />
+            </UFormField>
+            <UFormField label="Port" name="port" required>
+              <UInputNumber
+                v-model="state.port"
+                :min="1"
+                :max="65535"
+                class="w-full"
+                placeholder="443" />
+            </UFormField>
+          </div>
+          <UFormField label="Target" name="target" required>
+            <UInput
+              v-model="state.target"
+              icon="i-lucide-target"
+              class="w-full"
+              placeholder="service.example.com"
+              :ui="{ base: 'data' }" />
+          </UFormField>
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+          <UFormField label="TTL" name="ttl" hint="segundos">
+            <UInputNumber v-model="state.ttl" :min="60" class="w-full" />
+          </UFormField>
+
+          <UFormField
+            v-if="state.type !== 'HTTPS'"
+            label="Prioridade"
+            name="priority"
+            :hint="state.type === 'SRV' || state.type === 'MX' ? undefined : 'n/a'">
+            <UInputNumber
+              v-model="state.priority"
+              :min="0"
+              :disabled="state.type !== 'SRV' && state.type !== 'MX'"
+              class="w-full"
+              placeholder="10" />
+          </UFormField>
+        </div>
+
+        <UFormField label="Comentário" name="comment" hint="opcional">
+          <UTextarea
+            v-model="state.comment"
             class="w-full"
-            placeholder="Ex: hostmaster.example.com" />
-        </UFormField>
-        <UFormField label="Refresh" name="refresh">
-          <UInputNumber
-            v-model="stateSOA.refresh"
-            :min="0"
-            icon="i-lucide-refresh-cw"
-            class="w-full"
-            placeholder="3600" />
-        </UFormField>
-        <UFormField label="Retry" name="retry">
-          <UInputNumber
-            v-model="stateSOA.retry"
-            :min="0"
-            icon="i-lucide-clock"
-            class="w-full"
-            placeholder="600" />
-        </UFormField>
-        <UFormField label="Expire" name="expire">
-          <UInputNumber
-            v-model="stateSOA.expire"
-            :min="0"
-            icon="i-lucide-hourglass"
-            class="w-full"
-            placeholder="604800" />
-        </UFormField>
-        <UFormField label="Negative Cache TTL" name="negativeCacheTtl">
-          <UInputNumber
-            v-model="stateSOA.negativeCacheTtl"
-            :min="0"
-            icon="i-lucide-timer"
-            class="w-full"
-            placeholder="3600" />
+            :rows="3"
+            placeholder="Para que serve este record" />
         </UFormField>
       </UForm>
     </template>
 
     <template #footer>
       <UButton
-        label="Cancel"
+        label="Cancelar"
+        color="neutral"
+        variant="ghost"
         :loading="isLoading"
-        variant="outline"
+        @click="
+          () => {
+            formOpen = false
+          }
+        " />
+      <UButton
+        :label="isEditing ? 'Salvar alterações' : 'Adicionar record'"
+        :icon="isEditing ? 'i-lucide-check' : 'i-lucide-plus'"
+        :loading="isLoading"
+        @click="isEditing ? editRecord() : addRecord()" />
+    </template>
+  </USlideover>
+
+  <UModal
+    v-model:open="modalEditSOA"
+    title="Editar SOA"
+    :description="`Registro Start of Authority da zona ${zoneId}`"
+    :ui="{ content: 'max-w-2xl', footer: 'justify-end' }">
+    <template #body>
+      <UForm :schema="editSOASchema" :state="stateSOA" class="grid gap-4 sm:grid-cols-2">
+        <UFormField
+          label="Servidor primário"
+          name="startOfAuthority"
+          class="sm:col-span-2"
+          required>
+          <UInput
+            v-model="stateSOA.startOfAuthority"
+            icon="i-lucide-server"
+            class="w-full"
+            placeholder="ns1.example.com"
+            :ui="{ base: 'data' }" />
+        </UFormField>
+
+        <UFormField label="Email do responsável" name="email" class="sm:col-span-2" required>
+          <UInput
+            v-model="stateSOA.email"
+            icon="i-lucide-mail"
+            class="w-full"
+            placeholder="hostmaster.example.com"
+            :ui="{ base: 'data' }" />
+        </UFormField>
+
+        <UFormField label="Refresh" name="refresh" hint="segundos">
+          <UInputNumber v-model="stateSOA.refresh" :min="0" class="w-full" placeholder="3600" />
+        </UFormField>
+
+        <UFormField label="Retry" name="retry" hint="segundos">
+          <UInputNumber v-model="stateSOA.retry" :min="0" class="w-full" placeholder="600" />
+        </UFormField>
+
+        <UFormField label="Expire" name="expire" hint="segundos">
+          <UInputNumber v-model="stateSOA.expire" :min="0" class="w-full" placeholder="604800" />
+        </UFormField>
+
+        <UFormField label="Negative Cache TTL" name="negativeCacheTtl" hint="segundos">
+          <UInputNumber
+            v-model="stateSOA.negativeCacheTtl"
+            :min="0"
+            class="w-full"
+            placeholder="86400" />
+        </UFormField>
+      </UForm>
+    </template>
+
+    <template #footer>
+      <UButton
+        label="Cancelar"
+        color="neutral"
+        variant="ghost"
+        :loading="isLoading"
         @click="
           () => {
             modalEditSOA = false
           }
         " />
-      <UButton label="Confirm" :loading="isLoading" @click="updateSOA" />
+      <UButton label="Salvar SOA" icon="i-lucide-check" :loading="isLoading" @click="updateSOA" />
     </template>
   </UModal>
 
   <UModal
     v-model:open="modalDelete"
-    title="Aviso"
-    description="Você está prestes a deletar um registro, esta ação não pode ser desfeita."
+    title="Deletar record"
+    description="Esta ação é permanente e não pode ser desfeita."
     :ui="{ footer: 'justify-end' }">
     <template #body>
-      <p class="dark:text-gray-200">
-        If you are sure you want to continue, write the name of your record below
-        <span class="font-bold">'{{ stateDelete.name }}'</span>.
-      </p>
-      <UInput v-model="confirmDelete" class="mt-2 w-full" color="error" placeholder="Record Name" />
+      <div class="space-y-4">
+        <div class="rounded-lg border border-default bg-muted/50 p-3">
+          <span
+            class="inline-flex items-center rounded-md px-2 py-0.5 data text-[11px] font-semibold ring-1 ring-inset"
+            :class="typeMeta(stateDelete.type).chip">
+            {{ stateDelete.type }}
+          </span>
+          <p class="mt-2 data text-sm font-medium break-all text-highlighted">
+            {{ stateDelete.name }}
+          </p>
+          <p v-if="stateDelete.vl" class="mt-2 data text-xs break-all text-muted">
+            {{ stateDelete.vl }}
+          </p>
+        </div>
+
+        <UFormField label="Confirme digitando o nome do record">
+          <template #description>
+            <p class="text-xs text-dimmed">
+              Digite o nome do record para confirmar a exclusão. Esta ação não pode ser desfeita.
+            </p>
+          </template>
+          <UInput
+            v-model="confirmDelete"
+            class="w-full"
+            color="error"
+            autocomplete="off"
+            :placeholder="stateDelete.name"
+            :ui="{ base: 'data' }" />
+        </UFormField>
+      </div>
     </template>
 
     <template #footer>
       <UButton
-        label="Cancel"
+        label="Cancelar"
+        color="neutral"
+        variant="ghost"
         :loading="isLoading"
-        variant="outline"
         @click="
           () => {
             modalDelete = false
           }
         " />
       <UButton
-        label="Confirm"
+        label="Deletar record"
+        icon="i-lucide-trash-2"
         color="error"
         :loading="isLoading"
         :disabled="confirmDelete !== stateDelete.name"
@@ -980,5 +1035,183 @@
     </template>
   </UModal>
 
-  <Users v-if="nivel === 'ADMINISTRADOR'" v-model:open="modalUsers" v-model:zone-id="zoneId" />
+  <UModal
+    v-model:open="modalReversos"
+    title="Reversos ausentes"
+    :description="`Registros A e AAAA de ${zoneLabel} sem PTR na zona reversa`"
+    :ui="{ footer: 'justify-end', content: 'max-w-2xl' }">
+    <template #body>
+      <div
+        v-if="reversosAusentes.length === 0"
+        class="flex flex-col items-center gap-2 py-10 text-center">
+        <UIcon name="i-lucide-circle-check" class="size-7 text-success" />
+        <p class="text-sm font-medium text-toned">Nenhum reverso ausente</p>
+        <p class="max-w-xs text-xs text-dimmed">
+          Todos os registros A e AAAA com zona reversa cadastrada já têm PTR.
+        </p>
+      </div>
+
+      <div v-else class="space-y-3">
+        <div class="flex items-center justify-between gap-3">
+          <UCheckbox
+            :model-value="selecaoReversos"
+            :label="`${reversosSelecionados.length} de ${reversosAusentes.length} selecionado(s)`"
+            :ui="{ label: 'text-sm text-toned' }"
+            @update:model-value="toggleTodosReversos" />
+        </div>
+
+        <div
+          class="max-h-80 divide-y divide-default overflow-y-auto rounded-lg border border-default">
+          <label
+            v-for="reverso in reversosAusentes"
+            :key="reverso.nomeReverso"
+            class="flex cursor-pointer items-center justify-between gap-3 p-2.5 transition-colors hover:bg-elevated/60">
+            <div class="flex min-w-0 items-center gap-2.5">
+              <UCheckbox
+                :model-value="reversosSelecionados.includes(reverso.nomeReverso)"
+                :aria-label="`Selecionar o reverso de ${reverso.ip}`"
+                @update:model-value="toggleReverso(reverso.nomeReverso, $event === true)" />
+
+              <div class="min-w-0">
+                <p :title="reverso.name" class="truncate data text-sm font-medium text-highlighted">
+                  {{ reverso.name }}
+                </p>
+                <p :title="reverso.nomeReverso" class="truncate data text-xs text-dimmed">
+                  {{ reverso.nomeReverso }}
+                </p>
+              </div>
+            </div>
+
+            <div class="flex shrink-0 items-center gap-2">
+              <span
+                class="inline-flex items-center rounded-md px-2 py-0.5 data text-[11px] font-semibold ring-1 ring-inset"
+                :class="typeMeta(reverso.type).chip">
+                {{ reverso.type }}
+              </span>
+              <span class="data text-xs text-muted tnum">{{ reverso.ip }}</span>
+            </div>
+          </label>
+        </div>
+      </div>
+    </template>
+
+    <template #footer>
+      <UButton
+        label="Fechar"
+        color="neutral"
+        variant="ghost"
+        :loading="isLoading"
+        @click="
+          () => {
+            modalReversos = false
+          }
+        " />
+      <UButton
+        v-if="reversosAusentes.length > 0"
+        :label="
+          reversosSelecionados.length === 1
+            ? 'Criar 1 reverso'
+            : `Criar ${reversosSelecionados.length} reversos`
+        "
+        icon="i-lucide-check"
+        :loading="isLoading"
+        :disabled="reversosSelecionados.length === 0"
+        @click="createReversos" />
+    </template>
+  </UModal>
+
+  <UModal
+    v-model:open="modalOrfaos"
+    title="Reversos órfãos"
+    :description="`Registros PTR de ${zoneLabel} sem nenhum A ou AAAA apontando para o IP`"
+    :ui="{ footer: 'justify-end', content: 'max-w-2xl' }">
+    <template #body>
+      <div
+        v-if="reversosOrfaos.length === 0"
+        class="flex flex-col items-center gap-2 py-10 text-center">
+        <UIcon name="i-lucide-circle-check" class="size-7 text-success" />
+        <p class="text-sm font-medium text-toned">Nenhum reverso órfão</p>
+        <p class="max-w-xs text-xs text-dimmed">
+          Todos os PTR desta zona têm um registro direto correspondente.
+        </p>
+      </div>
+
+      <div v-else class="space-y-3">
+        <p class="text-sm text-toned">
+          <span class="data text-highlighted tnum">{{ reversosOrfaos.length }}</span>
+          {{ reversosOrfaos.length === 1 ? 'PTR sem registro direto' : 'PTRs sem registro direto' }}
+        </p>
+
+        <div
+          class="max-h-80 divide-y divide-default overflow-y-auto rounded-lg border border-default">
+          <div
+            v-for="orfao in reversosOrfaos"
+            :key="orfao.nomeReverso"
+            class="flex items-center justify-between gap-3 p-2.5">
+            <div class="min-w-0">
+              <p :title="orfao.alvo" class="truncate data text-sm font-medium text-highlighted">
+                {{ orfao.alvo }}
+              </p>
+              <p :title="orfao.nomeReverso" class="truncate data text-xs text-dimmed">
+                {{ orfao.nomeReverso }}
+              </p>
+            </div>
+
+            <div class="flex shrink-0 items-center gap-2">
+              <span class="data text-xs text-muted tnum">{{ orfao.ip }}</span>
+
+              <UPopover>
+                <UButton
+                  icon="i-lucide-trash-2"
+                  color="error"
+                  variant="ghost"
+                  size="sm"
+                  :loading="isLoading"
+                  :aria-label="`Excluir o PTR de ${orfao.ip}`" />
+
+                <template #content="{ close }">
+                  <div class="w-64 space-y-3 p-3">
+                    <p class="text-sm text-toned">
+                      Excluir o PTR de
+                      <span class="data text-highlighted">{{ orfao.ip }}</span>
+                      ?
+                    </p>
+                    <div class="flex justify-end gap-2">
+                      <UButton
+                        color="neutral"
+                        variant="ghost"
+                        size="sm"
+                        label="Cancelar"
+                        @click="close()" />
+                      <UButton
+                        color="error"
+                        size="sm"
+                        label="Excluir"
+                        :loading="isLoading"
+                        @click="deleteOrfao(orfao.nomeReverso, close)" />
+                    </div>
+                  </div>
+                </template>
+              </UPopover>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <template #footer>
+      <UButton
+        label="Fechar"
+        color="neutral"
+        variant="ghost"
+        :loading="isLoading"
+        @click="
+          () => {
+            modalOrfaos = false
+          }
+        " />
+    </template>
+  </UModal>
+
+  <Users v-if="isAdmin" v-model:open="modalUsers" :zone="zoneId" />
 </template>

@@ -1,43 +1,143 @@
 @import 'tailwindcss';
 @import '@nuxt/ui';
 
+@theme {
+  --font-sans: 'Fira Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+:root {
+  --ui-radius: 0.5rem;
+  --console-rail: color-mix(in oklch, var(--ui-primary) 55%, transparent);
+}
+
+@utility data {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'calt' 0;
+  letter-spacing: -0.011em;
+}
+
+@utility tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+@utility console-grid {
+  background-image:
+    linear-gradient(to right, var(--ui-border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--ui-border) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 25%, transparent 80%);
+}
+
+@utility console-rail {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    height: 2px;
+    border-radius: 2px 2px 0 0;
+    background: linear-gradient(90deg, var(--console-rail), transparent 70%);
+  }
+}
+
 @layer base {
   button:not(:disabled),
   [role='button']:not(:disabled) {
     cursor: pointer;
   }
 
-  @keyframes fadeIn {
+  body {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ui-primary);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: color-mix(in oklch, var(--ui-primary) 28%, transparent);
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--ui-border-accented) transparent;
+  }
+}
+
+@layer base {
+  @keyframes console-in {
     from {
       opacity: 0;
-      transform: translateY(-10px);
-      filter: blur(2px);
+      transform: translate3d(0, 6px, 0);
     }
     to {
       opacity: 1;
-      transform: translateY(0);
-      filter: blur(0);
+      transform: translate3d(0, 0, 0);
     }
   }
 
-  @keyframes fadeOut {
+  @keyframes console-out {
     from {
       opacity: 1;
-      transform: translateY(0);
-      filter: blur(0);
+      transform: translate3d(0, 0, 0);
     }
     to {
       opacity: 0;
-      transform: translateY(10px);
-      filter: blur(2px);
+      transform: translate3d(0, -4px, 0);
     }
   }
 
   .page-enter-active {
-    animation: fadeIn 0.4s ease-out;
+    animation: console-in 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .page-leave-active {
-    animation: fadeOut 0.4s ease-in;
+    animation: console-out 0.14s cubic-bezier(0.4, 0, 1, 1);
+  }
+
+  .stagger > * {
+    animation: console-in 0.28s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  }
+
+  .stagger > *:nth-child(1) {
+    animation-delay: 0ms;
+  }
+  .stagger > *:nth-child(2) {
+    animation-delay: 45ms;
+  }
+  .stagger > *:nth-child(3) {
+    animation-delay: 90ms;
+  }
+  .stagger > *:nth-child(4) {
+    animation-delay: 135ms;
+  }
+  .stagger > *:nth-child(5) {
+    animation-delay: 180ms;
+  }
+  .stagger > *:nth-child(6) {
+    animation-delay: 225ms;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .page-enter-active,
+    .page-leave-active,
+    .stagger > * {
+      animation: none !important;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }

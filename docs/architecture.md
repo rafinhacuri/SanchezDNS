@@ -48,7 +48,7 @@ Toda a lógica de negócio vive em um serviço **Go** usando o framework **Gin**
 
 **Por que Go?** Três razões que importam para um TCC:
 
-1. **Concorrência barata.** Operações como "criar registro A e, em paralelo, garantir o PTR reverso" ou "gravar um log sem travar a resposta ao usuário" usam _goroutines_ (`go logs.InsertLog(...)`). Isso mantém a resposta rápida.
+1. **Concorrência barata.** Operações como "criar registro A e, em paralelo, garantir o PTR reverso" ou "gravar um log sem travar a resposta ao usuário" usam _goroutines_ (`go logs.Insert(...)`). Isso mantém a resposta rápida.
 2. **Binário único, sem runtime.** O Go compila para um executável estático (`CGO_ENABLED=0`), o que deixa a imagem Docker pequena e simples — sem interpretador, sem dependências de sistema.
 3. **Tipagem forte na fronteira com o PowerDNS.** Os corpos JSON trocados com a API são modelados como _structs_ Go, o que reduz erros ao montar RRsets e payloads de DNSSEC.
 
@@ -106,11 +106,11 @@ Para amarrar as peças, vale seguir o caminho de uma ação típica — **"adici
 1. **Navegador → Nuxt.** O usuário preenche o formulário e o frontend faz `PUT /go/records`. A requisição chega ao servidor Nuxt (SSR), que a repassa com o cookie de sessão.
 2. **Caddy → Go.** O Caddy vê o prefixo `/go`, remove-o e entrega `PUT /records` à API Go na porta 8080.
 3. **Middleware de sessão.** Antes do controlador rodar, o middleware `ValidateSession` lê o cookie `sanchezdns_session_id`, valida a sessão (Redis, com fallback no Mongo) e injeta `email` e `level` no contexto da requisição.
-4. **Autorização por zona.** O controlador de registro verifica: se o usuário é `member`, ele precisa estar na lista `escrita` daquela zona (consulta ao Mongo). `admin` passa direto.
+4. **Autorização por zona.** O controlador chama `users.PodeEscrever(ctx, zona, email, level)`: `admin` passa direto; `member` precisa estar na lista `escrita` daquela zona (consulta ao Mongo).
 5. **Integração com o PowerDNS.** O backend normaliza o valor do registro, monta o **RRset** e envia um `PATCH` para a zona no PowerDNS. Em seguida, relê a zona e faz um segundo `PATCH` para alinhar os comentários (detalhe explicado em [Zonas e Registros](/zones)).
-6. **Automação em segundo plano.** Como o tipo é `A`, o backend dispara `ensureReverseRecord`, que procura a melhor zona `in-addr.arpa` e cria o PTR reverso correspondente.
+6. **Automação em segundo plano.** Como o tipo é `A`, o controlador chama `records.InsertReverso`, que procura a melhor zona `in-addr.arpa` e cria o PTR reverso correspondente. Se essa parte falhar, o erro vai para o log e a resposta segue como sucesso — o registro direto já foi gravado.
 7. **Auditoria assíncrona.** Uma _goroutine_ grava um log no MongoDB (`insert_record`) sem atrasar a resposta.
-8. **Resposta.** O backend devolve `201`, que sobe de volta por Caddy → Nuxt → navegador, e a tabela é atualizada.
+8. **Resposta.** O backend devolve `200` com a mensagem de sucesso, que sobe de volta por Caddy → Nuxt → navegador, e a tabela é atualizada.
 
 Esse fluxo mostra a filosofia do projeto: **o painel orquestra, o PowerDNS executa, e cada serviço de apoio (Mongo, Redis, S3) tem uma responsabilidade única e bem delimitada.**
 

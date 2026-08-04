@@ -8,12 +8,12 @@ import (
 	"github.com/rafinhacuri/SanchezDNS/api/mongo"
 )
 
-func Status(ctx context.Context, id bson.ObjectID, status string) (string, error) {
+func Status(ctx context.Context, id bson.ObjectID, status string) error {
 	var solicitacao mongo.Solicitacao
 
 	err := mongo.Dns.Collection("solicitacoes").FindOne(ctx, bson.M{"_id": id}).Decode(&solicitacao)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	if status == "aprovada" {
@@ -27,12 +27,12 @@ func Status(ctx context.Context, id bson.ObjectID, status string) (string, error
 
 		err = cadastro.Validate()
 		if err != nil {
-			return "", err
+			return err
 		}
 
 		_, err = mongo.Dns.Collection("cadastros").InsertOne(ctx, cadastro)
 		if err != nil {
-			return "", err
+			return err
 		}
 	}
 
@@ -42,9 +42,6 @@ func Status(ctx context.Context, id bson.ObjectID, status string) (string, error
 			solicitacao.Id,
 			bson.M{"$set": bson.M{"status": status}, "$currentDate": bson.M{"updatedAt": true}},
 		)
-	if err != nil {
-		return "", err
-	}
 
-	return "Solicitação atualizada com sucesso", nil
+	return err
 }

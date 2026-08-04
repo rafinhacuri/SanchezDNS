@@ -42,22 +42,45 @@ O usuário comum só enxerga as zonas para as quais recebeu permissão, e o que 
 
 ## Como a permissão por zona é armazenada e verificada
 
-Para cada zona, o backend guarda na coleção `users` do MongoDB **duas listas de emails**: `leitura` e `escrita`. Quando um `member` tenta uma operação, o backend consulta essas listas e checa se o email dele está na lista adequada. Por exemplo, ao inserir um registro ([record.go](https://github.com/rafinhacuri/SanchezDNS/blob/main/api/controller/insert/record.go)):
+Para cada zona, o backend guarda na coleção `users` do MongoDB **duas listas de emails**: `leitura` e `escrita`. A checagem fica concentrada em três funções do pacote `users`, e todo controlador que precisa decidir acesso chama uma delas:
+
+| Função                                  | Responde                                                     |
+| --------------------------------------- | ------------------------------------------------------------ |
+| `PodeLer(ctx, zona, email, level)`      | pode ver os registros desta zona?                            |
+| `PodeEscrever(ctx, zona, email, level)` | pode criar, editar ou remover registros desta zona?          |
+| `FetchNivel(ctx, zona, email, level)`   | qual o nível (`ADMINISTRADOR`, `ESCRITA`, `LEITURA` ou nada) |
+
+Por dentro, todas seguem o mesmo caminho ([pode-escrever.go](https://github.com/rafinhacuri/SanchezDNS/blob/main/api/users/pode-escrever.go)):
 
 ```go
-if level == "member" {
-    // busca a permissão da zona e confere se o email está em "escrita"
-    err := coll.FindOne(ctx, bson.M{"zona": request.Zone}).Decode(&perm)
-    for _, u := range perm.Escrita {
-        if strings.ToLower(strings.TrimSpace(u)) == userKey { allowed = true }
+func PodeEscrever(ctx context.Context, zona, email, level string) (bool, error) {
+    if level == "admin" {
+        return true, nil          // admin ignora a permissão por zona
     }
-    if !allowed { /* 403 */ }
+
+    permissao, err := FetchPermissao(ctx, zona, email)
+    if err != nil {
+        return false, err
+    }
+
+    return permissao == "escrita", nil
 }
 ```
 
-Três pontos de projeto valem destaque:
+E o controlador só orquestra ([insert/record.go](https://github.com/rafinhacuri/SanchezDNS/blob/main/api/controller/insert/record.go)):
+
+```go
+pode, err := users.PodeEscrever(ctx, body.Zone, email, c.GetString("level"))
+if !pode {
+    c.AbortWithStatusJSON(403, gin.H{"message": "Sem permissão para alterar registros dessa zona"})
+    return
+}
+```
+
+Quatro pontos de projeto valem destaque:
 
 - **A verificação é sempre no backend.** A interface esconde botões conforme o nível, mas quem **decide** é o servidor a cada operação. Ocultar um botão nunca é a proteção real.
+- **Uma única implementação.** Como a checagem vive no pacote `users`, todos os controladores decidem acesso do mesmo jeito — não há risco de uma rota esquecer um caso que outra trata.
 - **Comparação normalizada.** Os emails são comparados em minúsculas e sem espaços, evitando que `Fulano@x.com ` e `fulano@x.com` sejam tratados como pessoas diferentes.
 - **Modelo por listas.** Guardar as permissões como listas de emails dentro do documento da zona encaixa no modelo de documentos do MongoDB (ver [Arquitetura](/architecture#mongodb-a-verdade-do-aplicativo)) e torna trivial adicionar/remover acesso.
 
