@@ -4,17 +4,21 @@ services:
     container_name: sanchezdns
     platform: linux/amd64
     ports:
-      - 3000:3000
+      - 3000:80
     environment:
       - AWS_REQUEST_CHECKSUM_CALCULATION=WHEN_REQUIRED
       - AWS_RESPONSE_CHECKSUM_VALIDATION=WHEN_REQUIRED
     env_file:
       - .env
     depends_on:
-      - mongo
-      - redis
-      - s3
-      - s3-create-bucket
+      mongo:
+        condition: service_started
+      redis:
+        condition: service_started
+      s3:
+        condition: service_started
+      s3-create-bucket:
+        condition: service_completed_successfully
     restart: unless-stopped
 
   mongo:
