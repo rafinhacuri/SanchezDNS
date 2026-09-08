@@ -40,6 +40,7 @@ func RegisterRoutes(server *gin.Engine) {
 	auth.GET("/reverses/orphans", fetch.Orfaos)
 	auth.DELETE("/reverses", remove.Reverso)
 	auth.GET("/statistics", fetch.Statistics)
+	auth.GET("/zone/dnssec", fetch.Dnssec)
 
 	api.POST("/cadastro", insert.Cadastro)
 
@@ -50,6 +51,7 @@ func RegisterRoutes(server *gin.Engine) {
 	admin.PUT("/zone", insert.Zona)
 	admin.DELETE("/zone", remove.Zona)
 	admin.PATCH("/soa", update.Soa)
+	admin.PATCH("/zone/nsec3", update.Nsec3)
 	admin.POST("/user", insert.User)
 	admin.PATCH("/user", update.User)
 	admin.DELETE("/user", remove.User)

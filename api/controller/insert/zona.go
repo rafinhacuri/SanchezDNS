@@ -59,11 +59,29 @@ func Zona(c *gin.Context) {
 		return
 	}
 
+	err = zonas.InsertNsec3(ctx, httpc, domain)
+	if err != nil {
+		log.Println(err)
+
+		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao aplicar o NSEC3 na zona"})
+
+		return
+	}
+
 	err = zonas.UpdateSoa(ctx, httpc, domain, body.Soa)
 	if err != nil {
 		log.Println(err)
 
 		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao configurar o SOA da zona"})
+
+		return
+	}
+
+	err = zonas.Rectify(ctx, httpc, domain)
+	if err != nil {
+		log.Println(err)
+
+		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao retificar a zona"})
 
 		return
 	}

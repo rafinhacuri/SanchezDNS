@@ -33,7 +33,13 @@ type ZonePdns struct {
 }
 
 type zoneDetail struct {
-	Dnssec bool `json:"dnssec"`
+	Dnssec     bool   `json:"dnssec"`
+	Nsec3Param string `json:"nsec3param"`
+}
+
+type ZoneDetalhe struct {
+	Dnssec bool
+	Nsec3  bool
 }
 
 //nolint:tagliatelle
@@ -46,4 +52,50 @@ type createZonePayload struct {
 type cryptoKeyPayload struct {
 	Active  bool   `json:"active"`
 	KeyType string `json:"keytype"`
+}
+
+type nsec3ParamPayload struct {
+	Nsec3Param string `json:"nsec3param"`
+}
+
+type CryptoKey struct {
+	ID        int      `json:"id"`
+	KeyType   string   `json:"keytype"`
+	Active    bool     `json:"active"`
+	Published bool     `json:"published"`
+	Algorithm string   `json:"algorithm"`
+	Bits      int      `json:"bits"`
+	Ds        []string `json:"ds"`
+}
+
+type DnssecKey struct {
+	KeyType   string   `json:"keytype"`
+	Algorithm string   `json:"algorithm"`
+	Bits      int      `json:"bits"`
+	Active    bool     `json:"active"`
+	Published bool     `json:"published"`
+	Ds        []string `json:"ds"`
+}
+
+type DnssecStatus struct {
+	Zone     string      `json:"zone"`
+	Dnssec   bool        `json:"dnssec"`
+	Nsec3    bool        `json:"nsec3"`
+	DsStatus string      `json:"dsStatus"`
+	DsPai    []string    `json:"dsPai"`
+	Validado bool        `json:"validado"`
+	Keys     []DnssecKey `json:"keys"`
+}
+
+type dohAnswer struct {
+	Name string `json:"name"`
+	Type int    `json:"type"`
+	Data string `json:"data"`
+}
+
+//nolint:tagliatelle
+type dohResponse struct {
+	Status int         `json:"Status"`
+	AD     bool        `json:"AD"`
+	Answer []dohAnswer `json:"Answer"`
 }

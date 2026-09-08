@@ -42,6 +42,8 @@ func main() {
 	converter.Add(statistics.StatisticsResponse{})
 	converter.Add(zonas.ZonesResponse{})
 	converter.Add(zonas.ZoneFetch{})
+	converter.Add(zonas.DnssecKey{})
+	converter.Add(zonas.DnssecStatus{})
 	converter.Add(users.User{})
 	converter.Add(mongo.Solicitacao{})
 	converter.Add(fetch.SolicitacaoResponse{})

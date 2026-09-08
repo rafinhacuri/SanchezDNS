@@ -610,6 +610,8 @@
   const totalRecords = computed(() => data.value?.record?.length ?? 0)
 
   const isAdmin = computed(() => nivel.value === 'ADMINISTRADOR')
+
+  const modalDnssec = ref(false)
   const canWrite = computed(() => nivel.value !== 'LEITURA')
   const isReverse = computed(() => /\.(?:in-addr|ip6)\.arpa\.?$/u.test(zoneId.value))
   const isReverseIpv6 = computed(() => /\.ip6\.arpa\.?$/u.test(zoneId.value))
@@ -647,6 +649,16 @@
           label="Editar SOA"
           :loading="isLoading"
           @click="openSOA" />
+        <UButton
+          variant="outline"
+          color="neutral"
+          icon="i-lucide-shield-check"
+          label="DNSSEC"
+          @click="
+            () => {
+              modalDnssec = true
+            }
+          " />
         <UButton
           v-if="canWrite && !isReverse"
           variant="outline"
@@ -1214,4 +1226,6 @@
   </UModal>
 
   <Users v-if="isAdmin" v-model:open="modalUsers" :zone="zoneId" />
+
+  <Dnssec v-model:open="modalDnssec" :zone="zoneId" :is-admin="isAdmin" />
 </template>

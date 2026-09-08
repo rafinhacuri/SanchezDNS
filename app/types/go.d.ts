@@ -71,6 +71,23 @@ interface ZonesResponse {
   zones: ZoneFetch[]
 }
 
+interface DnssecKey {
+  keytype: string
+  algorithm: string
+  bits: number
+  active: boolean
+  published: boolean
+  ds: string[]
+}
+interface DnssecStatus {
+  zone: string
+  dnssec: boolean
+  nsec3: boolean
+  dsStatus: string
+  dsPai: string[]
+  validado: boolean
+  keys: DnssecKey[]
+}
 interface User {
   email: string
   permissao: string
