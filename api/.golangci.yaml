@@ -7,11 +7,15 @@ linters:
     - depguard
     - err113
     - exhaustruct
+    - exhaustruct_v5
     - goconst
+    - gomodguard
     - misspell
     - mnd
     - varnamelen
     - wrapcheck
+    - wsl
+    - dupl
   settings:
     funlen:
       lines: 200
@@ -36,7 +40,8 @@ formatters:
   settings:
     gofumpt:
       module-path: github.com/rafinhacuri/SanchezDNS/api
-      extra-rules: true
+      extra:
+        group-params: true
     goimports:
       local-prefixes:
         - github.com/rafinhacuri/SanchezDNS/api
