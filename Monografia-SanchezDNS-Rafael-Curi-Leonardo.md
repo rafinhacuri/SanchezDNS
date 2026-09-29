@@ -26,7 +26,7 @@ SANCHEZDNS: PLATAFORMA WEB PARA OPERAÇÃO DE DNS AUTORITATIVO COM CONTROLE DE A
 Monografia apresentada como requisito parcial à conclusão do curso em Bacharel em Ciência da Computação.
 
 APROVADA EM: \_**\_ / \_\_** / **\_\_\_\_**
-CONCEITO: **********\_\_\_\_**********
+CONCEITO: \***\*\*\*\*\***\_\_\_\_\***\*\*\*\*\***
 
 BANCA EXAMINADORA:
 
@@ -494,7 +494,7 @@ Seção
    Questões QP1 a QP4; formulação de requisitos a partir das classes elimináveis por construção
    1.3; 1.4; 3.3
 3. Projeto e desenvolvimento
-   Modelagem dos quatro componentes técnicos; implementação dos serviços com Go, Nuxt e banco de dados
+   Modelagem dos cinco componentes técnicos; implementação dos serviços com Go, Nuxt e banco de dados
    3.4 a 3.7; Capítulo 4
 4. Demonstração
    Execução de tarefas de administração em bancada de laboratório, com conferência por oráculo externo independente
@@ -793,7 +793,7 @@ A ordem é importante. Como a criação vem antes da remoção, uma falha na seg
 A remoção é a operação que exige mais cautela, e foi a que motivou o primeiro retorno de iteração da seção 3.2. A formulação direta do RF08 (apagar o PTR ao apagar o registro A) falha sempre que mais de um nome aponta para o mesmo IP, caso corriqueiro em servidores com vários serviços. A remoção de um dos nomes apagaria o reverso ainda referenciado pelos demais, transformando uma limpeza na própria divergência A/PTR que o requisito combate.
 O backend aplica, por isso, uma guarda de referência antes de qualquer remoção de PTR: percorre todas as zonas diretas do servidor, ignorando as terminadas em in-addr.arpa e ip6.arpa, e verifica se algum RRset A ou AAAA ainda contém o endereço. Havendo referência, a remoção é suprimida. A mesma guarda roda na etapa de remoção da alteração descrita acima.
 Daí decorre uma assimetria entre criação e remoção, adotada como regra de projeto. A criação é otimista e ocorre a menos que exista uma decisão anterior em contrário; a remoção é conservadora e só ocorre se nenhuma referência restar. A razão é a diferença de custo entre os dois erros. Um reverso a mais é detectado pela triagem de órfãos, não quebra a resolução e pode ser corrigido a qualquer momento. Um reverso removido indevidamente quebra serviços na hora e só é detectado com verificação ativa. A automação foi, por isso, enviesada na direção do erro mais barato.
-(Local reservado para inserção da Figura 1: Fluxograma da Criação Otimista e Remoção Conservadora de PTR)
+
 3.6.4 Semântica de melhor esforço
 As rotinas de reverso operam sob o RNF03: a falha da escrita derivada não aborta a operação principal. Cada uma roda com contexto de tempo limite próprio de seis segundos, para que a lentidão do servidor autoritativo não trave a requisição do operador.
 Essa decisão introduz um risco que faz parte da resposta à segunda parte da QP2. O operador recebe HTTP 200 e a mensagem de sucesso, mas a escrita derivada pode não ter ocorrido. O resultado é a divergência A/PTR que o RF06 pretende eliminar, agravada pelo fato de o operador ter motivos para acreditar que ela não existe. Nesse caso, a automação apenas transfere a classe de erro do esquecimento do operador para uma falha silenciosa do sistema, que é ainda mais difícil de detectar.
@@ -840,8 +840,237 @@ Os modelos resultantes são: sessão opaca no servidor, revogável e expirada po
 Três decisões foram registradas com suas limitações, por se afastarem de princípios que o próprio trabalho invoca: a escrita derivada em zona fora do escopo do operador, o melhor esforço das rotinas de reverso e o desacoplamento entre operação e registro de auditoria. As implicações dessas escolhas de projeto são discutidas no balanço crítico do Capítulo 6.
 O Capítulo 4 documenta a construção do artefato a partir desses modelos.
 
+4 DESENVOLVIMENTO DA PLATAFORMA SANCHEZDNS
+Este capítulo documenta a construção do SanchezDNS a partir dos modelos do Capítulo 3. O produto é uma instanciação, o tipo de artefato que Gregor e Hevner (2013) situam no primeiro nível de contribuição em Design Science Research: um sistema em funcionamento, do qual se extraem depois os princípios de projeto generalizáveis. O texto descreve as decisões de engenharia que materializam cada modelo e registra os dois pontos em que a construção obrigou a revisar um requisito.
+4.1 ARQUITETURA GERAL E PILHA TECNOLÓGICA
+4.1.1 Arquitetura desacoplada
+A plataforma tem três camadas com responsabilidades separadas. A camada de apresentação é uma aplicação Nuxt que roda no navegador e em um servidor próprio, executado pelo Bun. O intermediário é um serviço HTTP escrito em Go, que autentica o operador, decide a autorização e traduz cada pedido em chamadas à interface de programação do servidor autoritativo. A camada de dados é o PowerDNS Authoritative Server, único detentor dos dados de zona.
+Um proxy reverso Caddy recebe as requisições na porta 80 e separa os dois destinos: o prefixo /go vai para o serviço Go na porta 8080 e todo o restante vai para o servidor Nuxt na porta 3000. O navegador conversa com uma única origem, o que dispensa a configuração de compartilhamento de recursos entre origens e permite emitir o cookie de sessão para o mesmo domínio que serve a interface.
+A separação atende ao RNF01 e ao RNF02. O RNF01 aparece na ausência de qualquer cópia local dos registros: o serviço Go não guarda zonas nem registros, e cada tela lê os dados do PowerDNS no momento em que é montada. O RNF02 aparece na assimetria entre as duas camadas. O frontend tem um middleware de rota que esconde páginas conforme o perfil do usuário, mas essa verificação só orienta a navegação. Quem autoriza é o serviço Go, a cada requisição, e uma chamada feita fora da interface passa pela mesma checagem.
+
+4.1.2 Escolhas de linguagem e de biblioteca
+O backend usa Go com o framework Gin. Três propriedades da linguagem pesaram na escolha. A tipagem estática permite declarar como estruturas os payloads trocados com o PowerDNS, de modo que um campo errado falhe na compilação. As goroutines dão concorrência sem biblioteca externa, recurso usado na gravação da trilha de auditoria descrita na seção 4.6.1. A compilação para binário único, sem dependência de bibliotecas do sistema, obtida com CGO_ENABLED=0, reduz o serviço a um arquivo copiado para o contêiner.
+As chamadas HTTP de saída, tanto ao PowerDNS quanto aos resolvedores públicos, usam a biblioteca Resty, que oferece repetição automática de tentativas e desserialização direta em estrutura.
+O frontend usa Nuxt 4 sobre Vue 3, com a biblioteca de componentes Nuxt UI e os estilos utilitários do Tailwind CSS. A validação de formulários é feita com Valibot, e os esquemas ficam em composables reaproveitados pelas telas. O módulo nuxt-security define os cabeçalhos de segurança da resposta, entre eles a política de segurança de conteúdo. O Quadro 10 reúne a pilha.
+Quadro 10 – Pilha tecnológica da plataforma.
+Camada
+Tecnologia
+Papel no artefato
+Apresentação
+Nuxt 4, Vue 3, Nuxt UI, Tailwind CSS
+Telas, decomposição de campos por tipo de registro e validação no cliente
+Validação de formulário
+Valibot
+Esquemas de campos obrigatórios por tipo, reavaliados no backend
+Cabeçalhos de segurança
+nuxt-security
+Política de conteúdo e cabeçalhos de resposta
+Intermediário
+Go, Gin
+Autenticação, autorização por zona, normalização e automações
+Cliente HTTP
+Resty
+Chamadas ao PowerDNS e aos resolvedores públicos
+Estado de aplicação
+MongoDB
+Sessões, cadastros, solicitações, permissões por zona e auditoria
+Cache de sessão
+Redis
+Leitura de sessão sem consulta ao banco a cada requisição
+Arquivos
+Armazenamento compatível com S3
+Fotos de perfil dos operadores
+Dados de zona
+PowerDNS Authoritative Server
+Fonte única da verdade
+Proxy reverso
+Caddy
+Roteamento entre o serviço Go e o servidor Nuxt
+
+Fonte: elaborado pelo autor (2026).
+4.1.3 Persistência híbrida
+O MongoDB guarda o estado que pertence à camada de operação, distribuído em cinco coleções. A coleção sessions mantém as sessões, com índice único sobre o identificador; cadastros guarda os operadores aprovados, com o nível global e o resumo da senha; solicitacoes guarda os pedidos de cadastro pendentes e o desfecho de cada um; users guarda um documento por zona, com os vetores de leitura e de escrita; e logs guarda a trilha de auditoria.
+O Redis funciona como cache de sessão com expiração de uma hora. A validação consulta o Redis primeiro e recorre ao MongoDB quando a chave não está lá. Isso evita uma leitura de banco por requisição sem transferir a autoridade para o cache: a ausência da chave no Redis é tratada como cache frio, nunca como sessão inválida.
+As fotos de perfil ficam em um armazenamento de objetos compatível com o protocolo S3 e são servidas por um endpoint próprio, que devolve o binário e o tipo de conteúdo. Nenhum desses armazenamentos contém dados de zona, o que preserva o RNF01.
+4.2 INTEGRAÇÃO COM O POWERDNS AUTHORITATIVE SERVER
+4.2.1 Cliente e autenticação da interface de programação
+Toda comunicação com o servidor autoritativo passa por um cliente construído em um ponto único da aplicação. Ele lê o endereço base da variável de ambiente DNS_HOST, envia a chave de acesso no cabeçalho X-API-Key, aceita resposta em JSON, tem tempo limite de trinta segundos e repete a chamada até duas vezes em caso de falha. O identificador do servidor vem da variável DNS_SERVER_ID e compõe o caminho das rotas, que seguem o padrão /api/v1/servers/{servidor}/zones.
+Esse desenho tem uma consequência já tratada no Capítulo 3: a interface do PowerDNS autentica a aplicação por chave, e não o operador que iniciou a ação. Para o servidor autoritativo, todas as alterações vêm do mesmo cliente. A identidade de quem alterou existe apenas na camada de operação, e por isso a trilha de auditoria fica no MongoDB, conforme a decisão registrada na seção 3.7. O Quadro 11 relaciona as rotas consumidas.
+Quadro 11 – Rotas do PowerDNS consumidas pela plataforma.
+Rota
+Método
+Uso no artefato
+/zones
+GET
+Listagem de zonas para a tela e para a busca da zona reversa mais específica
+/zones
+POST
+Criação de zona com o metadado de derivação do serial
+/zones/{zona}
+GET
+Leitura dos conjuntos de registros e do SOA
+/zones/{zona}
+PUT
+Aplicação dos parâmetros de negação autenticada de existência
+/zones/{zona}
+PATCH
+Inclusão, alteração e remoção de conjuntos de registros e gravação dos campos do SOA
+/zones/{zona}
+DELETE
+Remoção de zona
+/zones/{zona}/cryptokeys
+POST
+Geração da chave de assinatura de chaves
+/zones/{zona}/cryptokeys
+GET
+Leitura das chaves e do resumo criptográfico para exibição
+/zones/{zona}/rectify
+PUT
+Recálculo dos dados derivados da zona após a criação
+/statistics
+GET
+Indicadores do servidor autoritativo exibidos no painel
+
+Fonte: elaborado pelo autor (2026).
+4.2.2 Criação de zona e delegação do serial
+O payload de criação declara três campos: o nome da zona, o modo de operação Native e o metadado soa_edit_api com o valor DEFAULT. O modo Native delega a replicação à camada de armazenamento do backend e dispensa as transferências clássicas de zona, conforme a seção 2.1.6. O metadado implementa o RF01: a partir dele, o próprio PowerDNS reescreve o serial a cada alteração recebida pela interface de programação, e o campo não aparece em nenhuma tela.
+O controlador de criação executa as etapas em sequência, e qualquer falha interrompe a operação com resposta de erro e mensagem específica. Primeiro valida o tipo declarado (zona direta, reversa IPv4 ou reversa IPv6) e confere se o domínio informado corresponde a ele. Depois cria a zona, gera a chave de assinatura, aplica os parâmetros de negação autenticada de existência, grava os campos do SOA informados pelo administrador e chama a retificação da zona. A retificação recalcula os dados derivados que o PowerDNS mantém para responder às consultas e roda por último porque as etapas anteriores alteram o conteúdo da zona.
+4.2.3 Assinatura e verificação da cadeia de confiança
+A geração de chave envia à rota de chaves criptográficas da zona um payload com a chave ativa e do tipo ksk. Em seguida, uma atualização da zona grava o registro de parâmetros NSEC3 com o valor 1 0 0 -, que fixa zero iterações adicionais e dispensa o salt, conforme a recomendação da RFC 9276 discutida na seção 2.1.5. As duas chamadas ficam no mesmo fluxo da criação, o que atende ao RF02: não há etapa posterior que o operador possa esquecer.
+Para o RF03, a plataforma também confere o registro DS publicado na zona pai, por meio da interface de consulta sobre HTTPS dos resolvedores públicos. A consulta vai primeiro ao resolvedor da Google e, se falhar, ao da Cloudflare, com pedido de dados de validação e tempo limite de cinco segundos por tentativa. O resultado é comparado com os resumos das chaves da própria zona, depois de normalizar caixa e espaços, e classificado em quatro estados: publicado e conferindo, ausente no pai, divergente e indisponível para consulta. A tela apresenta o estado e, no caso divergente, explica que resolvedores validantes deixam de resolver o domínio até o registro ser corrigido no registrário. A flag de dados autenticados da resposta também é registrada e indica se o resolvedor consultado validou a cadeia.
+4.3 AUTENTICAÇÃO E CONTROLE DE ACESSO
+4.3.1 Ciclo de vida da sessão e derivação da senha
+A autenticação bem-sucedida gera um identificador de sessão com trinta e dois bytes lidos do gerador criptográfico do sistema operacional e codificados em base64 sem preenchimento. O documento gravado na coleção de sessões registra o identificador, o endereço de correio eletrônico, o estado de atividade, os instantes de criação e de último acesso, o endereço IP, o sistema operacional e o navegador extraídos do cabeçalho de agente de usuário, a localização aproximada e o motivo de encerramento. A localização vem de um serviço externo de geolocalização por IP com tempo limite de cinco segundos, e a falha dessa consulta devolve cadeia vazia sem interromper o login.
+O cookie é emitido sempre com o atributo que impede sua leitura por script, e com o atributo que o restringe ao canal cifrado apenas no ambiente de produção. O controlador de login recusa a tentativa quando já existe cookie de sessão e, antes de conferir a senha, verifica se o solicitante tem cadastro pendente de aprovação; nesse caso, responde que o cadastro está em análise. Credencial inválida devolve a mesma mensagem para endereço inexistente e para senha errada, o que impede a enumeração de usuários.
+As senhas são derivadas com bcrypt (PROVOS; MAZIÈRES, 1999) no fator de custo padrão da biblioteca e gravadas com um prefixo que identifica o esquema. A verificação usa a comparação da própria biblioteca, e resumos marcados com o esquema tradicional de crypt são recusados sem tentativa de conferência.
+A expiração é por inatividade. Cada requisição autenticada atualiza o instante de último acesso no MongoDB e renova a chave no Redis. Uma rotina agendada roda a cada dez minutos, seleciona as sessões ativas cujo último acesso é anterior a sete dias, marca-as como inativas com o motivo registrado e apaga as chaves correspondentes do cache.
+4.3.2 Middlewares de sessão e de administração
+O middleware de sessão lê o cookie, resolve a sessão pelo Redis, com recurso ao MongoDB, obtém o nível global do cadastro e injeta no contexto da requisição o identificador de sessão, o endereço de correio eletrônico e o nível. Quando a sessão não resolve, ele invalida o cookie na própria resposta e recusa o pedido. A implementação atual usa o código 400 nesse caso, embora a especificação HTTP reserve o 401 para falha de autenticação (FIELDING; NOTTINGHAM; RESCHKE, 2022).
+O middleware administrativo protege o grupo de rotas reservadas ao perfil global e recusa com 403 qualquer requisição cujo contexto não traga esse nível. Ele cobre a criação e a remoção de zonas, a alteração do SOA, a aplicação dos parâmetros de negação autenticada de existência, a gestão de operadores, a apreciação de solicitações de cadastro e a consulta à auditoria.
+4.3.3 Resolução da permissão por zona
+As rotas de zona não passam por middleware, porque a decisão depende do parâmetro de zona da requisição e não apenas do contexto da sessão. Cada controlador chama a função de resolução antes de executar a operação. A função devolve o nível administrativo quando o perfil global é de administrador. Nos demais casos, lê o documento da zona na coleção de permissões e verifica a pertinência ao vetor de escrita e depois ao de leitura, comparando endereços sem diferenciar caixa e ignorando espaços nas extremidades. A ausência do documento da zona é tratada como ausência de permissão, sem erro.
+A listagem de zonas aplica a mesma resolução a cada item antes de montar a resposta, e um operador sem vínculo recebe uma lista vazia, sem os nomes das zonas que não pode acessar. A implementação atual também exclui da listagem duas zonas por nome fixo, resíduo do ambiente de testes que ainda não foi removido do controlador.
+4.4 NORMALIZAÇÃO E INTERFACE PREVENTIVA
+4.4.1 Decomposição dos tipos compostos na interface
+Os tipos de registro com conteúdo estruturado são editados em campos separados, e não como cadeia única. O formulário oferece campo próprio para a prioridade do MX; para a prioridade, o peso, a porta e o alvo do SRV; e para a prioridade de serviço, o nome de destino e os parâmetros do HTTPS. A obrigatoriedade depende do tipo escolhido: o esquema de validação exige a prioridade, o peso, a porta e o alvo apenas quando o tipo é SRV, e a prioridade de serviço e o nome de destino apenas quando é HTTPS. O tempo de vida tem mínimo de sessenta segundos.
+Cada tipo carrega na interface uma frase curta que descreve sua função, como a indicação de que o PTR faz a resolução do endereço para o nome ou de que o CAA define quais autoridades podem emitir certificados. A frase serve para reduzir o engano de planejamento descrito por Reason (1990), que a validação sintática não alcança: um registro pode estar sintaticamente correto e ser do tipo errado para a intenção do operador.
+4.4.2 Normalização no backend
+A validação no cliente serve à experiência de uso, e o controle fica no serviço Go. O mesmo conjunto de exigências é reavaliado ali, e a normalização acontece apenas no backend, imediatamente antes da submissão ao PowerDNS.
+A rotina de normalização escolhe a transformação pelo tipo do registro. Para TXT, acrescenta aspas quando o valor não começa por elas. Para CNAME, NS, ALIAS e PTR, acrescenta o ponto final quando ausente. Para MX, acrescenta o ponto final ao destino e prefixa a prioridade lida do campo próprio. Para SRV e HTTPS, serializa os campos separados na ordem exigida pela especificação, substitui o destino vazio do HTTPS pelo ponto e atribui um conjunto padrão de parâmetros quando o operador não informa nenhum. Para CAA, compõe a marcação e a propriedade quando o valor informado não as contém.
+A complementação do nome tem três casos. O nome já terminado em ponto é preservado. O nome que já contém a origem da zona recebe apenas o ponto final. O nome relativo recebe a origem e o ponto. A distinção entre o segundo e o terceiro caso evita a duplicação do domínio, erro em que o operador digita o nome completo em um campo que o sistema supõe relativo.
+Para A e AAAA, o valor é interpretado como endereço antes de qualquer outra transformação, e um valor não interpretável interrompe a operação em vez de ser gravado como texto.
+4.4.3 Segundo retorno do ciclo: exibir o valor publicado
+O desenho inicial mantinha na tela, depois da submissão, o valor digitado pelo operador. A avaliação formativa da tela de registros mostrou o problema: como a normalização acontece no servidor, o operador terminava a operação vendo o que escreveu, e não o que foi publicado. No caso do ponto final a diferença é de um caractere, e o operador não tinha motivo para desconfiar dela. Nesse arranjo, a automação transferia para o sistema uma decisão que o operador supunha ter tomado, efeito que a questão QP2 antecipa.
+A correção exigiu a transformação inversa da normalização. A plataforma tem um conjunto de funções que leem os conjuntos de registros publicados e decompõem o conteúdo de volta nos campos do formulário: a prioridade do MX é separada do host, os quatro campos do SRV são extraídos por posição e o conteúdo do HTTPS é dividido em prioridade, destino e parâmetros. Com essa transformação, a tela passou a recarregar os registros pela rota de leitura depois de cada escrita, e essa rota lê o PowerDNS. O valor apresentado é sempre o que está publicado, e uma divergência entre a intenção e o resultado aparece na própria tela em que a operação foi feita.
+4.5 SINCRONIZAÇÃO DO CICLO DE VIDA DOS REGISTROS REVERSOS
+4.5.1 Derivação do nome e escolha da zona
+A derivação do nome reverso tem dois caminhos. Para IPv4, os quatro octetos são invertidos e concatenados sob a raiz reservada. Para IPv6, o endereço é primeiro expandido para a forma plena, com os oito grupos de dezesseis bits formatados em quatro dígitos hexadecimais cada; a cadeia de trinta e dois dígitos resultante é então percorrida do fim para o começo, um dígito por rótulo. A expansão prévia é indispensável porque a notação abreviada suprime zeros e não admite conversão direta em rótulos.
+A escolha da zona de destino percorre as zonas existentes no servidor e seleciona, entre as que são sufixo do nome derivado, a de maior comprimento. A comparação usa o sufixo reservado da família do endereço, o que evita confundir uma zona IPv4 com uma IPv6. A regra do sufixo mais longo acomoda a delegação de faixas menores que o octeto, conforme a RFC 2317 discutida na seção 3.6.1. Quando nenhuma zona corresponde, a função retorna sem erro e nenhuma escrita acontece.
+A criação segue essa sequência e termina com uma verificação: se já existe conjunto de registros PTR para o nome derivado, a rotina não o sobrescreve. Assim se preserva a decisão anterior de quem administra a zona reversa, e o estado resultante fica detectável pela rotina de reversos ausentes.
+A alteração de endereço é executada em duas operações. A primeira grava o PTR do endereço novo. A segunda avalia a remoção do PTR antigo e só ocorre quando os dois endereços diferem. Com a criação antes da remoção, uma falha na segunda etapa deixa dois reversos, um deles obsoleto, em vez de deixar o endereço sem reverso.
+4.5.2 Primeiro retorno do ciclo: guarda de referência na remoção
+A implementação direta do RF08 removia o PTR sempre que o registro A ou AAAA de origem era removido. A verificação do comportamento mostrou que esse desenho produz um erro novo quando mais de um nome aponta para o mesmo endereço, situação corriqueira em servidor que hospeda vários serviços. A remoção de um dos nomes apagava o reverso ainda referenciado pelos demais, e o resultado era a divergência entre registros diretos e reversos que o próprio requisito pretende combater.
+A resposta foi uma guarda de referência executada antes de qualquer remoção de PTR. A rotina percorre as zonas do servidor, descarta as que terminam nos sufixos reservados de resolução reversa, lê cada zona direta e compara com o endereço em questão os endereços de todos os conjuntos A ou AAAA. A comparação é feita sobre o endereço interpretado, para que formas diferentes de escrever o mesmo endereço IPv6 sejam reconhecidas como iguais. Havendo qualquer referência remanescente, a remoção é suprimida. A mesma guarda foi aplicada à etapa de remoção da operação de alteração.
+O custo é uma leitura por zona direta a cada remoção de reverso. Em instalações com muitas zonas isso multiplica as chamadas ao servidor autoritativo, e a otimização por um índice invertido de endereços permanece em aberto. A escolha de pagar esse custo decorre da assimetria discutida na seção 3.6.3: um reverso a mais é detectável e corrigível, enquanto um reverso removido indevidamente quebra serviços de imediato.
+4.5.3 Melhor esforço, tempo limite e operação em lote
+Cada rotina de reverso roda com contexto de tempo limite próprio de seis segundos, derivado do contexto da requisição, para que a lentidão do servidor autoritativo não trave a operação do operador na zona direta, conforme o RNF03. A falha é registrada no log da aplicação e a operação principal se completa.
+A rotina de reversos ausentes percorre os registros de endereço da zona direta, deriva o nome reverso de cada um, descarta as repetições pelo nome derivado, localiza a zona reversa correspondente e consulta quais desses nomes ainda não têm PTR. A criação em lote recebe a seleção do operador, filtra a lista pelos itens escolhidos e submete cada PTR em requisição própria. A primeira falha interrompe o processamento e devolve erro, preservando o que já foi gravado, de modo que a operação não é transacional sobre o conjunto selecionado. O estado parcial é convergente, porque a reexecução recalcula os ausentes a partir do estado corrente das zonas.
+A rotina de órfãos faz o caminho inverso. Ela monta o conjunto de todos os endereços presentes em registros A ou AAAA das zonas diretas, percorre os conjuntos PTR da zona reversa indicada, converte cada nome reverso de volta em endereço e relaciona os que não constam desse conjunto, com o nome, o endereço e o alvo atual. A remoção assistida opera sobre essa lista.
+4.6 TRILHA DE AUDITORIA
+4.6.1 Gravação assíncrona
+A gravação recebe quatro dados: a zona ou o recurso afetado, o endereço de correio eletrônico do autor, obtido do contexto da sessão, o código da ação e a descrição do efeito. O instante é gerado no momento da gravação, em formato de data e hora com fuso horário. Os códigos de ação são os doze do Quadro 9, estáveis para permitir agregação, e a descrição em texto livre serve à leitura humana.
+O controlador dispara a inserção em goroutine e responde ao cliente sem esperar a gravação, cujo erro é descartado. A operação auditada se completa mesmo quando o registro falha, e o operador não é avisado. A decisão prioriza a disponibilidade da operação sobre a completude da trilha, coerente com o RNF03, e se afasta da recomendação de Kent e Souppaya (2006) quanto à confiabilidade do registro. A consequência para o alcance das conclusões consta na seção 6.2, e a gravação com confirmação de escrita figura entre os trabalhos futuros.
+4.6.2 Consulta e filtragem
+A rota de consulta é restrita ao perfil administrativo. Ela aceita os parâmetros de página e de limite, com valores padrão de um e de dez e correção dos valores inválidos, converte a página em deslocamento e ordena os resultados pelo instante, do mais recente para o mais antigo. A resposta traz a página pedida e o total de documentos que satisfazem o filtro, o que permite à interface montar a paginação.
+O filtro recebe uma cadeia única e a aplica como expressão regular, sem diferenciar caixa, sobre quatro campos ao mesmo tempo: autor, código de ação, zona e descrição. A entrada do usuário passa por escape antes de compor a consulta, e os caracteres com significado especial em expressão regular são tratados como literais. Sem esse cuidado, uma cadeia de busca poderia alterar a semântica da consulta ou provocar avaliação custosa no banco.
+4.7 EMPACOTAMENTO E IMPLANTAÇÃO
+A imagem de execução é construída em três estágios. O primeiro instala as dependências do frontend com o Bun e gera a saída de produção do Nuxt. O segundo compila o serviço Go sem informações de depuração e sem vínculo a bibliotecas do sistema. O terceiro parte de uma imagem Debian com o Bun, copia a saída do Nuxt, o binário do Go e o executável do Caddy, e grava o arquivo de configuração do proxy e o script de entrada. Os dois primeiros estágios usam cache de dependências, o que reduz o tempo das reconstruções.
+O contêiner executa três processos sob um init mínimo, responsável por encaminhar sinais e recolher processos órfãos: o serviço Go, o servidor Nuxt e o Caddy. O script de entrada instala um tratador de sinais e encerra o grupo inteiro quando qualquer um dos três termina, o que evita que o contêiner continue no ar com uma das camadas fora de operação. A verificação de saúde consulta a rota de checagem do serviço Go através do proxy a cada trinta segundos, com período inicial de tolerância.
+A composição de serviços declara, além da aplicação, o MongoDB, o Redis, o armazenamento de objetos e um serviço auxiliar de inicialização que cria o compartimento de arquivos na primeira subida. A configuração vem de variáveis de ambiente, entre elas o endereço e a chave da interface do PowerDNS, o identificador do servidor autoritativo, as cadeias de conexão do MongoDB e do Redis, as credenciais do armazenamento de objetos e o endereço público da aplicação. O PowerDNS não integra a composição, porque o artefato pressupõe uma instância já em operação, conforme a delimitação da seção 1.5.
+5 AVALIAÇÃO E RESULTADOS
+Considerações Iniciais do Capítulo 5:
+Apresentar a execução rigorosa do plano de avaliação FEDS desenhado na seção 2.6. Demonstrar a eficácia e a eficiência do artefato confrontando métricas quantitativas e qualitativas coletadas perante os critérios de êxito pré-fixados no Quadro 3.
+5.1 DEMONSTRAÇÃO E CONFORMIDADE TÉCNICA (EPISÓDIOS E0 E E1)
+5.1.1 Rastreabilidade e Cobertura da Caracterização (Episódio E0)
+O que escrever: Análise da suficiência da matriz requisito-problema, comprovando que todas as classes elimináveis por construção do Quadro 1 foram cobertas pelo artefato.
+Citação interna anterior: Previsto no episódio E0 da §2.6.2 e no critério de êxito de QP1 no Quadro 3 (§2.6.4).
+5.1.2 Testes em Bancada de Laboratório e Casos de Teste Negativos (Episódio E1)
+O que escrever: Resultados dos testes automatizados tentando injetar dados malformados na interface (FQDN relativo, sintaxe MX/TXT quebrada, estouro de serial). Relato da taxa de bloqueio (esperado: 100%).
+Citação interna anterior: Vinculado ao episódio E1 da §2.6.2, atendendo ao marco de demonstração DSRM anunciado na §3.2 (Quadro 4, item 4).
+5.1.3 Verificação com Oráculos Externos Independentes (Zonemaster e PowerDNS)
+O que escrever: Execução de consultas diretas ao PowerDNS e varreduras com a suíte de casos de teste do Zonemaster sobre zonas configuradas pelo SanchezDNS, demonstrando ausência de novas reprovações.
+Citação interna anterior: Previsto como metodologia de oráculo externo na §2.5.7 e §2.6.2 (E1).
+5.1.4 Testes Negativos de Autorização e Isolamento de Escopo
+O que escrever: Ensaios simulando a tentativa de escrita de registros PTR em zonas reversas não autorizadas ao operador, comprovando que o artefato não replica a falha do Technitium (v15.5).
+Citação interna anterior: Mapeado na justificativa da QP3 na §2.5.3 e nos critérios do Quadro 3 (E1).
+5.2 EXPERIMENTO CONTROLADO COM OPERADORES (EPISÓDIO E2)
+5.2.1 Protocolo Experimental, Participantes e Amostra
+O que escrever: Perfil dos 12 participantes (profissionais/estudantes de redes), desenho intrassujeitos contrabalanceado e roteiro das seis tarefas operacionais padronizadas.
+Citação interna anterior: Especificado detalhadamente no episódio E2 da §2.6.2 e amparado na bibliografia de Sauro & Lewis (2016).
+5.2.2 Análise Comparativa da Taxa de Erros Operacionais
+O que escrever: Dados quantitativos da contagem de erros sintáticos e operacionais cometidos na edição manual (CLI/BIND) versus no SanchezDNS, categorizados pela taxonomia do Quadro 1. Aplicação de testes não paramétricos pareados (p < 0,05).
+Citação interna anterior: Métrica definida para QP4 no Quadro 3 (§2.6.4).
+5.2.3 Análise Comparativa do Tempo de Execução e Eficiência
+O que escrever: Comparação dos tempos medianos de conclusão de cada tarefa, analisando se o SanchezDNS reduz ou mantém o tempo de operação enquanto zera os erros.
+Citação interna anterior: Métrica de eficiência definida para QP4 no Quadro 3 (§2.6.4).
+5.3 ESTUDO DE CASO EM AMBIENTE REAL DE PRODUÇÃO (EPISÓDIO E3)
+5.3.1 Caracterização do Ambiente Organizacional e Zonas Avaliadas
+O que escrever: Descrição da organização parceira, parque de servidores PowerDNS e volumetria das zonas e registros em produção (dados pseudonimizados).
+Citação interna anterior: Metodologia de estudo de caso único incorporado de Yin (2018) definida na §2.6.3.
+5.3.2 Fase 1: Coleta da Linha de Base (Baseline de 4 Semanas)
+O que escrever: Indicadores operacionais do método anterior (chamados abertos por falhas de DNS, taxa de retrabalho em 72h, varredura inicial do Zonemaster e contagem de reversos órfãos).
+Citação interna anterior: Procedimento detalhado na §2.6.3 (Fase 1).
+5.3.3 Fase 2: Intervenção, Migração e Treinamento
+O que escrever: Registro do processo de implantação da plataforma, migração de permissões e horas de treinamento dispensadas aos operadores.
+Citação interna anterior: Detalhado na §2.6.3 (Fase 2).
+5.3.4 Fase 3: Observação Operacional (8 Semanas) e Triangulação de Dados
+O que escrever: Análise da convergência de evidências entre os logs da plataforma, chamados de TI, varreduras periódicas com Zonemaster e entrevistas com operadores.
+Citação interna anterior: Critério de triangulação de evidências de Yin (2018) estabelecido na §2.6.3.
+5.4 AVALIAÇÃO DE USABILIDADE PERCEBIDA (EPISÓDIO E4)
+5.4.1 Aplicação da Escala SUS (System Usability Scale)
+O que escrever: Coleta das respostas dos 10 itens do questionário SUS aplicados ao final de E2 e E3.
+Citação interna anterior: Previsto no episódio E4 da §2.6.2 e referenciado em Brooke (1996).
+5.4.2 Análise Psicométrica e Comparação com a Linha de Corte Industrial
+O que escrever: Cálculo do escore global consolidado (0 a 100), análise das subescalas de usabilidade e facilidade de aprendizado e enquadramento nas faixas adjetivas de Bangor, Kortum & Miller (2008) (esperado: SUS ≥ 68).
+Citação interna anterior: Critério de êxito estabelecido no Quadro 3 (§2.6.4).
+6 CONCLUSÕES
+Considerações Iniciais do Capítulo 6:
+Sintetizar o substrato teórico e prático da pesquisa, demonstrando como o ciclo DSRM e os resultados do Capítulo 5 responderam às questões QP principal e QP1 a QP4, além de conduzir um balanço crítico honesto das limitações do artefato e propor os trabalhos futuros.
+6.1 SÍNTESE DAS CONTRIBUIÇÕES E RESPOSTAS ÀS QUESTÕES DE PESQUISA
+6.1.1 Contribuição Prática: A Instanciação Funcional (Nível 1 em DSR)
+O que escrever: Resumo da entrega da plataforma SanchezDNS como artefato de software livre eficiente, seguro e desacoplado para ambientes com PowerDNS.
+Citação interna anterior: Enquadramento de contribuição estabelecido na §2.4.1 (Gregor & Hevner, 2013).
+6.1.2 Contribuição Teórica e Princípios de Design Emergentes (Nível 2 em DSR)
+O que escrever: Formalização dos princípios de design preventivo para interfaces operacionais de infraestruturas críticas (validação em tempo de entrada, automação de dados deriváveis com checagem de referência e RBAC por escopo).
+Citação interna anterior: Fundamentado em Gregor & Hevner (2013) na §2.4.1 e na síntese da §3.8.
+6.1.3 Resposta Consolidada às Questões de Pesquisa (QP, QP1, QP2, QP3 e QP4)
+O que escrever: Apresentar um parágrafo conclusivo e direto respondendo objetivamente a cada uma das questões formuladas na seção 1.3 com base nas evidências empíricas de E0 a E4.
+6.2 ANÁLISE CRÍTICA DAS LIMITAÇÕES DO ARTEFATO
+(Atenção: esta seção reúne exatamente todas as quatro concessões e trade-offs técnicos assumidos no Capítulo 3!)
+6.2.1 Afrouxamento do Menor Privilégio na Escrita Derivada em Zona Externa
+O que escrever: Discutir criticamente o fato de a automação do PTR gravar sob in-addr.arpa ou ip6.arpa usando credenciais de sistema, permitindo que a escrita atravesse fronteiras de escopo sem que o operador tenha permissão explícita na zona reversa.
+Citação interna anterior: MUITO IMPORTANTE! Prometido explicitamente na §3.4.5 e na síntese da §3.8.
+6.2.2 Semântica de Melhor Esforço e Riscos de Falha Silenciosa no Registro Derivado
+O que escrever: Avaliar o risco do RNF03 (a operação direta retornar HTTP 200 de sucesso enquanto a gravação do reverso sofre timeout ou falha), gerando divergência assíncrona imperceptível se o operador não auditar a ferramenta de triagem.
+Citação interna anterior: MUITO IMPORTANTE! Remetido na §3.6.4 e na §3.8.
+6.2.3 Auditoria Descritiva Assíncrona e Ausência de Registro Diferencial (Rollback)
+O que escrever: Explicar a limitação de a auditoria não armazenar o estado anterior/posterior (diff) do registro de recurso, permitindo atribuir responsabilidade histórica, mas impedindo rotinas automatizadas de desfazimento (undo/rollback), além do risco probabilístico do desacoplamento assíncrono em goroutines.
+Citação interna anterior: MUITO IMPORTANTE! Remetido na §3.7 e na §3.8.
+6.2.4 Ameaças Remanescentes à Validade da Pesquisa
+O que escrever: Retomar as fronteiras de validade externa (estudo circunscrito a uma única organização parceira e ao ecossistema PowerDNS).
+Citação interna anterior: Vinculado à análise de ameaças à validade da §2.6.4.
+6.3 TRABALHOS FUTUROS
+6.3.1 Auditoria Diferencial e Mecanismos Nativos de Rollback de Zonas
+O que escrever: Proposta de evolução para persistir instantâneos antes/depois do RRset, viabilizando reversão de registros corrompidos com um clique.
+Citação interna anterior: Sugerido no fechamento da §3.7.
+6.3.2 Persistência Síncrona e Garantias Transacionais entre Zonas Diretas e Reversas
+O que escrever: Modelagem de transações distribuídas (estilo protocolo two-phase commit ou saga) para garantir atomicidade real entre zonas diretas e reversas sem degradar o tempo de resposta.
+Citação interna anterior: Referenciado na discussão sobre semântica transacional do Knot DNS (§2.5.6) e §3.7.
+6.3.3 Extensão do Modelo para Múltiplos Backends Autoritativos (BIND 9 e Knot DNS)
+O que escrever: Criação de adaptadores abstratos para permitir que o plano de controle do SanchezDNS atue sobre motores BIND 9 e Knot via soquetes de controle ou arquivos dinâmicos.
+
 REFERÊNCIAS
-AKAMAI. Akamai summarizes service disruption (resolved). Akamai Blog, [s. l.], 22 jul. 2021. Disponível em: https://www.akamai.com/blog/news/akamai-summarizes-service-disruption-resolved. Acesso em: 14 set. 2026.
+AKAMAI. Akamai summarizes service disruption (resolved). Akamai Blog, [s. l.], 22 jul. 2021. Disponível em: https://www.akamai.com/blog/news/akamai-summarizes-service-disruption-resolved.
 
 AKIWATE, G. et al. Unresolved issues: prevalence, persistence, and perils of lame delegations. In: ACM INTERNET MEASUREMENT CONFERENCE, 2020, [s. l.]. Proceedings [...]. New York: ACM, 2020. DOI: 10.1145/3419394.3423623.
 
@@ -863,6 +1092,8 @@ DNSCONTROL. DNSControl. [S. l.], 2026. Disponível em: https://github.com/StackE
 
 EIDNES, H.; DE GROOT, G.; VIXIE, P. Classless IN-ADDR.ARPA delegation. RFC 2317. [S. l.]: IETF, 1998. Disponível em: https://www.rfc-editor.org/rfc/rfc2317.
 ELZ, R.; BUSH, R. Serial number arithmetic. RFC 1982. [S. l.]: IETF, 1996. Disponível em: https://www.rfc-editor.org/rfc/rfc1982.
+
+FIELDING, R.; NOTTINGHAM, M.; RESCHKE, J. HTTP semantics. RFC 9110. [S. l.]: IETF, 2022. Disponível em: https://www.rfc-editor.org/rfc/rfc9110.
 
 GREGOR, S.; HEVNER, A. R. Positioning and presenting design science research for maximum impact. MIS Quarterly, v. 37, n. 2, p. 337-355, 2013.
 
@@ -915,6 +1146,8 @@ POWERADMIN. Poweradmin. [S. l.], 2026. Disponível em: https://github.com/powera
 POWERDNS. PowerDNS Authoritative Server documentation. [S. l.], 2026. Disponível em: https://doc.powerdns.com/authoritative/.
 
 POWERDNS-ADMIN. PowerDNS-Admin. [S. l.], 2026. Disponível em: https://github.com/PowerDNS-Admin/PowerDNS-Admin.
+
+PROVOS, N.; MAZIÈRES, D. A future-adaptable password scheme. In: USENIX ANNUAL TECHNICAL CONFERENCE, 1999, Monterey. Proceedings [...]. Berkeley: USENIX Association, 1999. p. 81-91.
 
 REASON, J. Human error. Cambridge: Cambridge University Press, 1990.
 
