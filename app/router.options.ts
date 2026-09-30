@@ -21,7 +21,7 @@ export default {
         heading ??= document.querySelector(`[href$="${to.hash}"]`)
         if (!heading || !('offsetTop' in heading) || typeof heading.offsetTop !== 'number') return
         window.scrollTo({ top: heading.offsetTop, behavior: 'smooth' })
-      })
+      }, 0)
 
       return false
     }

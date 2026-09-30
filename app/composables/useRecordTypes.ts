@@ -59,16 +59,16 @@ const FALLBACK: RecordTypeMeta = {
   hint: '',
 }
 
+function typeMeta(type: string | undefined): RecordTypeMeta {
+  if (!type) return FALLBACK
+  return META[type] ?? FALLBACK
+}
+
 export function useRecordTypes(): {
   recordTypes: ComputedRef<string[]>
   typeMeta: (type: string | undefined) => RecordTypeMeta
 } {
   const recordTypes = computed(() => Object.keys(META))
-
-  function typeMeta(type: string | undefined): RecordTypeMeta {
-    if (!type) return FALLBACK
-    return META[type] ?? FALLBACK
-  }
 
   return { recordTypes, typeMeta }
 }
