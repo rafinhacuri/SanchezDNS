@@ -1,4 +1,4 @@
-FROM oven/bun:1-debian AS nuxt-builder
+FROM oven/bun:1.4.2-debian AS nuxt-builder
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates && \
@@ -17,7 +17,7 @@ COPY ./public ./public
 
 RUN bun run app:build
 
-FROM golang:1.26.4-bookworm AS go-builder
+FROM golang:1.27.1-bookworm AS go-builder
 
 WORKDIR /server
 
@@ -36,7 +36,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
       -o /server/api .
 
 
-FROM oven/bun:1-debian AS runner
+FROM oven/bun:1.4.2-debian AS runner
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates curl tini bash && \

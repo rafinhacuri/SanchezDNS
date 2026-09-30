@@ -16,7 +16,7 @@ Se colocássemos tudo isso na imagem final, ela carregaria dois toolchains intei
 ### Estágio 1 — `nuxt-builder` (compila o frontend)
 
 ```dockerfile
-FROM oven/bun:1-debian AS nuxt-builder
+FROM oven/bun:1.4.2-debian AS nuxt-builder
 ...
 COPY ./package.json ./bun.lock ./.npmrc ./nuxt.config.ts ./tsconfig.json ./
 RUN bun install --ci
@@ -32,7 +32,7 @@ Aqui o Bun instala as dependências e roda `nuxt build`, gerando a pasta `.outpu
 ### Estágio 2 — `go-builder` (compila o backend)
 
 ```dockerfile
-FROM golang:1.26.4-bookworm AS go-builder
+FROM golang:1.27.1-bookworm AS go-builder
 ...
 COPY ./api/go.mod ./api/go.sum ./
 RUN go mod download
@@ -51,7 +51,7 @@ Assim como no estágio do Nuxt, o `go.mod`/`go.sum` são baixados antes do códi
 ### Estágio 3 — `runner` (a imagem final que roda)
 
 ```dockerfile
-FROM oven/bun:1-debian AS runner
+FROM oven/bun:1.4.2-debian AS runner
 RUN apt-get install -y --no-install-recommends ca-certificates curl tini bash
 COPY --from=caddy:2-alpine /usr/bin/caddy /usr/bin/caddy
 COPY --from=nuxt-builder /main/.output ./.output

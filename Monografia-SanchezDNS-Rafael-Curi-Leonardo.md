@@ -47,22 +47,192 @@ Coordenação de Ciência da Computação
 Rio de Janeiro
 
 RESUMO
-O Sistema de Nomes de Domínio (Domain Name System – DNS) é uma infraestrutura crítica para o funcionamento da Internet. Sua especificação original priorizou a escalabilidade hierárquica e a redundância distribuída, delegando a integridade das zonas autoritativas à manutenção manual por operadores humanos. Estudos de medição em larga escala evidenciam que erros de configuração nessas zonas são recorrentes e comprometem a robustez, a latência e a disponibilidade dos serviços dependentes. Este trabalho apresenta o desenvolvimento e a avaliação do SanchezDNS, uma plataforma web que atua como camada de operação sobre a API REST do PowerDNS Authoritative Server, mantido como fonte única da verdade dos dados de zona. O artefato busca reduzir falhas humanas por meio de três mecanismos: (i) automação de registros deriváveis, como a criação e remoção de registros reversos (PTR) a partir de registros A e AAAA, a normalização de valores por tipo de registro, a delegação do incremento do serial SOA ao servidor autoritativo e a ativação automática de DNSSEC; (ii) controle de acesso combinando papéis globais e permissões de leitura e escrita atribuídas por zona; e (iii) trilha de auditoria centralizada das operações sobre zonas, registros e usuários. A pesquisa segue a metodologia Design Science Research (DSR), estruturada conforme o modelo de processo de Peffers et al. (2007), com avaliação conduzida segundo o Framework for Evaluation in Design Science (FEDS). A avaliação compara a operação pela plataforma com a edição manual quanto à taxa de erros de configuração e ao tempo de execução de alterações, e mede a usabilidade percebida por meio da System Usability Scale (SUS).
+O Sistema de Nomes de Domínio (Domain Name System – DNS) é uma infraestrutura crítica para o funcionamento da Internet. Sua especificação original priorizou a escalabilidade hierárquica e a redundância distribuída, delegando a integridade das zonas autoritativas à manutenção manual por operadores humanos. Estudos de medição em larga escala evidenciam que erros de configuração nessas zonas são recorrentes e comprometem a robustez, a latência e a disponibilidade dos serviços dependentes. Este trabalho apresenta o desenvolvimento e a avaliação do SanchezDNS, uma plataforma web que atua como camada de operação sobre a API REST do PowerDNS Authoritative Server, mantido como fonte única da verdade dos dados de zona. O artefato busca reduzir falhas humanas por meio de três mecanismos: (i) automação de registros deriváveis, como a criação e remoção de registros reversos (PTR) a partir de registros A e AAAA, a normalização de valores por tipo de registro, a delegação do incremento do serial SOA ao servidor autoritativo e a ativação automática de DNSSEC; (ii) controle de acesso combinando papéis globais e permissões de leitura e escrita atribuídas por zona; e (iii) trilha de auditoria centralizada das operações sobre zonas, registros e usuários. A pesquisa segue a metodologia Design Science Research (DSR), estruturada conforme o modelo de processo de Peffers et al. (2007), com avaliação conduzida segundo o Framework for Evaluation in Design Science (FEDS). A avaliação verifica, por casos de teste negativos e com o Zonemaster como oráculo independente, se os mecanismos impedem as classes de erro que se propõem a eliminar, compara as oportunidades de erro da operação pela plataforma com as da edição manual e demonstra o artefato implantado em ambiente real.
 
 Palavras-chave: DNS autoritativo; erro de configuração; PowerDNS; controle de acesso por zona; Design Science Research.
+ABSTRACT
+The Domain Name System (DNS) is a critical infrastructure for the operation of the Internet. Its original specification prioritized hierarchical scalability and distributed redundancy, leaving the integrity of authoritative zones to manual maintenance by human operators. Large-scale measurement studies show that configuration errors in these zones are recurrent and compromise the robustness, latency and availability of dependent services. This work presents the development and evaluation of SanchezDNS, a web platform that acts as an operation layer over the REST API of the PowerDNS Authoritative Server, which is kept as the single source of truth for zone data. The artifact seeks to reduce human error through three mechanisms: (i) automation of derivable records, such as the creation and removal of reverse (PTR) records from A and AAAA records, normalization of values by record type, delegation of SOA serial increments to the authoritative server and automatic activation of DNSSEC; (ii) access control combining global roles with read and write permissions assigned per zone; and (iii) a centralized audit trail of operations on zones, records and users. The research follows the Design Science Research (DSR) methodology, structured according to the process model of Peffers et al. (2007), with evaluation conducted under the Framework for Evaluation in Design Science (FEDS). The evaluation checks, through negative test cases with Zonemaster as an independent oracle, whether the mechanisms prevent the error classes they target, compares the error opportunities of operating through the platform with those of manual editing, and demonstrates the artifact deployed in a real environment.
 
+Keywords: authoritative DNS; misconfiguration; PowerDNS; per-zone access control; Design Science Research.
+LISTA DE ILUSTRAÇÕES
+Figura 1 – Hierarquia do espaço de nomes do DNS: raiz, domínios de topo, zonas e delegação ...................................................................................................................................................... 26
+Figura 2 – Sincronização de registros PTR: criação otimista e remoção conservadora .............. 69
+Figura 3 – Arquitetura da plataforma SanchezDNS e fluxo de uma requisição .......................... 74
+LISTA DE QUADROS
+Quadro 1 – Taxonomia de erros de configuração em zonas autoritativas, evidências, impactos e mecanismos de mitigação ............................................................................................................ 34
+Quadro 2 – Comparação entre ferramentas de gestão de zonas autoritativas .............................. 44
+Quadro 3 – Matriz de avaliação: questões, construtos, métricas, instrumentos e critérios de êxito ...................................................................................................................................................... 49
+Quadro 4 – Atividades do DSRM e sua realização nesta pesquisa .............................................. 52
+Quadro 5 – Requisitos funcionais e rastreabilidade com a taxonomia de erros .......................... 54
+Quadro 6 – Parâmetros do modelo de sessão e autenticação ....................................................... 58
+Quadro 7 – Matriz de autorização e controle de rotas por nível de acesso .................................. 61
+Quadro 8 – Regras de normalização sintática aplicadas no backend ........................................... 64
+Quadro 9 – Operações e códigos de ação registrados na trilha de auditoria ............................... 71
+Quadro 10 – Pilha tecnológica da plataforma .............................................................................. 75
+Quadro 11 – Rotas do PowerDNS consumidas pela plataforma ................................................. 77
+LISTA DE ABREVIATURAS E SIGLAS
+ACL Access Control List
+AFNIC Association Française pour le Nommage Internet en Coopération
+API Application Programming Interface
+AWS Amazon Web Services
+AXFR Authoritative Zone Transfer
+BGP Border Gateway Protocol
+BIND Berkeley Internet Name Domain
+CAA Certification Authority Authorization
+ccTLD Country Code Top-Level Domain
+CLI Command-Line Interface
+CNAME Canonical Name
+CSS Cascading Style Sheets
+DANE DNS-based Authentication of Named Entities
+DKIM DomainKeys Identified Mail
+DNS Domain Name System
+DNSKEY DNS Public Key
+DNSSEC Domain Name System Security Extensions
+DS Delegation Signer
+DSR Design Science Research
+DSRM Design Science Research Methodology
+ECDSA Elliptic Curve Digital Signature Algorithm
+FEDS Framework for Evaluation in Design Science
+FQDN Fully Qualified Domain Name
+HTTP Hypertext Transfer Protocol
+HTTPS Hypertext Transfer Protocol Secure
+IaC Infrastructure as Code
+IAM Identity and Access Management
+IEEE Institute of Electrical and Electronics Engineers
+IP Internet Protocol
+IPAM IP Address Management
+IPv4 Internet Protocol version 4
+IPv6 Internet Protocol version 6
+ISC Internet Systems Consortium
+IXFR Incremental Zone Transfer
+JSON JavaScript Object Notation
+JWT JSON Web Token
+KSK Key Signing Key
+LDAP Lightweight Directory Access Protocol
+MX Mail Exchanger
+NIST National Institute of Standards and Technology
+NREN National Research and Education Network
+NS Name Server
+NSEC3 Next Secure, versão 3
+NSEC3PARAM NSEC3 Parameters
+PTR Pointer Record
+QP Questão de Pesquisa
+RBAC Role-Based Access Control
+RDATA Resource Data
+REST Representational State Transfer
+RF Requisito Funcional
+RFC Request for Comments
+RIPE Réseaux IP Européens
+RNF Requisito Não Funcional
+RR Resource Record
+RRSIG Resource Record Signature
+RSA Rivest-Shamir-Adleman
+S3 Simple Storage Service
+SID Session Identifier
+SMTP Simple Mail Transfer Protocol
+SO Sistema Operacional
+SOA Start of Authority
+SPF Sender Policy Framework
+SRV Service Record
+SUS System Usability Scale
+TI Tecnologia da Informação
+TLS Transport Layer Security
+TLSA TLS Authentication Record
+TTL Time to Live
+TXT Text Record
+UI User Interface
+ZSK Zone Signing Key
 SUMÁRIO
-// todo: ajeitar sumário no final para cada página
-1 INTRODUÇÃO .................................................................................. 1
-1.1 Contextualização e Problematização do Domínio ......................................... 1
-1.2 Defasagens do Mercado e Brechas das Soluções Existentes ............................... 4
-1.3 Problema de Pesquisa e Questões Norteadoras ........................................... 6
-1.4 Objetivos do Trabalho ................................................................. 8
-1.4.1 Objetivo Geral .................................................................. 8
-1.4.2 Objetivos Específicos ........................................................... 8
-1.5 Delimitação do Escopo ................................................................. 9
-1.6 Estrutura da Monografia .............................................................. 10
-
+1 INTRODUÇÃO .............................................................................................................. 15
+1.1 CONTEXTUALIZAÇÃO E PROBLEMATIZAÇÃO DO DOMÍNIO ............................ 15
+1.2 DEFASAGENS DO MERCADO E BRECHAS DAS SOLUÇÕES EXISTENTES ...... 18
+1.3 PROBLEMA DE PESQUISA E QUESTÕES NORTEADORAS .................................. 19
+1.4 OBJETIVOS DO TRABALHO ....................................................................................... 21
+1.4.1 Objetivo Geral .................................................................................................................. 21
+1.4.2 Objetivos Específicos ....................................................................................................... 21
+1.5 DELIMITAÇÃO DO ESCOPO ....................................................................................... 22
+1.6 ESTRUTURA DA MONOGRAFIA ............................................................................... 23
+2 FUNDAMENTAÇÃO TEÓRICA E TRABALHOS CORRELATOS ....................... 24
+2.1 ARQUITETURA DO SISTEMA DE NOMES DE DOMÍNIO ...................................... 25
+2.1.1 Espaço de nomes, zonas e delegação ............................................................................... 25
+2.1.2 Registros de recurso ......................................................................................................... 26
+2.1.3 O registro SOA e a replicação de zonas ........................................................................... 27
+2.1.4 Resolução reversa ............................................................................................................ 28
+2.1.5 Extensões de segurança (DNSSEC) ................................................................................ 28
+2.1.6 O PowerDNS Authoritative Server .................................................................................. 29
+2.2 ERROS DE CONFIGURAÇÃO EM ZONAS AUTORITATIVAS ................................. 30
+2.2.1 O erro humano na operação de infraestrutura .................................................................. 30
+2.2.2 Estudos empíricos de medição ......................................................................................... 30
+2.2.3 Impactos operacionais e de segurança ............................................................................. 32
+2.2.4 Síntese: taxonomia de erros, evidências e mecanismos de mitigação ............................. 33
+2.3 CONTROLE DE ACESSO E AUDITORIA ................................................................... 35
+2.4 DESIGN SCIENCE RESEARCH ................................................................................... 36
+2.4.1 Fundamentos metodológicos ........................................................................................... 36
+2.4.2 Processo DSRM ............................................................................................................... 37
+2.4.3 Avaliação: Framework FEDS e Escala SUS .................................................................... 37
+2.5 TRABALHOS CORRELATOS ....................................................................................... 38
+2.5.1 BIND 9 e manipulação direta de arquivos ....................................................................... 38
+2.5.2 Interfaces web de software livre (PowerDNS-Admin) .................................................... 38
+2.5.3 Technitium DNS Server ................................................................................................... 39
+2.5.4 Microsoft DNS Server e o console DNS Manager .......................................................... 40
+2.5.5 NetBox DNS e a abordagem de fonte externa da verdade .............................................. 41
+2.5.6 Knot DNS e as interfaces de controle programáticas ...................................................... 41
+2.5.7 Zonemaster e a validação independente de delegações ................................................... 42
+2.5.8 DNS como código (IaC) e plataformas em nuvem .......................................................... 43
+2.5.9 Quadro comparativo e delimitação da contribuição ........................................................ 43
+2.6 ESTRATÉGIA DE AVALIAÇÃO DO ARTEFATO ........................................................ 45
+2.6.1 Escolha da estratégia de avaliação ................................................................................... 46
+2.6.2 Episódios de avaliação ..................................................................................................... 46
+2.6.3 Implantação em ambiente real ......................................................................................... 48
+2.6.4 Matriz de avaliação, ameaças à validade e limitações ..................................................... 49
+2.7 CONSIDERAÇÕES DO CAPÍTULO ............................................................................. 51
+3 METODOLOGIA E MODELAGEM DO ARTEFATO ............................................. 51
+3.1 CLASSIFICAÇÃO DA PESQUISA ................................................................................ 52
+3.2 APLICAÇÃO DO MODELO DSRM .............................................................................. 52
+3.3 REQUISITOS .................................................................................................................. 54
+3.4 AUTENTICAÇÃO E CONTROLE DE ACESSO .......................................................... 57
+3.4.1 Autenticação e ciclo de vida da sessão ............................................................................ 57
+3.4.2 Cadastro, aprovação e inicialização ................................................................................. 59
+3.4.3 Estrutura das permissões .................................................................................................. 59
+3.4.4 Aplicação nas rotas .......................................................................................................... 60
+3.4.5 Escrita derivada em zona de outro escopo ....................................................................... 63
+3.5 NORMALIZAÇÃO SINTÁTICA .................................................................................... 63
+3.5.1 Estratégia ......................................................................................................................... 63
+3.5.2 Regras por tipo ................................................................................................................. 64
+3.5.3 Devolução do valor normalizado ..................................................................................... 66
+3.6 SINCRONIZAÇÃO DE ZONAS REVERSAS ............................................................... 66
+3.6.1 Derivação do nome e da zona .......................................................................................... 66
+3.6.2 Criação e alteração ........................................................................................................... 67
+3.6.3 Guarda de referência ........................................................................................................ 67
+3.6.4 Semântica de melhor esforço ........................................................................................... 70
+3.7 AUDITORIA ................................................................................................................... 70
+3.8 SÍNTESE ......................................................................................................................... 72
+4 DESENVOLVIMENTO DA PLATAFORMA SANCHEZDNS ................................ 73
+4.1 ARQUITETURA GERAL E PILHA TECNOLÓGICA ................................................. 73
+4.1.1 Arquitetura desacoplada .................................................................................................. 73
+4.1.2 Escolhas de linguagem e de biblioteca ............................................................................ 74
+4.1.3 Persistência híbrida .......................................................................................................... 76
+4.2 INTEGRAÇÃO COM O POWERDNS AUTHORITATIVE SERVER .......................... 76
+4.2.1 Cliente e autenticação da interface de programação ........................................................ 76
+4.2.2 Criação de zona e delegação do serial ............................................................................. 78
+4.2.3 Assinatura e verificação da cadeia de confiança .............................................................. 78
+4.3 AUTENTICAÇÃO E CONTROLE DE ACESSO .......................................................... 79
+4.3.1 Ciclo de vida da sessão e derivação da senha .................................................................. 79
+4.3.2 Middlewares de sessão e de administração ...................................................................... 79
+4.3.3 Resolução da permissão por zona .................................................................................... 80
+4.4 NORMALIZAÇÃO E INTERFACE PREVENTIVA ...................................................... 80
+4.4.1 Decomposição dos tipos compostos na interface ............................................................ 80
+4.4.2 Normalização no backend ................................................................................................ 81
+4.4.3 Segundo retorno do ciclo: exibir o valor publicado ......................................................... 81
+4.5 SINCRONIZAÇÃO DO CICLO DE VIDA DOS REGISTROS REVERSOS ............... 82
+4.5.1 Derivação do nome e escolha da zona ............................................................................. 82
+4.5.2 Primeiro retorno do ciclo: guarda de referência na remoção ........................................... 82
+4.5.3 Melhor esforço, tempo limite e operação em lote ........................................................... 83
+4.6 TRILHA DE AUDITORIA ............................................................................................. 83
+4.6.1 Gravação assíncrona ........................................................................................................ 83
+4.6.2 Consulta e filtragem ......................................................................................................... 84
+4.7 EMPACOTAMENTO E IMPLANTAÇÃO ..................................................................... 84
+REFERÊNCIAS ......................................................................................................................... 90
 1 INTRODUÇÃO
 Esta introdução apresenta o contexto, as justificativas e a formulação metodológica do SanchezDNS. O objetivo é investigar e propor diretrizes para reduzir falhas operacionais em servidores de nomes autoritativos, usando uma interface que abstrai a sintaxe das zonas, permissões atribuídas por zona e automação da validação e da sincronização de registros.
 1.1 CONTEXTUALIZAÇÃO E PROBLEMATIZAÇÃO DO DOMÍNIO
@@ -87,13 +257,13 @@ Vários dos mecanismos pretendidos já existem em ferramentas maduras. O que fal
 1.3 PROBLEMA DE PESQUISA E QUESTÕES NORTEADORAS
 Com base nas seções anteriores, o problema de pesquisa pode ser enunciado assim: a operação de zonas DNS autoritativas depende de tarefas manuais, repetitivas e mutuamente dependentes cuja correção não é verificada no instante da edição, de modo que deslizes de execução e enganos de planejamento são publicados e propagados aos resolvedores antes de qualquer oportunidade de detecção, e permanecem ativos mesmo após a correção da origem. A literatura considera o erro humano inevitável (REASON, 1990; NORMAN, 2013). O problema, portanto, é a falta de um meio de operação que torne esse erro impossível nas classes em que isso é tecnicamente viável.
 Desse enunciado deriva a questão de pesquisa principal:
-QP. Em que medida uma camada web de operação sobre um servidor autoritativo, que automatize registros deriváveis, restrinja privilégios ao nível da zona e registre integralmente as alterações efetuadas, reduz a incidência de erros de configuração e o esforço de operação em comparação com a edição manual assistida por linha de comando?
+QP. Em que medida uma camada web de operação sobre um servidor autoritativo, que automatize registros deriváveis, restrinja privilégios ao nível da zona e registre integralmente as alterações efetuadas, reduz as oportunidades de erro de configuração e o esforço de operação em comparação com a edição manual assistida por linha de comando?
 A questão principal reúne asserções de naturezas distintas: algumas podem ser verificadas por argumentação técnica, outras dependem de evidência empírica com operadores humanos. Por isso, ela se desdobra em quatro questões secundárias, cada uma vinculada a objetivos específicos (seção 1.4.2) e a episódios do desenho de avaliação (seção 2.6.2):
 QP1. Caracterização. Quais classes de erro de configuração em zonas autoritativas são recorrentes, quais são seus impactos documentados e quais delas podem ser eliminadas por construção (isto é, tornadas impossíveis pelo próprio meio de edição), em oposição às que só admitem detecção posterior?
 QP2. Mecanismos. Que mecanismos de projeto (automação de dados deriváveis, normalização sintática por tipo de registro, delegação do incremento do serial ao motor autoritativo e provisionamento de DNSSEC no fluxo de criação da zona) são necessários e suficientes para eliminar as classes identificadas em QP1? E que novos riscos esses mecanismos introduzem na operação ao automatizar decisões antes tomadas pelo operador?
 QP3. Autoridade e automação. Que modelo de controle de acesso concilia a granularidade por zona com a automação de registros que ficam em zona distinta daquela que o operador edita? É o caso do registro PTR, derivado de um registro A ou AAAA na zona direta, mas gravado na zona reversa, muitas vezes sob responsabilidade administrativa de outra equipe.
-QP4. Efeito observado. A operação mediada pela plataforma produz redução observável na taxa de erros de configuração e no tempo de execução de tarefas típicas de administração de zonas, e a solução é percebida como utilizável por operadores em contexto real de produção?
-Essa divisão define o desenho metodológico. As questões QP1 a QP3 são respondidas por revisão sistemática da literatura, argumentação de projeto e verificação técnica feita com oráculos independentes do artefato. A QP4 exige evidência obtida com operadores humanos em tarefas reais, e por isso a avaliação descrita na seção 2.6 combina episódios de laboratório com um estudo de caso em ambiente de produção. Ter a plataforma funcionando é pré-requisito para responder a qualquer uma das questões, mas isso sozinho não mostra que os problemas enunciados foram mitigados.
+QP4. Efeito observado. Nas tarefas típicas de administração de zonas, a operação mediada pela plataforma retira do operador as oportunidades de erro e os passos manuais que a edição manual exige, e o artefato funciona como especificado quando implantado sobre um servidor autoritativo em operação?
+Essa divisão define o desenho metodológico. As questões QP1 a QP3 são respondidas por revisão sistemática da literatura, argumentação de projeto e verificação técnica feita com oráculos independentes do artefato. A QP4 exige evidência obtida com o artefato em uso, e por isso a avaliação descrita na seção 2.6 combina episódios de laboratório com uma implantação em ambiente real. Ter a plataforma funcionando é pré-requisito para responder a qualquer uma das questões, mas isso sozinho não mostra que os problemas enunciados foram mitigados.
 1.4 OBJETIVOS DO TRABALHO
 1.4.1 Objetivo Geral
 Projetar, implementar e avaliar um artefato de software, denominado SanchezDNS, fundamentado no paradigma Design Science Research (DSR), que atue como camada de mediação sobre o PowerDNS Authoritative Server e reduza a ocorrência de inconsistências operacionais por meio de automação e sincronização de registros reversos, validação estrutural de entrada, controle de acesso híbrido com permissões por zona e registro de eventos em trilha de auditoria centralizada.
@@ -105,7 +275,7 @@ Automatizar o provisionamento inicial de segurança criptográfica em zonas gere
 Implementar o artefato sob arquitetura desacoplada, dividindo o frontend reativo do backend intermediador e mantendo a API REST do PowerDNS Authoritative Server como fonte exclusiva da verdade para os dados de zona. (QP2)
 Estruturar um modelo híbrido de controle de acesso que conjugue o perfil administrativo global à concessão isolada de privilégios de leitura e de escrita no nível individual de cada zona. (QP3)
 Registrar em trilha de auditoria centralizada as operações de criação, alteração e remoção de zonas, registros e usuários, com identificação do autor e do instante de execução de cada alteração. (QP4)
-Avaliar a eficácia da plataforma segundo o framework FEDS, mensurando a redução na taxa de erros sintáticos, a variação no tempo de execução de alterações operacionais e o índice de usabilidade percebida mediante a aplicação da escala SUS (System Usability Scale). (QP4)
+Avaliar a plataforma segundo o framework FEDS, verificando por casos de teste negativos e oráculo independente se os mecanismos impedem as classes de erro elimináveis, comparando as oportunidades de erro da operação pela plataforma com as da edição manual e demonstrando o artefato implantado em ambiente real. (QP2, QP3, QP4)
 1.5 DELIMITAÇÃO DO ESCOPO
 Integram o escopo desta pesquisa a operação de zonas autoritativas diretas e reversas mantidas em instâncias do PowerDNS Authoritative Server acessíveis por sua API REST; a automação de registros deriváveis dessas zonas; o controle de acesso de operadores no nível da zona; e o registro de auditoria das operações realizadas pela plataforma.
 Permanecem expressamente fora do escopo:
@@ -114,13 +284,13 @@ a resiliência da infraestrutura a ataques de negação de serviço, o dimension
 a interação com registrários e com a zona pai, incluindo a publicação do registro DS e a manutenção da consistência entre os conjuntos de NS pai e filho, operações conduzidas por interfaces de terceiros; a plataforma limita-se a exibir ao operador os dados necessários e a sinalizar divergências detectadas;
 a substituição de ferramentas de infraestrutura como código, cujo público e cujo modelo operacional são distintos, conforme discutido na seção 2.5.8;
 a implementação de um motor DNS próprio, uma vez que o artefato pressupõe e preserva o servidor autoritativo como fonte única da verdade.
-No plano da avaliação, delimitam-se igualmente a população de participantes do experimento controlado, restrita a profissionais e estudantes com experiência declarada em administração de redes, e o ambiente do estudo de caso, circunscrito a uma única organização. As consequências dessas delimitações sobre a validade externa dos resultados são discutidas na seção 2.6.4.
+No plano da avaliação, fica fora do escopo a medição com operadores: os episódios ocorrem em laboratório e em uma implantação real. As consequências dessa delimitação sobre a validade externa dos resultados são discutidas na seção 2.6.4.
 1.6 ESTRUTURA DA MONOGRAFIA
 Esta monografia está organizada nos seguintes capítulos:
 Capítulo 2. Fundamentação Teórica e Trabalhos Correlatos: Revisa a arquitetura do protocolo DNS, os estudos empíricos sobre inconsistências de configuração em zonas autoritativas e a fundamentação epistemológica em Design Science Research. Estabelece, ainda, a estratégia de avaliação do artefato, com os episódios, as métricas e os critérios de êxito definidos previamente à construção.
 Capítulo 3. Metodologia e Modelagem do Artefato: Detalha as fases do método DSRM empregadas na condução da pesquisa, o levantamento de requisitos do SanchezDNS, a modelagem de autenticação e de controle de acesso, as diretrizes de normalização sintática, as estratégias de automação do ciclo de vida de registros e a modelagem da trilha de auditoria.
 Capítulo 4. Desenvolvimento da Plataforma SanchezDNS: Apresenta os aspectos de engenharia e implementação do protótipo, evidenciando as decisões de arquitetura de software, a integração com o PowerDNS e os algoritmos de tratamento de zonas reversas e auditoria.
-Capítulo 5. Avaliação e Resultados: Documenta a execução experimental sob as diretrizes do framework FEDS, expondo os dados coletados relativos à mitigação de erros sintáticos, tempo de execução de tarefas e os escores obtidos na escala SUS. Os dados são analisados à luz dos critérios de êxito fixados no Quadro 3.
+Capítulo 5. Avaliação e Resultados: Documenta a execução dos episódios de avaliação sob as diretrizes do framework FEDS: os casos de teste negativos verificados pelo Zonemaster, a comparação com a operação manual e a implantação em ambiente real. Os dados são analisados à luz dos critérios de êxito fixados no Quadro 3.
 Capítulo 6. Conclusões: Sintetiza as contribuições práticas e teóricas alcançadas, discute as limitações atuais da ferramenta e do artefato, e propõe diretrizes para investigações futuras.
 
 2 FUNDAMENTAÇÃO TEÓRICA E TRABALHOS CORRELATOS
@@ -129,11 +299,12 @@ Este capítulo reúne a base conceitual necessária à fundamentação e à aval
 2.1 ARQUITETURA DO SISTEMA DE NOMES DE DOMÍNIO
 2.1.1 Espaço de nomes, zonas e delegação
 O DNS organiza os nomes sob uma árvore hierárquica invertida cuja raiz é representada por um rótulo vazio. O nome de domínio plenamente qualificado (Fully Qualified Domain Name – FQDN) é definido pela sequência de rótulos de um nó até a raiz, separados por pontos (MOCKAPETRIS, 1987a). Na representação textual, o ponto final explicita a raiz; sua omissão faz com que o nome seja interpretado como relativo a uma origem, detalhe sintático que constitui fonte frequente de erros operacionais (BARR, 1996).
-A administração do espaço de nomes é distribuída por meio de zonas, que são porções contíguas da árvore sob uma mesma autoridade administrativa. A autoridade sobre uma subárvore é repassada por delegação, materializada pela inserção, na zona pai, de registros NS que apontam para os servidores da zona filha. Quando esses servidores pertencem ao próprio domínio delegado, a zona pai precisa conter registros de endereço auxiliares (glue records) para evitar dependências circulares na resolução (MOCKAPETRIS, 1987a).
+A administração do espaço de nomes é distribuída por meio de zonas, que são porções contíguas da árvore sob uma mesma autoridade administrativa. A autoridade sobre uma subárvore é repassada por delegação, materializada pela inserção, na zona pai, de registros NS que apontam para os servidores da zona filha. Quando esses servidores pertencem ao próprio domínio delegado, a zona pai precisa conter registros de endereço auxiliares (glue records) para evitar dependências circulares na resolução (MOCKAPETRIS, 1987a). A Figura 1 representa essa hierarquia, com a raiz, os domínios de topo e a delegação de uma zona filha.
 A infraestrutura do protocolo baseia-se em dois papéis funcionais fundamentais:
 Servidores autoritativos: armazenam as definições originais das zonas e respondem às consultas com autoridade sobre os dados.
 Resolvedores recursivos: consultam a hierarquia a partir da raiz em nome das aplicações clientes e retêm as respostas em cache pelo intervalo estipulado no Time to Live (TTL) de cada registro (MOCKAPETRIS, 1987a).
 Devido ao cache nos resolvedores, qualquer erro publicado em zona autoritativa propaga-se e permanece ativo até a expiração do TTL, mesmo após ter sido corrigido no servidor de origem, a exemplo do incidente com o ccTLD sueco (.se) documentado por Pingdom (2009).
+Figura 1 – Hierarquia do espaço de nomes do DNS: raiz, domínios de topo, zonas e delegação
 
 2.1.2 Registros de recurso
 Os dados de uma zona são estruturados como registros de recurso (Resource Records – RR), compostos por nome, tipo, classe, TTL e dados específicos do tipo (RDATA) (MOCKAPETRIS, 1987b). O SanchezDNS oferece suporte a múltiplos tipos de registro:
@@ -249,7 +420,7 @@ Impossibilidade de análise forense e de atribuição de responsabilidade
 Trilha de auditoria centralizada com ação, instante, autor e recurso afetado
 QP4
 
-Fonte: elaborado, a partir das referências indicadas na coluna de evidências.
+Fonte: elaborado pelo autor a partir das referências indicadas na coluna de evidências.
 Das dez classes relacionadas, seis podem ser eliminadas por construção em uma camada de operação sobre o servidor autoritativo: divergência A/PTR, serial não incrementado, erro sintático no RDATA, registros reversos órfãos, DNSSEC incompleto no ato da criação e privilégio excessivo. Nelas, a interface consegue impedir que o estado incorreto seja produzido. Duas classes, delegação defeituosa e inconsistência entre pai e filho, dependem de ação em sistemas de terceiros e admitem no máximo detecção e sinalização. A atualização dinâmica não autenticada é eliminada pela própria arquitetura, já que não existe canal de escrita sem autenticação. A classe restante, ausência de rastreabilidade, não é propriamente um erro de configuração; ela entra na taxonomia porque impede o diagnóstico das demais. A seção 2.6 usa essa classificação para definir os critérios de êxito do artefato.
 2.3 CONTROLE DE ACESSO E AUDITORIA
 Em sistemas multiusuário, a integridade operacional depende do princípio do menor privilégio (Least Privilege), formalizado por Saltzer e Schroeder (1975): cada sujeito deve ter apenas as permissões necessárias para sua função, o que limita o alcance de acidentes e de condutas inadequadas. Em zonas DNS, isso significa restringir cada operador aos domínios pelos quais ele responde formalmente.
@@ -272,7 +443,7 @@ Comunicação: formalização textual dos achados e publicação acadêmica.
 A verificação do artefato segue o Framework for Evaluation in Design Science (FEDS), proposto por Venable, Pries-Heje e Baskerville (2016). O arcabouço orienta a concepção dos episódios de teste combinando duas variáveis:
 Propósito funcional: formativo (orientado a realimentar o design e refinar funcionalidades) ou somativo (voltado a aferir o cumprimento global dos objetivos propostos).
 Ambiente de teste: artificial (ensaios sintéticos em bancada de laboratório) ou naturalístico (avaliação de campo com operadores em contexto operacional autêntico).
-Para medir a usabilidade percebida, adota-se a System Usability Scale (SUS) (BROOKE, 1996). Com dez afirmações avaliadas em escala Likert de 5 pontos, a SUS produz uma pontuação de 0 a 100, interpretada segundo as faixas de Bangor, Kortum e Miller (2008), que permitem comparar a ferramenta com os valores relatados para outros sistemas.
+Para medir a usabilidade percebida, a literatura emprega a System Usability Scale (SUS) (BROOKE, 1996). Com dez afirmações avaliadas em escala Likert de 5 pontos, a SUS produz uma pontuação de 0 a 100, interpretada segundo as faixas de Bangor, Kortum e Miller (2008). Neste trabalho a SUS não é aplicada, porque depende de um grupo de operadores (seção 2.6.1); ela fica indicada como instrumento da avaliação com usuários proposta como trabalho futuro.
 2.5 TRABALHOS CORRELATOS
 Esta seção compara as principais estratégias de gestão de zonas autoritativas, com base nas documentações oficiais e nos históricos de versão consultados em setembro de 2026. A ordem vai da edição direta de arquivos às ferramentas com mais automação, passa pela validação independente e termina em um quadro comparativo que mostra a lacuna tratada pelo artefato.
 2.5.1 BIND 9 e manipulação direta de arquivos
@@ -376,34 +547,29 @@ Sim
 
 Fonte: elaborado a partir das documentações oficiais e dos históricos de versão consultados em setembro de 2026.
 Nenhum dos recursos do SanchezDNS é inédito isoladamente. A criação automática de registros reversos existe no Technitium desde 2020 e no produto da Microsoft há mais de duas décadas; o controle de acesso por zona está presente no Technitium, no Microsoft DNS e, de forma parcial, no PowerDNS-Admin; a trilha de auditoria é oferecida pelo Poweradmin com registro do estado anterior e posterior dos registros (POWERADMIN, 2026); a validação prévia à publicação é central nas ferramentas de infraestrutura como código; e a verificação formal da qualidade da delegação é o objeto do Zonemaster. Não há, portanto, ineditismo funcional.
-A contribuição do trabalho está em outro lugar. Primeiro, na combinação, em uma única camada desacoplada e aplicável a infraestruturas locais já padronizadas sobre o PowerDNS, de mecanismos hoje espalhados por ferramentas que não podem ser adotadas ao mesmo tempo, porque competem pelo papel de servidor autoritativo ou de fonte da verdade. Depois, no tratamento do ciclo de vida completo do registro reverso: entre as ferramentas examinadas que criam o PTR automaticamente, nenhuma remove o reverso quando o registro de origem é excluído ou oferece triagem de reversos órfãos. Essa lacuna aparece na coluna correspondente do Quadro 2, e os achados de Liu, Hao e Wang (2016) mostram por que ela importa. Por fim, há a avaliação empírica desses mecanismos, com desenho definido antes da construção do artefato, taxonomia de erros definida a priori, oráculo de medição independente e estudo de caso em ambiente real. A documentação das ferramentas comparadas descreve funcionalidades, mas raramente mede seu efeito sobre a incidência de erros. Nos termos de Gregor e Hevner (2013), o trabalho se situa no quadrante de melhoria (improvement), com contribuições nos níveis 1 e 2 de abstração.
+A contribuição do trabalho está em outro lugar. Primeiro, na combinação, em uma única camada desacoplada e aplicável a infraestruturas locais já padronizadas sobre o PowerDNS, de mecanismos hoje espalhados por ferramentas que não podem ser adotadas ao mesmo tempo, porque competem pelo papel de servidor autoritativo ou de fonte da verdade. Depois, no tratamento do ciclo de vida completo do registro reverso sobre o próprio servidor autoritativo. Entre as ferramentas examinadas, só o NetBox DNS e as de DNS como código removem o reverso junto com o registro de origem, e as duas o fazem a partir de uma fonte da verdade externa ao servidor, o que admite a divergência entre inventário e servidor discutida na seção 2.5.5. Entre as que operam diretamente sobre o servidor autoritativo, nenhuma condiciona a remoção do reverso à verificação de que o endereço deixou de ser referenciado por outro nome, nem oferece triagem dos reversos órfãos já existentes. Essa lacuna aparece nas colunas correspondentes do Quadro 2, e os achados de Liu, Hao e Wang (2016) mostram por que ela importa. Por fim, há a avaliação desses mecanismos, com taxonomia de erros definida antes dos testes, oráculo de medição independente e implantação em ambiente real. A documentação das ferramentas comparadas descreve funcionalidades, mas raramente verifica se elas impedem os erros que se propõem a evitar. Nos termos de Gregor e Hevner (2013), o trabalho se situa no quadrante de melhoria (improvement), com contribuições nos níveis 1 e 2 de abstração.
 2.6 ESTRATÉGIA DE AVALIAÇÃO DO ARTEFATO
-A seção 2.4.3 apresentou o FEDS e a escala SUS. Esta seção define como esses instrumentos serão aplicados para sustentar ou refutar a afirmação de que o SanchezDNS mitiga os problemas caracterizados na seção 2.2. Definir o desenho de avaliação antes de construir o artefato impede que os critérios de êxito sejam ajustados aos resultados obtidos, prática que compromete a validade das conclusões, e permite incorporar ao artefato, desde o início, a instrumentação necessária à coleta de dados.
+A seção 2.4.3 apresentou o FEDS. Esta seção define como ele é aplicado para sustentar ou refutar a afirmação de que o SanchezDNS mitiga os problemas caracterizados na seção 2.2. Os episódios, as métricas e os critérios de êxito foram fixados antes da execução de cada episódio, o que impede que os critérios sejam ajustados aos resultados obtidos.
 2.6.1 Escolha da estratégia de avaliação
-Venable, Pries-Heje e Baskerville (2016) propõem quatro estratégias de avaliação, cuja seleção decorre da natureza do risco dominante no projeto e do custo relativo dos episódios: Quick and Dirty, apropriada quando riscos técnicos e sociais são baixos; Technical Risk and Efficacy, quando o risco predominante é a viabilidade técnica; Human Risk and Effectiveness, quando o risco predominante é o de que o artefato, ainda que tecnicamente correto, não produza o efeito pretendido em uso real; e Purely Technical Artifact, quando não há usuários humanos envolvidos.
-Neste trabalho o risco técnico é baixo, já que o artefato é uma camada de mediação sobre uma API REST documentada e estável, sem componentes algorítmicos de resultado incerto. O risco dominante é humano e organizacional: os mecanismos podem funcionar conforme especificado e ainda assim não reduzir a incidência de erros, porque os operadores os contornam, os desativam, passam a confiar demais na automação ou porque o erro migra para etapas não cobertas pela plataforma. Adota-se, por isso, a estratégia Human Risk and Effectiveness, com episódios formativos e artificiais nas etapas iniciais e passagem relativamente rápida para episódios naturalísticos e somativos com usuários reais, de modo a testar cedo as hipóteses de projeto no uso efetivo.
+Venable, Pries-Heje e Baskerville (2016) propõem quatro estratégias de avaliação, cuja seleção decorre da natureza do risco dominante no projeto e do custo relativo dos episódios: Quick & Simple, apropriada quando riscos técnicos e sociais são baixos; Technical Risk and Efficacy, quando o risco predominante é a viabilidade técnica; Human Risk and Effectiveness, quando o risco predominante é o de que o artefato, ainda que tecnicamente correto, não produza o efeito pretendido em uso real; e Purely Technical Artifact, quando não há usuários humanos envolvidos.
+O risco que mais pesa neste trabalho é o de os mecanismos não se comportarem como especificado. A automação do reverso opera sobre duas zonas, a normalização decide pelo operador e a escrita derivada atravessa a fronteira de permissão por zona; um defeito em qualquer um desses pontos produz justamente a classe de erro que o mecanismo deveria eliminar. Adota-se, por isso, a estratégia Technical Risk and Efficacy, com episódios artificiais e um episódio final em ambiente real.
+A estratégia Human Risk and Effectiveness exigiria um grupo de operadores e uma organização disposta a submeter sua infraestrutura de produção a um período de observação, recursos que não estão ao alcance de um trabalho de conclusão de curso. A consequência é que a avaliação mostra se os mecanismos impedem os erros quando exercitados, mas não mede se operadores reais passam a cometer menos erros ao usá-los. Essa distinção delimita o alcance das conclusões sobre a QP4 e é retomada na seção 2.6.4.
 2.6.2 Episódios de avaliação
-O desenho compreende quatro episódios, precedidos pela caracterização documental que responde a QP1. A numeração é empregada de forma consistente no Quadro 3 e nos capítulos subsequentes.
-E0. Caracterização documental (formativo, artificial). Consiste na construção da taxonomia apresentada no Quadro 1 e na matriz de rastreabilidade que associa cada requisito do artefato a uma classe de erro documentada na literatura. O episódio responde a QP1 e estabelece o critério de suficiência do escopo: um requisito sem classe de erro associada é candidato à remoção, e uma classe eliminável sem requisito associado indica lacuna de projeto.
-E1. Conformidade técnica (formativo, artificial). Executado sobre instância de laboratório composta pelo artefato, por uma instância do PowerDNS e por um ambiente de delegação de teste. Para cada classe de erro eliminável do Quadro 1, constrói-se ao menos um caso de teste negativo que tenta reproduzir o erro pela interface e pela API do artefato; o caso é aprovado quando o erro é impedido ou corrigido automaticamente, e reprovado quando é aceito e publicado. Incluem-se testes de autorização negativos que verificam especificamente o caminho de automação do registro reverso, endereçando a questão QP3 e a classe de falha documentada no incidente descrito na seção 2.5.3. O estado resultante de cada zona é verificado por dois oráculos independentes do artefato: consulta direta ao servidor autoritativo, comparada ao estado esperado, e execução do Zonemaster sobre a zona publicada, registrando-se as reprovações por categoria de caso de teste. O uso de oráculo externo é intencional. Avaliar o artefato apenas pelas validações que ele mesmo implementa seria um raciocínio circular, incapaz de detectar justamente os erros que o projetista não previu.
-E2. Experimento controlado com operadores (somativo, artificial). Desenho intrassujeitos, com contrabalanceamento da ordem dos tratamentos para neutralizar o efeito de aprendizagem. Cada participante executa dois conjuntos equivalentes de tarefas, um sob edição manual assistida por linha de comando e outro sob o SanchezDNS. As tarefas são: criação de zona com ativação de DNSSEC; inclusão de registro de host com o reverso correspondente; alteração do endereço de um host já publicado; remoção de um host e de seu reverso; inclusão de registros MX e TXT com sintaxe específica; e correção de um conjunto de registros NS. As variáveis dependentes são a taxa de tarefas concluídas com a zona em estado correto, o número de erros por tarefa classificados segundo o Quadro 1, o tempo até a conclusão e o número de tentativas. A análise emprega testes não paramétricos para amostras pareadas, com nível de significância de 0,05 e relato do tamanho de efeito. Sauro e Lewis (2016) indicam que amostras de dez a doze participantes em desenho pareado são suficientes para detectar efeitos de grande magnitude em métricas de desempenho; adota-se doze participantes como meta, reconhecendo-se a limitação de poder estatístico para efeitos pequenos, explicitada na seção 2.6.4.
-E3. Estudo de caso em ambiente de produção (somativo, naturalístico). Constitui o episódio decisivo para a questão QP4 e é detalhado na seção 2.6.3.
-E4. Usabilidade percebida (somativo). Aplicação da System Usability Scale ao término de cada tratamento em E2 e ao encerramento do período de observação em E3, com interpretação segundo as faixas estabelecidas por Bangor, Kortum e Miller (2008) e decomposição nas subescalas de usabilidade e de facilidade de aprendizado. O escore é tratado como medida de percepção, não de desempenho, e sua interpretação depende dos resultados objetivos dos demais episódios.
-2.6.3 O estudo de caso em ambiente de produção
-O episódio E3 busca demonstrar o efeito do artefato em condições reais de operação, fora do ambiente controlado. Adota-se o estudo de caso único e incorporado (single embedded case), nos termos de Yin (2018), em uma organização que mantenha zonas autoritativas em produção sobre o PowerDNS Authoritative Server. A unidade de análise é a operação de alterações em zonas ao longo do período de observação; as unidades incorporadas são as zonas individuais e os operadores que atuam sobre elas. O estudo de caso foi preferido a um quase-experimento de campo porque não é viável manter dois grupos de operadores atuando ao mesmo tempo sobre a mesma infraestrutura com procedimentos diferentes.
-O desenho compreende três fases:
-Fase 1. Linha de base (quatro semanas). Registro das alterações conduzidas pelo procedimento vigente na organização, com coleta dos indicadores definidos adiante, sem qualquer intervenção. Realiza-se, ao início da fase, uma varredura completa das zonas sob gestão com o Zonemaster e um inventário de registros reversos órfãos, estabelecendo o estado inicial.
-Fase 2. Intervenção. Implantação do artefato, migração das credenciais e das permissões, e treinamento dos operadores, com registro do tempo despendido nessas atividades, que integra o custo de adoção.
-Fase 3. Observação (oito semanas). Operação das zonas exclusivamente pela plataforma, com coleta dos mesmos indicadores da Fase 1 e varreduras semanais com o Zonemaster.
-Em atendimento ao princípio da triangulação de fontes de evidência (YIN, 2018), os dados provêm de quatro origens independentes: a trilha de auditoria do artefato, que fornece autoria, instante e conteúdo de cada alteração; os registros do sistema de chamados da organização, que permitem identificar retrabalho e incidentes atribuíveis a configuração; as varreduras periódicas com o Zonemaster, que medem a qualidade objetiva das zonas publicadas independentemente do que a plataforma reporta; e entrevistas semiestruturadas de encerramento com os operadores, que captam contornos, dificuldades e percepções não observáveis nos registros. A convergência entre fontes é condição para a aceitação de cada achado; quando as fontes divergem, a divergência é relatada no trabalho.
-Os indicadores coletados em ambas as fases são:
-número de alterações publicadas e número de alterações que exigiram correção subsequente em até setenta e duas horas, adotado como indicador operacional de erro;
-número de incidentes registrados no sistema de chamados cuja causa raiz seja atribuída a erro de configuração de DNS;
-número de casos de teste do Zonemaster reprovados por categoria, ao início da Fase 1 e ao término da Fase 3;
-proporção de registros A e AAAA sem o registro PTR correspondente e número de registros reversos órfãos, medidos nos mesmos dois instantes;
-tempo mediano decorrido entre a solicitação da alteração e sua publicação efetiva;
-proporção de alterações rastreáveis a um autor identificado.
-Reconhece-se que o estudo de caso único não autoriza generalização estatística para uma população de organizações. A inferência pretendida é de natureza analítica (YIN, 2018): o caso é confrontado com a proposição teórica de que a eliminação por construção de determinadas classes de erro reduz sua incidência em operação real, e o resultado corrobora ou refuta essa proposição, sem pretender estimar a magnitude do efeito em outros contextos. Prevê-se, ademais, um plano de contingência: caso não se obtenha acesso a uma organização disposta a submeter sua infraestrutura de produção ao estudo dentro do cronograma da pesquisa, a Fase 3 será conduzida no ambiente de homologação de uma organização parceira, com zonas reais porém sem tráfego de usuários finais, registrando-se explicitamente a consequente redução de validade externa e a impossibilidade de medir incidentes percebidos por terceiros.
+O desenho compreende cinco episódios. A numeração é empregada de forma consistente no Quadro 3 e nos capítulos subsequentes.
+E0. Caracterização documental (formativo, artificial). Consiste na construção da taxonomia apresentada no Quadro 1 e na matriz de rastreabilidade do Quadro 5, que associa cada requisito do artefato a uma classe de erro documentada na literatura. O episódio responde à QP1 e estabelece o critério de suficiência do escopo: um requisito sem classe de erro associada é candidato à remoção, e uma classe eliminável sem requisito associado indica lacuna de projeto.
+E1. Avaliação durante a construção (formativo, artificial). Corresponde aos ciclos de construir e avaliar percorridos ao longo do desenvolvimento, de outubro de 2025 a setembro de 2026, registrados no histórico de versões do repositório. A cada ciclo, as funcionalidades novas foram exercitadas sobre uma instância de laboratório do PowerDNS, com conferência do estado resultante das zonas. O episódio não produz medida quantitativa; seu produto são os retornos da avaliação ao projeto, que alteraram requisitos e estão documentados no Capítulo 4.
+E2. Conformidade técnica (somativo, artificial). Executado sobre instância de laboratório composta pelo artefato, por uma instância do PowerDNS e por zonas de teste. Para cada classe de erro eliminável do Quadro 1, constrói-se ao menos um caso de teste negativo que tenta reproduzir o erro pela interface e pela API do artefato; o caso é aprovado quando o erro é impedido ou corrigido automaticamente, e reprovado quando é aceito e publicado. Incluem-se testes de autorização negativos no caminho de automação do registro reverso, que endereçam a QP3 e a classe de falha do incidente descrito na seção 2.5.3. O estado resultante de cada zona é verificado por dois oráculos independentes do artefato: a consulta direta ao servidor autoritativo, comparada ao estado esperado, e a execução do Zonemaster, com registro das reprovações por categoria de caso de teste. Como referência, as mesmas classes de erro são introduzidas de propósito em zonas editadas diretamente no PowerDNS, sem a plataforma, e submetidas ao mesmo oráculo. O uso de oráculo externo é intencional: avaliar o artefato apenas pelas validações que ele mesmo implementa seria um raciocínio circular, incapaz de detectar justamente os erros que o projetista não previu.
+E3. Comparação com a operação manual (somativo, artificial). Seis tarefas típicas de administração de zonas são executadas de duas formas, pela linha de comando do PowerDNS e pela plataforma: criação de zona com ativação de DNSSEC; inclusão de registro de host com o reverso correspondente; alteração do endereço de um host já publicado; remoção de um host e de seu reverso; inclusão de registros MX e TXT com sintaxe específica; e correção de um conjunto de registros NS. Para cada tarefa, registram-se o número de passos que o operador precisa executar, o número de valores que precisa digitar em formato específico e as classes de erro do Quadro 1 que continuam possíveis. A medida é analítica: indica onde a plataforma retira do operador oportunidades de erro, mas não a frequência com que operadores reais errariam em cada caso.
+E4. Implantação em ambiente real (somativo, naturalístico). Detalhado na seção 2.6.3.
+2.6.3 Implantação em ambiente real
+O episódio E4 verifica se o artefato funciona fora do laboratório, sobre um servidor autoritativo em operação. A plataforma é implantada a partir da imagem de contêiner publicada e da composição de serviços descrita na seção 4.7, seguindo a documentação do projeto, escrita com VitePress no diretório docs do repositório, e conectada a uma instância do PowerDNS Authoritative Server em uso.
+O episódio tem dois objetivos. O primeiro é mostrar que o artefato pode ser posto em operação apenas com a documentação e a imagem publicada, sem compilação a partir do código-fonte, condição para que a contribuição seja utilizável além deste trabalho. O segundo é observar os mecanismos sobre zonas que não foram preparadas para o teste, nas quais aparecem situações que o laboratório não reproduz, como registros criados fora da plataforma e reversos que já estavam órfãos antes da implantação.
+São coletados:
+os passos necessários para implantar a plataforma a partir da documentação;
+o resultado do Zonemaster sobre as zonas sob gestão, no início e ao fim do período de operação;
+o número de registros A e AAAA sem PTR correspondente e de reversos órfãos apontados pelas rotinas de triagem, nos mesmos dois instantes;
+a proporção das alterações feitas pela plataforma que constam da trilha de auditoria com autor, instante e recurso.
+O episódio não envolve uma equipe de operadores. Ele mostra que o artefato funciona em ambiente real e que os mecanismos se comportam como especificado sobre dados que não foram preparados para o teste. Não constitui, porém, um estudo de caso no sentido de Yin (2018), que exigiria uma organização, uma equipe de operadores e um período de observação comparado a uma linha de base.
 2.6.4 Matriz de avaliação, ameaças à validade e limitações
 O Quadro 3 relaciona questões de pesquisa, construtos, métricas, instrumentos, episódios e critérios de êxito, de modo que cada questão formulada na seção 1.3 tenha um critério verificável e uma fonte de dados definida previamente.
 Quadro 3 – Matriz de avaliação: questões, construtos, métricas, instrumentos e critérios de êxito
@@ -422,62 +588,53 @@ Todas as dez classes classificadas; toda classe eliminável possui mecanismo e c
 QP2
 Eficácia técnica dos mecanismos
 Percentual de tentativas de produzir cada erro que são impedidas ou corrigidas automaticamente pelo artefato
-Suíte de casos de teste negativos; consulta direta ao servidor; Zonemaster
-E1
+Casos de teste negativos; consulta direta ao servidor; Zonemaster
+E2
 100% das tentativas nas classes elimináveis impedidas; nenhuma reprovação nova no Zonemaster após operações pelo artefato
 QP2
 Riscos introduzidos pela automação
-Número de efeitos colaterais não intencionais observados (registros criados ou removidos fora da intenção declarada)
-Diferencial do estado da zona antes e depois de cada operação
-E1
-Zero efeitos colaterais não declarados na interface antes da confirmação
+Número de efeitos colaterais não intencionais (registros criados ou removidos fora da intenção declarada)
+Diferença do estado da zona antes e depois de cada operação
+E1, E2
+Zero efeitos colaterais não declarados; cada risco identificado registrado com sua mitigação
 QP3
-Isolamento de privilégio
-Número de operações que produzem escrita em zona sobre a qual o autor não detém permissão
-Testes de autorização negativos, inclusive no caminho de automação do PTR
-E1
-Zero. A automação do reverso deve falhar de modo explícito, e não silencioso, quando faltar permissão na zona reversa
-QP4
-Eficácia operacional
-Taxa de tarefas concluídas com a zona em estado correto; número de erros por tarefa, classificados pelo Quadro 1
-Experimento controlado intrassujeitos; oráculo de verificação de E1
+Contenção da escrita derivada
+Escritas em zona reversa sem permissão do operador fora das condições da seção 3.4.5
+Testes de autorização negativos no caminho de automação do PTR
 E2
+Zero sobrescritas de PTR existente; zero escritas em faixa sem zona reversa provisionada; operador sem permissão não lista nem edita a zona reversa
+QP4
+Redução das oportunidades de erro
+Passos, valores em formato específico e classes do Quadro 1 ainda possíveis, por tarefa
+Execução das seis tarefas pela linha de comando e pela plataforma
 E3
-Redução da taxa de erro em relação ao tratamento manual, com significância estatística (p < 0,05) e tamanho de efeito reportado
+Nenhuma tarefa com mais passos ou valores formatados na plataforma; classes elimináveis impossíveis na plataforma
 QP4
-Eficiência
-Tempo mediano até a conclusão correta de cada tarefa; número de tentativas
-Cronometragem no experimento; carimbos temporais da trilha de auditoria
-E2
-E3
-Tempo não superior ao do tratamento manual; qualquer aumento deve ser justificado pela redução de erros
-QP4
-Usabilidade percebida
-Escore SUS (0 a 100) e escala adjetiva correspondente
-Questionário SUS aplicado ao final de cada tratamento
-E2
+Funcionamento em ambiente real
+Implantação a partir da documentação; reprovações do Zonemaster e reversos ausentes ou órfãos no início e no fim da operação
+Documentação do projeto; Zonemaster; rotinas de triagem
 E4
-Escore igual ou superior a 68, situando-se acima da média das aplicações relatadas na literatura
+Implantação concluída só com a documentação; nenhuma reprovação nova atribuível ao artefato; reversos ausentes e órfãos não aumentam
 QP4
 Rastreabilidade
-Proporção das alterações publicadas no período de observação que possuem autor, instante e recurso registrados
-Trilha de auditoria confrontada com o histórico de alterações do servidor
-E3
-100% das alterações efetuadas pela plataforma; divergências em relação ao servidor investigadas e reportadas
+Proporção das alterações feitas pela plataforma com autor, instante e recurso registrados
+Trilha de auditoria confrontada com o estado do servidor
+E2, E4
+100% das alterações efetuadas pela plataforma
 
-As ameaças à validade do desenho proposto são classificadas a seguir segundo as categorias de Wohlin et al. (2012).
-Validade interna. No experimento E2, o efeito de aprendizagem e a ordem de apresentação dos tratamentos podem ser confundidos com o efeito da plataforma, ameaça mitigada pelo contrabalanceamento e pelo uso de conjuntos de tarefas equivalentes, porém não idênticos. No estudo de caso E3, a comparação entre fases sucessivas é vulnerável à maturação dos operadores, à variação sazonal da carga de trabalho e ao efeito Hawthorne, decorrente da consciência de estarem sendo observados; mitiga-se parcialmente pela extensão do período de observação e pelo uso de indicadores objetivos coletados automaticamente. Registra-se, ainda, que o pesquisador é também o desenvolvedor do artefato, configurando risco de viés do experimentador; adotam-se como contramedidas o roteiro padronizado de condução, a coleta automatizada das medidas, a verificação por oráculo externo e a classificação dos erros segundo taxonomia definida antes da coleta.
-Validade de construto. O construto "erro de configuração" é operacionalizado pela taxonomia do Quadro 1 e pelos casos de teste do Zonemaster, recorte que não captura erros semânticos: para esses instrumentos, um registro sintaticamente válido que aponta para o endereço errado é indistinguível de um registro correto. Essa limitação é intrínseca à abordagem e deve ser explicitada no relato dos resultados. Do mesmo modo, a escala SUS mede usabilidade percebida, não desempenho; por isso, escores elevados não constituem evidência de redução de erros nem a substituem.
-Validade externa. A amostra de participantes de E2 é de conveniência, e o estudo de caso E3 restringe-se a uma organização, a um servidor autoritativo específico e a zonas de porte moderado. Os resultados não se estendem a operadores de domínios de topo, a infraestruturas com dezenas de milhares de zonas ou a servidores autoritativos diversos do PowerDNS.
-Validade de conclusão. O tamanho amostral previsto para E2 confere poder estatístico adequado apenas à detecção de efeitos de grande magnitude; efeitos pequenos, ainda que reais, provavelmente não alcançarão significância. Adotam-se testes não paramétricos, em razão da distribuição esperada das medidas de tempo, e reportam-se tamanhos de efeito e intervalos de confiança em vez de valores-p isolados. Comparações múltiplas entre as seis tarefas são tratadas como exploratórias, com a devida ressalva no relato.
-Ameaça específica de comparabilidade dos tratamentos. O contraste entre o SanchezDNS e a edição manual por linha de comando mistura dois fatores: os mecanismos de prevenção propostos e a modalidade de interface, gráfica em um caso e textual no outro. Parte do efeito observado pode vir da modalidade de interface, e essa é a principal fragilidade do desenho. Para isolá-la, prevê-se um terceiro tratamento sempre que a disponibilidade dos participantes permitir: um painel web sem os mecanismos propostos (o PowerDNS-Admin em sua configuração padrão, com a automação de PTR desativada). A diferença entre esse tratamento e o artefato isola o efeito dos mecanismos, e a diferença entre ele e a linha de comando isola o efeito da modalidade. Se o terceiro tratamento não for viável, a limitação é declarada e as conclusões são restringidas de acordo.
-Quanto aos aspectos éticos, a participação em E2 e em E3 é voluntária e precedida de termo de consentimento livre e esclarecido, deixando claro que o objeto de avaliação é a ferramenta, e não o desempenho individual do participante. Os dados são anonimizados na coleta, e nenhum registro que identifique operadores é retido após a consolidação dos resultados. No estudo de caso, nomes de domínio, endereços e demais dados de produção da organização são pseudonimizados no relato, preservando-se apenas as propriedades estruturais relevantes à análise. A submissão do protocolo ao comitê de ética em pesquisa segue as exigências aplicáveis da instituição.
+Fonte: elaborado pelo autor (2026).
+As ameaças à validade do desenho são classificadas a seguir segundo as categorias de Wohlin et al. (2012).
+Validade interna. A avaliação do artefato por quem o desenvolveu configura risco de viés do experimentador: os casos de teste podem refletir, sem intenção, apenas os erros que o projetista já previu. As contramedidas são a derivação dos casos de teste a partir da taxonomia do Quadro 1, fixada antes da execução, e a verificação do estado das zonas por oráculo externo ao artefato.
+Validade de construto. O construto "erro de configuração" é operacionalizado pela taxonomia do Quadro 1 e pelos casos de teste do Zonemaster, recorte que não captura erros semânticos: para esses instrumentos, um registro sintaticamente válido que aponta para o endereço errado é indistinguível de um registro correto. Da mesma forma, o E3 mede oportunidades de erro, e não erros cometidos: uma tarefa com menos passos oferece menos ocasiões de deslize, mas a avaliação não observa quantos deslizes operadores reais cometeriam.
+Validade externa. Todos os episódios usam um único servidor autoritativo, o PowerDNS, e zonas de porte moderado, e nenhum deles envolve uma equipe de operadores. Os resultados não se estendem a operadores de domínios de topo, a infraestruturas com dezenas de milhares de zonas, a servidores autoritativos diversos do PowerDNS nem ao comportamento de equipes de operadores.
+Validade de conclusão. Os episódios não envolvem amostras nem testes estatísticos. As conclusões são técnicas e analíticas: o artefato impede, ou não, cada classe de erro exercitada, e retira, ou não, passos e valores que a operação manual exige.
+A principal limitação do desenho é a ausência de avaliação com operadores. Um experimento controlado com participantes e um estudo de caso em organização real, que mediriam a taxa de erro e a usabilidade percebida pela System Usability Scale, ficam como trabalho futuro e são retomados no Capítulo 6. Como nenhum episódio envolve participantes, não há coleta de dados pessoais; nomes de domínio e endereços das zonas do E4 são pseudonimizados no relato.
 2.7 CONSIDERAÇÕES DO CAPÍTULO
-Este capítulo apresentou a fundamentação conceitual do SanchezDNS. Revisou o modelo operacional do DNS e os componentes manipulados pelo artefato; mostrou, com estudos empíricos que cobrem duas décadas de medições, que os erros de configuração em zonas autoritativas continuam frequentes, e os organizou em uma taxonomia de dez classes associadas a evidências, impactos e mecanismos de mitigação; apresentou os fundamentos de controle de acesso e auditoria e o método Design Science Research; e examinou os trabalhos correlatos, concluindo, a partir do quadro comparativo, que a contribuição do artefato está na combinação de mecanismos hoje dispersos, no tratamento do ciclo de vida completo dos registros reversos e na avaliação empírica de seus efeitos. Também definiu a estratégia de avaliação, com episódios, métricas, critérios de êxito fixados antes da construção e as ameaças à validade. O Capítulo 3 detalha a metodologia da pesquisa e o modelo de engenharia do artefato, derivando os requisitos das classes de erro do Quadro 1.
+Este capítulo apresentou a fundamentação conceitual do SanchezDNS. Revisou o modelo operacional do DNS e os componentes manipulados pelo artefato; mostrou, com estudos empíricos que cobrem duas décadas de medições, que os erros de configuração em zonas autoritativas continuam frequentes, e os organizou em uma taxonomia de dez classes associadas a evidências, impactos e mecanismos de mitigação; apresentou os fundamentos de controle de acesso e auditoria e o método Design Science Research; e examinou os trabalhos correlatos, concluindo, a partir do quadro comparativo, que a contribuição do artefato está na combinação de mecanismos hoje dispersos, no tratamento do ciclo de vida completo dos registros reversos e na avaliação empírica de seus efeitos. Também definiu a estratégia de avaliação, com episódios, métricas, critérios de êxito fixados antes da execução e as ameaças à validade. O Capítulo 3 detalha a metodologia da pesquisa e o modelo de engenharia do artefato, derivando os requisitos das classes de erro do Quadro 1.
 3 METODOLOGIA E MODELAGEM DO ARTEFATO
 Este capítulo apresenta a metodologia aplicada ao desenvolvimento do SanchezDNS e a modelagem técnica de seus componentes. A condução do projeto adota o método Design Science Research (DSRM) de Peffers et al. (2007), derivando os requisitos das falhas operacionais levantadas no Capítulo 2. Em seguida, especificam-se os cinco modelos que orientam a implementação: autenticação e sessão, controle de acesso, normalização sintática de registros, sincronização de zonas reversas e auditoria de eventos.
 3.1 CLASSIFICAÇÃO DA PESQUISA
-A pesquisa é aplicada quanto à natureza, descritiva e prescritiva quanto aos objetivos, e combina uma abordagem qualitativa (revisão da literatura e análise de soluções existentes) com uma abordagem quantitativa na mensuração da taxa de erros, do tempo de execução de tarefas e do escore de usabilidade.
+A pesquisa é aplicada quanto à natureza, descritiva e prescritiva quanto aos objetivos, e combina uma abordagem qualitativa (revisão da literatura e análise de soluções existentes) com uma abordagem quantitativa na contagem dos casos de teste aprovados, das reprovações do Zonemaster e dos passos exigidos por tarefa.
 O delineamento é o da Design Science Research. March e Smith (1995) distinguem as ciências naturais, que explicam fenômenos existentes, das ciências do artificial, que constroem e avaliam artefatos. Hevner et al. (2004) sistematizam essa distinção em sete diretrizes, das quais três condicionam o desenho deste trabalho: produzir um artefato viável, responder a um problema documentado e demonstrar utilidade por método de avaliação rigoroso.
 As falhas de configuração em DNS são documentadas pela literatura de medição há mais de duas décadas; o que falta é uma ferramenta que as impeça no momento da edição. Trata-se, portanto, de um problema de projeto. Na classificação de Gregor e Hevner (2013), a contribuição fica no quadrante de melhoria: solução nova para problema conhecido. Os mecanismos isolados já existem em ferramentas maduras, e a contribuição está em integrá-los em um único fluxo e medir o efeito dessa integração sobre a taxa de erro.
 3.2 APLICAÇÃO DO MODELO DSRM
@@ -500,8 +657,8 @@ Seção
    Execução de tarefas de administração em bancada de laboratório, com conferência por oráculo externo independente
    5.1
 5. Avaliação
-   Ensaios formativos e somativos sob o framework FEDS; medição de erros, tempos de execução e escore SUS
-   2.6; 5.2
+   Episódios formativos e somativos sob o framework FEDS; casos de teste negativos com oráculo externo, comparação com a operação manual e implantação em ambiente real
+   2.6; Capítulo 5
 6. Comunicação
    Formalização da monografia; disponibilização do código-fonte e documentação técnica sob licença livre
    Capítulo 6
@@ -792,8 +949,10 @@ A ordem é importante. Como a criação vem antes da remoção, uma falha na seg
 3.6.3 Guarda de referência
 A remoção é a operação que exige mais cautela, e foi a que motivou o primeiro retorno de iteração da seção 3.2. A formulação direta do RF08 (apagar o PTR ao apagar o registro A) falha sempre que mais de um nome aponta para o mesmo IP, caso corriqueiro em servidores com vários serviços. A remoção de um dos nomes apagaria o reverso ainda referenciado pelos demais, transformando uma limpeza na própria divergência A/PTR que o requisito combate.
 O backend aplica, por isso, uma guarda de referência antes de qualquer remoção de PTR: percorre todas as zonas diretas do servidor, ignorando as terminadas em in-addr.arpa e ip6.arpa, e verifica se algum RRset A ou AAAA ainda contém o endereço. Havendo referência, a remoção é suprimida. A mesma guarda roda na etapa de remoção da alteração descrita acima.
-Daí decorre uma assimetria entre criação e remoção, adotada como regra de projeto. A criação é otimista e ocorre a menos que exista uma decisão anterior em contrário; a remoção é conservadora e só ocorre se nenhuma referência restar. A razão é a diferença de custo entre os dois erros. Um reverso a mais é detectado pela triagem de órfãos, não quebra a resolução e pode ser corrigido a qualquer momento. Um reverso removido indevidamente quebra serviços na hora e só é detectado com verificação ativa. A automação foi, por isso, enviesada na direção do erro mais barato.
+Daí decorre uma assimetria entre criação e remoção, adotada como regra de projeto. A criação é otimista e ocorre a menos que exista uma decisão anterior em contrário; a remoção é conservadora e só ocorre se nenhuma referência restar. A razão é a diferença de custo entre os dois erros. Um reverso a mais é detectado pela triagem de órfãos, não quebra a resolução e pode ser corrigido a qualquer momento. Um reverso removido indevidamente quebra serviços na hora e só é detectado com verificação ativa. A automação foi, por isso, enviesada na direção do erro mais barato. A Figura 2 resume os dois fluxos.
+Figura 2 – Sincronização de registros PTR: criação otimista e remoção conservadora
 
+Fonte: elaborado pelo autor (2026).
 3.6.4 Semântica de melhor esforço
 As rotinas de reverso operam sob o RNF03: a falha da escrita derivada não aborta a operação principal. Cada uma roda com contexto de tempo limite próprio de seis segundos, para que a lentidão do servidor autoritativo não trave a requisição do operador.
 Essa decisão introduz um risco que faz parte da resposta à segunda parte da QP2. O operador recebe HTTP 200 e a mensagem de sucesso, mas a escrita derivada pode não ter ocorrido. O resultado é a divergência A/PTR que o RF06 pretende eliminar, agravada pelo fato de o operador ter motivos para acreditar que ela não existe. Nesse caso, a automação apenas transfere a classe de erro do esquecimento do operador para uma falha silenciosa do sistema, que é ainda mais difícil de detectar.
@@ -846,8 +1005,10 @@ Este capítulo documenta a construção do SanchezDNS a partir dos modelos do Ca
 4.1.1 Arquitetura desacoplada
 A plataforma tem três camadas com responsabilidades separadas. A camada de apresentação é uma aplicação Nuxt que roda no navegador e em um servidor próprio, executado pelo Bun. O intermediário é um serviço HTTP escrito em Go, que autentica o operador, decide a autorização e traduz cada pedido em chamadas à interface de programação do servidor autoritativo. A camada de dados é o PowerDNS Authoritative Server, único detentor dos dados de zona.
 Um proxy reverso Caddy recebe as requisições na porta 80 e separa os dois destinos: o prefixo /go vai para o serviço Go na porta 8080 e todo o restante vai para o servidor Nuxt na porta 3000. O navegador conversa com uma única origem, o que dispensa a configuração de compartilhamento de recursos entre origens e permite emitir o cookie de sessão para o mesmo domínio que serve a interface.
-A separação atende ao RNF01 e ao RNF02. O RNF01 aparece na ausência de qualquer cópia local dos registros: o serviço Go não guarda zonas nem registros, e cada tela lê os dados do PowerDNS no momento em que é montada. O RNF02 aparece na assimetria entre as duas camadas. O frontend tem um middleware de rota que esconde páginas conforme o perfil do usuário, mas essa verificação só orienta a navegação. Quem autoriza é o serviço Go, a cada requisição, e uma chamada feita fora da interface passa pela mesma checagem.
+A separação atende ao RNF01 e ao RNF02. O RNF01 aparece na ausência de qualquer cópia local dos registros: o serviço Go não guarda zonas nem registros, e cada tela lê os dados do PowerDNS no momento em que é montada. O RNF02 aparece na assimetria entre as duas camadas. O frontend tem um middleware de rota que esconde páginas conforme o perfil do usuário, mas essa verificação só orienta a navegação. Quem autoriza é o serviço Go, a cada requisição, e uma chamada feita fora da interface passa pela mesma checagem. A Figura 3 mostra as três camadas e o caminho de uma requisição.
+Figura 3 – Arquitetura da plataforma SanchezDNS e fluxo de uma requisição
 
+Fonte: elaborado pelo autor (2026).
 4.1.2 Escolhas de linguagem e de biblioteca
 O backend usa Go com o framework Gin. Três propriedades da linguagem pesaram na escolha. A tipagem estática permite declarar como estruturas os payloads trocados com o PowerDNS, de modo que um campo errado falhe na compilação. As goroutines dão concorrência sem biblioteca externa, recurso usado na gravação da trilha de auditoria descrita na seção 4.6.1. A compilação para binário único, sem dependência de bibliotecas do sistema, obtida com CGO_ENABLED=0, reduz o serviço a um arquivo copiado para o contêiner.
 As chamadas HTTP de saída, tanto ao PowerDNS quanto aos resolvedores públicos, usam a biblioteca Resty, que oferece repetição automática de tentativas e desserialização direta em estrutura.

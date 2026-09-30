@@ -14,7 +14,7 @@ func ZonaReversa(zonas []ZoneInfo, nomeReverso string) string {
 	for _, zona := range zonas {
 		nome := strings.TrimSuffix(zona.Name, ".")
 
-		if !strings.HasSuffix(nome, sufixo) || !strings.HasSuffix(reverso, nome) {
+		if !strings.HasSuffix(nome, sufixo) || (reverso != nome && !strings.HasSuffix(reverso, "."+nome)) {
 			continue
 		}
 

@@ -45,6 +45,12 @@ func Record(c *gin.Context) {
 		return
 	}
 
+	if !records.TTLValido(body.NewValue.TTL) {
+		c.AbortWithStatusJSON(400, gin.H{"message": "TTL precisa ser no mínimo 60 segundos"})
+
+		return
+	}
+
 	email := c.GetString("email")
 
 	pode, err := users.PodeEscrever(ctx, body.NewValue.Zone, email, c.GetString("level"))
