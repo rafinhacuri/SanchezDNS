@@ -5,7 +5,10 @@
 # SanchezDNS, com o PowerDNS consultado por `dig` como oráculo externo.
 #
 # Uso:
-#   ADMIN_EMAIL=... ADMIN_SENHA=... ./avaliacao/e2_autorizacao.sh
+#   BASE_URL=https://<instância>/go VERSAO=3.0.3 ADMIN_EMAIL=... ADMIN_SENHA=... ./avaliacao/e2_autorizacao.sh
+#
+# VERSAO é a versão implantada na instância (a API não a informa); só entra no
+# nome dos arquivos de saída e no relatório. Critérios: avaliacao/plano.md.
 #
 # Rotas, payloads e códigos conferidos em api/routes/routes.go e nos
 # controladores de api/controller/ (versão 3.0.2):
@@ -42,10 +45,13 @@
 #   A4 A5     Privilégio excessivo pela escrita derivada — condições 2 e 1 da §3.4.5 (QP3)
 #   A6 A7     Privilégio excessivo: o operador não lista, não edita e não triagem a zona reversa (QP3)
 #   A8        Privilégio excessivo pela escrita derivada na alteração de endereço — §6.2.1 (QP3)
-#   A9        Divergência A/PTR: remoção de PTR ainda referenciado — guarda de referência (QP2)
+#   A9        Divergência A/PTR: remoção do nome apontado pelo PTR com o IP ainda em uso — reapontamento (QP2)
 #   A10       Registros pendentes e reversos órfãos: remoção encadeada (QP2)
 #   A11       Registros pendentes e reversos órfãos: triagem de órfãos (QP2)
 #   A12       Privilégio excessivo: escape de escopo por nome plenamente qualificado (QP3)
+#   A13       Privilégio excessivo pela escrita derivada na REMOÇÃO: PTR de outra equipe (QP3)
+#   A14       Erro sintático no RDATA: o valor exibido é o publicado (QP2)
+#   L1        Ausência de rastreabilidade: troca de nível de conta (QP4)
 #   Trilha    Ausência de rastreabilidade das alterações (QP4)
 # =============================================================================
 
@@ -55,7 +61,8 @@ set -o pipefail
 # CONFIGURAÇÃO
 # ----------------------------------------------------------------------------
 # O backend Go fica atrás do prefixo /go (Caddyfile do Dockerfile: handle_path /go/*).
-BASE_URL="${BASE_URL:-https://mizle.cbpf.dev.br:3000/go}"
+BASE_URL="${BASE_URL:-}"
+VERSAO="${VERSAO:-$(jq -r .version "$(dirname "$0")/../package.json" 2>/dev/null)}"
 # Credenciais do administrador: só por variável de ambiente.
 ADMIN_EMAIL="${ADMIN_EMAIL:-}"
 ADMIN_SENHA="${ADMIN_SENHA:-}"
@@ -80,8 +87,8 @@ PAUSA="${PAUSA:-2}"
 ESPERA_LOGS="${ESPERA_LOGS:-4}"
 
 DIR="$(cd "$(dirname "$0")" && pwd)"
-OUT_MD="$DIR/resultado_e2.md"
-OUT_LOG="$DIR/e2_execucao.log"
+OUT_MD="$DIR/resultado_e2_v$VERSAO.md"
+OUT_LOG="$DIR/e2_execucao_v$VERSAO.log"
 
 RUN="$(date +%Y%m%d%H%M%S)"
 TMP="$(mktemp -d)"
@@ -311,10 +318,10 @@ trap 'exit 130' INT TERM
 # ----------------------------------------------------------------------------
 : >"$OUT_LOG"
 info "== E2 — autorização (QP3) e trilha de auditoria (QP4) · rodada $RUN"
-info "   API: $BASE_URL · DNS: $DNS_HOST"
+info "   versão: $VERSAO · API: $BASE_URL · DNS: $DNS_HOST"
 
 for b in curl jq dig; do command -v "$b" >/dev/null || die "falta o utilitário $b"; done
-[[ -n "$ADMIN_EMAIL" && -n "$ADMIN_SENHA" ]] || die "defina ADMIN_EMAIL e ADMIN_SENHA no ambiente"
+[[ -n "$BASE_URL" && -n "$ADMIN_EMAIL" && -n "$ADMIN_SENHA" ]] || die "defina BASE_URL, ADMIN_EMAIL e ADMIN_SENHA no ambiente"
 
 req - GET /healthcheck
 [[ "$ST" == 200 ]] || die "healthcheck respondeu $(desc)"
@@ -376,7 +383,7 @@ for i in 0 1 2; do
   req - POST /cadastro "$corpo"
   [[ "$ST" == 200 ]] || die "POST /cadastro de $rot falhou: $(desc)"
   OP_SOLICITADO[$i]=1
-  escrita_ok conta '*' "$email" - "$email" "$rot envia solicitação de cadastro"
+  escrita_ok conta request_account "$email" - "$email" "$rot envia solicitação de cadastro"
 
   req "$ADMIN_JAR" GET "/solicitacoes?limit=50&filter=$(q "$email")"
   OP_SOLIC[$i]=$(jq -r --arg e "$email" '.solicitacoes[]? | select(.email==$e) | .id' <<<"$BODY" | head -1)
@@ -384,7 +391,7 @@ for i in 0 1 2; do
 
   req "$ADMIN_JAR" PUT /solicitacoes/status "$(jq -cn --arg id "${OP_SOLIC[$i]}" '{id:$id, status:"aprovada"}')"
   [[ "$ST" == 200 ]] || die "aprovação de $rot falhou: $(desc)"
-  escrita_ok conta '*' "$ADMIN_EMAIL" - "$email" "admin aprova a solicitação de $rot"
+  escrita_ok conta review_account "$ADMIN_EMAIL" - "$email" "admin aprova a solicitação de $rot"
 
   req "$ADMIN_JAR" GET "/cadastros?limit=50&filter=$(q "$email")"
   OP_CAD[$i]=$(jq -r --arg e "$email" '.cadastros[]? | select(.email==$e) | .id' <<<"$BODY" | head -1)
@@ -408,7 +415,17 @@ for i in 0 1 2; do
   fi
 done
 OPA="${OP_JAR[0]}" OPB="${OP_JAR[1]}" OPC="${OP_JAR[2]}"
-EA="${OP_EMAIL[0]}" EB="${OP_EMAIL[1]}"
+EA="${OP_EMAIL[0]}" EB="${OP_EMAIL[1]}" EC="${OP_EMAIL[2]}"
+
+# L1 — Rastreabilidade (QP4): o admin promove e rebaixa opC; a trilha deve ter as duas trocas.
+for alvo in admin member; do
+  req "$ADMIN_JAR" PATCH /level "$(jq -cn --arg id "${OP_CAD[2]}" '{id:$id}')"
+  [[ "$ST" == 200 ]] || die "troca de nível de opC para $alvo falhou: $(desc)"
+  escrita_ok conta update_level "$ADMIN_EMAIL" - "$EC alterado para $alvo" "L1 admin altera o nível de opC para $alvo"
+done
+req "$OPC" GET /session
+[[ "$(jq -r .level <<<"$BODY")" == member ]] || die "opC não voltou ao nível member"
+info "  L1: nível de opC promovido e rebaixado"
 
 # PTR "de outra equipe" em 192.0.2.50, gravado pelo admin.
 REV_OUTRA=$(nome_rev "$IP_OUTRA")
@@ -527,8 +544,8 @@ r=$(pior "$r" "$(v_valor "$PTR_OUTRA")"); ob="$ob; PTR=$(mostra)"
 caso "A7b — opA remove o PTR como órfão (DELETE /reverses)" "403; PTR intacto" "$ob" "$r"
 
 # A8 — Privilégio excessivo pela escrita derivada na ALTERAÇÃO de endereço (QP3, §6.2.1).
-# UpdateReverso grava o PTR do novo IP com REPLACE, sem a checagem de PTR existente
-# que InsertReverso faz. O critério do Quadro 3 é "zero sobrescritas".
+# Até a 3.0.2, UpdateReverso gravava o PTR do novo IP com REPLACE, sem a checagem
+# de PTR existente que InsertReverso faz. O critério do Quadro 3 é "zero sobrescritas".
 N8="a8-$RUN.$ZD"
 REV20=$(nome_rev 192.0.2.20)
 req "$OPA" PUT /records "$(reg "$ZD" A "a8-$RUN" 192.0.2.20)"
@@ -557,9 +574,10 @@ else
 fi
 caso "A8 — opA muda o IP de um host para $IP_OUTRA (PATCH /records)" "200; PTR de outra equipe mantido (QP3)" "$ob" "$r"
 
-# A9 — Divergência A/PTR (QP2): guarda de referência.
+# A9 — Divergência A/PTR (QP2): guarda de referência com reapontamento.
 # a9 passa a usar 192.0.2.10; apaga-se a3, o nome para o qual o PTR aponta.
-# O PTR deve permanecer porque o IP ainda tem registro direto.
+# O PTR não pode ser removido (o IP ainda tem registro direto) e deve passar a
+# apontar para a9 (critério revisto em avaliacao/plano.md, seção 3).
 N9="a9-$RUN.$ZD"
 req "$OPA" PUT /records "$(reg "$ZD" A "a9-$RUN" 192.0.2.10)"
 [[ "$ST" == 200 ]] || die "preparação do A9 falhou: $(desc)"
@@ -569,16 +587,20 @@ r=$(v_status 200); ob="$(desc)"
 [[ "$ST" == 200 ]] && escrita_ok dns delete_record "$EA" "$ZD" "$N3" "A9 opA apaga A $N3 (192.0.2.10 segue em $N9)"
 V_API=$(rr_api "$ZD" "$N3" A); V_DIG=$(espera_igual "" rr_dig "$N3" A)
 r=$(pior "$r" "$(v_valor "")"); ob="$ob; A de a3=$(mostra)"
-le_estavel "$ZR" "$REV10" PTR
-if [[ -n "$V_API" && "$V_API" == "$V_DIG" ]]; then
-  ob="$ob; PTR mantido → $(mostra)"
-  [[ "$V_DIG" == "$N3" ]] && ob="$ob (aponta para o nome recém-apagado)"
-elif [[ "$V_API" != "$V_DIG" ]]; then
+V_API=$(espera_igual "$N9" rr_api "$ZR" "$REV10" PTR); V_DIG=$(espera_igual "$V_API" rr_dig "$REV10" PTR)
+if [[ "$V_API" != "$V_DIG" ]]; then
   r=$(pior "$r" INCONCLUSIVO); ob="$ob; PTR=$(mostra)"
-else
+elif [[ "$V_DIG" == "$N9" ]]; then
+  ob="$ob; PTR reapontado → $(mostra)"
+  derivada "$REV10" "A9: PTR 192.0.2.10 reapontado pela automação"
+elif [[ "$V_DIG" == "$N3" ]]; then
+  r=REPROVADO; ob="$ob; PTR mantido → $(mostra) (aponta para o nome recém-apagado)"
+elif [[ -z "$V_DIG" ]]; then
   r=REPROVADO; ob="$ob; PTR removido"
+else
+  r=REPROVADO; ob="$ob; PTR=$(mostra)"
 fi
-caso "A9 — opA apaga A cujo IP (192.0.2.10) segue em uso por outro nome" "200; PTR permanece" "$ob" "$r"
+caso "A9 — opA apaga A cujo IP (192.0.2.10) segue em uso por outro nome" "200; PTR reapontado → $N9" "$ob" "$r"
 
 # A10 — Registros pendentes e reversos órfãos (QP2): remoção encadeada do último A do IP.
 req "$OPA" DELETE /records "$(reg "$ZD" A "a9-$RUN" 192.0.2.10)"
@@ -618,6 +640,39 @@ else r=APROVADO; recusada "$EA" "$REV61" "A12 opA PUT /records com FQDN fora da 
 le_estavel "$ZR" "$REV61" PTR
 r=$(pior "$r" "$(v_valor "")"); ob="$ob; PTR=$(mostra)"
 caso "A12 — opA grava PTR sob in-addr.arpa via FQDN na zona direta" "recusado (≠200); nada gravado" "$ob" "$r"
+
+# A13 — Privilégio excessivo pela escrita derivada na REMOÇÃO (QP3).
+# O admin semeia outro PTR "de outra equipe"; opA cria um A nesse IP (o PTR não é
+# sobrescrito, como no A4) e depois apaga o A, que era o único nome do IP. Como o
+# PTR nunca apontou para o nome de opA, a remoção encadeada não pode apagá-lo.
+IP13="192.0.2.70"
+REV70=$(nome_rev "$IP13")
+PTR13="outro-servidor.outra-equipe.example."
+N13="a13-$RUN.$ZD"
+req "$ADMIN_JAR" PUT /records "$(reg "$ZR" PTR 70 "$PTR13")"
+[[ "$ST" == 200 ]] || die "semeadura do PTR do A13 falhou: $(desc)"
+escrita_ok dns insert_record "$ADMIN_EMAIL" "$ZR" "$REV70" "A13 (preparo) admin semeia PTR de outra equipe em $IP13"
+req "$OPA" PUT /records "$(reg "$ZD" A "a13-$RUN" "$IP13")"
+[[ "$ST" == 200 ]] || die "preparação do A13 falhou: $(desc)"
+escrita_ok dns insert_record "$EA" "$ZD" "$N13" "A13 (preparo) opA cria A $N13 → $IP13"
+req "$OPA" DELETE /records "$(reg "$ZD" A "a13-$RUN" "$IP13")"
+r=$(v_status 200); ob="$(desc)"
+[[ "$ST" == 200 ]] && escrita_ok dns delete_record "$EA" "$ZD" "$N13" "A13 opA apaga A $N13 (único nome de $IP13)"
+le_estavel "$ZR" "$REV70" PTR
+r=$(pior "$r" "$(v_valor "$PTR13")"); ob="$ob; PTR=$(mostra)"
+[[ -z "$V_API" ]] && derivada "$REV70" "A13: PTR $IP13 de outra equipe removido pela automação"
+caso "A13 — opA apaga o único A no IP de um PTR de outra equipe" "200; PTR intacto → $PTR13" "$ob" "$r"
+
+# A14 — Erro sintático no RDATA (QP2), 3º princípio: o que a plataforma exibe é o publicado.
+# opA envia um CNAME com destino sem ponto final; a leitura pela API (a mesma rota
+# que a tela usa) e o dig devem mostrar a forma canônica, com ponto final.
+N14="a14-$RUN.$ZD"
+req "$OPA" PUT /records "$(reg "$ZD" CNAME "a14-$RUN" "destino.example")"
+r=$(v_status 200); ob="$(desc)"
+[[ "$ST" == 200 ]] && escrita_ok dns insert_record "$EA" "$ZD" "$N14" "A14 opA cria CNAME $N14 → destino.example (sem ponto)"
+V_API=$(espera_igual "destino.example." rr_api "$ZD" "$N14" CNAME); V_DIG=$(espera_igual "$V_API" rr_dig "$N14" CNAME)
+r=$(pior "$r" "$(v_valor "destino.example.")"); ob="$ob; exibido=${V_API:-(vazio)}; publicado=${V_DIG:-(vazio)}"
+caso "A14 — opA cria CNAME sem ponto final e relê a zona" "200; exibido = publicado = destino.example." "$ob" "$r"
 
 # ----------------------------------------------------------------------------
 # TRILHA DE AUDITORIA (QP4) — Ausência de rastreabilidade das alterações
@@ -679,14 +734,15 @@ while [[ $i -lt ${#ESCRITAS[@]} ]]; do
 done
 
 # Alterações derivadas: o PTR mudou no servidor sem requisição própria do operador.
-# Procura qualquer entrada não-admin que cite o nome reverso.
+# Procura entrada não-admin com código auto_* que cite o nome reverso.
 DER=(); XV=0; YV=0
 i=0
 while [[ $i -lt ${#DERIVADAS[@]} ]]; do
   IFS='|' read -r rev descr <<<"${DERIVADAS[$i]}"
   i=$((i + 1))
   n=$(jq --arg k "$rev" --arg adm "$ADMIN_EMAIL" \
-    '[.[] | select(.username != $adm) | select(((.details // "") | contains($k)) or ((.zone // "") | contains($k)))] | length' "$TMP/logs.json")
+    '[.[] | select(.username != $adm) | select((.action // "") | startswith("auto_"))
+          | select(((.details // "") | contains($k)) or ((.zone // "") | contains($k)))] | length' "$TMP/logs.json")
   YV=$((YV + 1))
   if [[ "$n" -gt 0 ]]; then XV=$((XV + 1)); DER+=("$descr"$'\t'"sim"); else DER+=("$descr"$'\t'"não"); fi
 done
@@ -706,7 +762,7 @@ done
 info ""
 info "  Trilha: $X de $Y alterações registradas"
 info "    zonas, registros e permissões: $XD de $YD"
-info "    contas (cadastro e aprovação): $XC de $YC"
+info "    contas (cadastro, aprovação e nível): $XC de $YC"
 info "  Alterações derivadas (PTR pela automação): $XV de $YV registradas"
 info "  Tentativas recusadas presentes na trilha: $NR de ${#RECUSADAS[@]} (esperado 0)"
 
@@ -732,7 +788,7 @@ md_linha() { local s="${1//|/\\|}"; echo "| ${s//$'\t'/ | } |"; }
 {
   echo "# Resultado do E2 — autorização (QP3) e trilha de auditoria (QP4)"
   echo
-  echo "Execução: $(date '+%Y-%m-%d %H:%M %z') · rodada \`$RUN\` · zonas descartáveis \`$ZD\` e \`$ZR\` (RFC 2606 e RFC 5737) · verificação externa por \`dig\` contra o servidor autoritativo."
+  echo "Execução: $(date '+%Y-%m-%d %H:%M %z') · versão $VERSAO · rodada \`$RUN\` · zonas descartáveis \`$ZD\` e \`$ZR\` (RFC 2606 e RFC 5737) · verificação externa por \`dig\` contra o servidor autoritativo."
   echo
   echo "## Casos de teste"
   echo
@@ -748,11 +804,13 @@ md_linha() { local s="${1//|/\\|}"; echo "| ${s//$'\t'/ | } |"; }
   echo "| --- | --- | --- |"
   echo "| A0 | Atualização dinâmica não autenticada | QP3 |"
   echo "| A1, A2, A6a–A6c, A7, A7b, A12 | Privilégio excessivo do operador | QP3 |"
+  echo "| A13 | Privilégio excessivo pela escrita derivada na remoção | QP3 |"
+  echo "| A14 | Erro sintático no RDATA (exibição do valor publicado) | QP2 |"
   echo "| A3 | Divergência entre A/AAAA e PTR (dentro das condições da §3.4.5) | QP2, QP3 |"
   echo "| A4, A5, A8 | Privilégio excessivo pela escrita derivada (§3.4.5, §6.2.1) | QP3 |"
   echo "| A9 | Divergência entre A/AAAA e PTR (guarda de referência) | QP2 |"
   echo "| A10, A11 | Registros pendentes e reversos órfãos | QP2 |"
-  echo "| Trilha | Ausência de rastreabilidade das alterações | QP4 |"
+  echo "| Trilha, L1 | Ausência de rastreabilidade das alterações | QP4 |"
   echo
   echo "## Trilha de auditoria"
   echo

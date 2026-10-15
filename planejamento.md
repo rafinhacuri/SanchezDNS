@@ -33,14 +33,16 @@ Decisão tomada: **avaliação sem participantes** por enquanto. Se aparecerem p
 
 ## Etapa 3 — Reexecutar a avaliação
 
-- [ ] **[Orient.]** Commitar `avaliacao/` (hoje fora do git) com `avaliacao/plano.md` datado, contendo critérios e regras **antes** da nova rodada. Isso serve de evidência de que os critérios foram fixados antes da execução. Tirar o default `mizle.cbpf.dev.br` do script (endereço por variável de ambiente).
+- [x] **[Orient.]** Commitar `avaliacao/` (hoje fora do git) com `avaliacao/plano.md` datado, contendo critérios e regras **antes** da nova rodada. Isso serve de evidência de que os critérios foram fixados antes da execução. Tirar o default `mizle.cbpf.dev.br` do script (endereço por variável de ambiente).
 - [ ] **[Orient.]** Reexecutar o E2 de autorização e trilha na 3.0.3 (A8, A9, escritas derivadas, contas).
-- [ ] **[Achado]** Novo caso: criar A sobre o PTR de outra equipe e depois apagá-lo (o PTR alheio deve ficar).
+- [x] **[Achado]** Novo caso: criar A sobre o PTR de outra equipe e depois apagá-lo (o PTR alheio deve ficar).
 - [ ] **[Orient.]** Condição de referência do E2 (prometida na §2.6.2, nunca executada): mandar as entradas N1–N13 direto à API do PowerDNS e ao `pdnsutil`, sem a plataforma. Hipótese a testar: a API recusa conteúdo não canônico e nome sem ponto; o pdnsutil trata conteúdo como absoluto, mas nome do registro como relativo (duplicação possível); TTL 30 passa nos dois.
 - [ ] **[Orient.]** Oráculo independente na normalização: incluir MX, SRV, CAA, HTTPS e PTR na zona de teste e rodar o Zonemaster de novo (hoje só A, NS e TXT).
-- [ ] **[Orient.]** Teste do 3º princípio (exibir o publicado): gravar pela API um valor sem ponto e reler por `GET /records`.
+- [x] **[Orient.]** Teste do 3º princípio (exibir o publicado): gravar pela API um valor sem ponto e reler por `GET /records`.
 - [ ] **[Orient.]** E3: definir a regra de contagem de passos antes de recontar. Reposicionar a comparação contra a API e o `pdnsutil`.
 - [ ] **[Achado]** Quadro 16, tarefa 1: diz "1 valor (nome da zona)", mas o formulário exige domínio, servidor primário e e-mail do SOA (`api/zonas/types.go`).
+- [ ] Rodar R1 a R5 do `avaliacao/plano.md` (scripts prontos; precisam das credenciais, por isso rodam na sua máquina e no servidor).
+- [ ] **[Achado]** `records/nome-completo.go` compara o nome com a zona como texto, sem fronteira de rótulo (mesma classe do P4): com a zona `curi.dev.br`, o nome `xcuri.dev.br` vira FQDN fora da zona. Corrigir numa 3.0.4 e criar caso de teste.
 
 ## Etapa 4 — Nova estrutura da monografia (esquema de Gregor e Hevner, 2013)
 
