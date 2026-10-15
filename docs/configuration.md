@@ -78,13 +78,22 @@ Se qualquer um dos três não bater com a configuração do PowerDNS, as rotas d
 
 **Por que S3 em vez de disco?** Para manter o container sem estado — ver [Arquitetura](/architecture#s3-compativel-rustfs-minio-arquivos).
 
+### Geolocalização e resolvedores DoH
+
+| Variável        | Papel                                                                                                                                                                                                                               |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GEOIP_URL`     | Opcional. Base de um serviço com a API do ip-api.com (ex.: `http://ip-api.com`) para registrar a localização aproximada de cada login na sessão. Vazia, a geolocalização fica desligada e o IP do operador não sai da instância. |
+| `DOH_RESOLVERS` | Opcional. Lista, separada por vírgula, de resolvedores DNS sobre HTTPS no formato JSON usados para conferir o DS publicado na zona pai. Vazia, usa `https://dns.google/resolve` e `https://cloudflare-dns.com/dns-query`.       |
+
+**Por que opcionais?** Em rede isolada, sem acesso à Internet, os dois serviços externos falham. A geolocalização desligada por padrão também evita enviar o IP de cada operador a terceiros. Para conferir o DS sem sair da rede, aponte `DOH_RESOLVERS` para um resolvedor interno com DoH.
+
 ## DNSSEC nas zonas criadas
 
 Quando uma zona é criada pela interface, o backend a cria como `Native`, adiciona uma `cryptokey` ativa do tipo `ksk` e grava o SOA inicial. Em outras palavras, **as zonas nascem com DNSSEC ativado** — desde que o backend do PowerDNS suporte (por exemplo, `gsqlite3-dnssec=yes` no SQLite). Detalhes em [PowerDNS a fundo](/powerdns#ativar-dnssec-post-zones-zona-cryptokeys).
 
 ## Sessão e permissões (resumo)
 
-- O login cria o cookie **`sanchezdns_session_id`** (`HttpOnly`; `Secure` em produção), validado no backend a cada requisição protegida.
+- O login cria o cookie **`sanchezdns_session_id`** (`HttpOnly`; `SameSite=Lax`; `Secure` em produção), validado no backend a cada requisição protegida.
 - O nível do usuário é **`admin`** ou **`member`**, lido a cada request (não embutido em token).
 - O acesso aos registros de cada zona é controlado pelas listas **`leitura`** e **`escrita`** na coleção `users`. `admin` ignora essas restrições.
 

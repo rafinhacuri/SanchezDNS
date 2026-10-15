@@ -3,6 +3,7 @@ package env
 
 import (
 	"os"
+	"strings"
 )
 
 type EnvConfig struct {
@@ -20,6 +21,8 @@ type EnvConfig struct {
 	DevUrl      string
 	DevKey      string
 	DevCert     string
+	GeoIPURL    string
+	DohResolver []string
 }
 
 var C *EnvConfig
@@ -40,5 +43,20 @@ func LoadEnv() {
 		DevUrl:      os.Getenv("DEV_URL"),
 		DevKey:      os.Getenv("DEV_KEY"),
 		DevCert:     os.Getenv("DEV_CERT"),
+		GeoIPURL:    strings.TrimSpace(os.Getenv("GEOIP_URL")),
+		DohResolver: lista(os.Getenv("DOH_RESOLVERS")),
 	}
+}
+
+func lista(valor string) []string {
+	var itens []string
+
+	for item := range strings.SplitSeq(valor, ",") {
+		item = strings.TrimSpace(item)
+		if item != "" {
+			itens = append(itens, item)
+		}
+	}
+
+	return itens
 }

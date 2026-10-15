@@ -7,9 +7,9 @@ Esta página explica **como o SanchezDNS autentica os usuários** e, principalme
 Quando o usuário envia email e senha para `POST /login` ([login.go](https://github.com/rafinhacuri/SanchezDNS/blob/main/api/controller/login.go)):
 
 1. **Já existe sessão?** Se o cookie `sanchezdns_session_id` já está presente, o login é recusado — evita criar sessões duplicadas.
-2. **O cadastro está aprovado?** O backend verifica se há uma **solicitação pendente** para aquele email. Se estiver "em análise", retorna `401` com essa mensagem (o fluxo de aprovação é descrito em [Usuários](/users)).
+2. **O cadastro está aprovado?** O backend procura uma **solicitação pendente** para aquele email e confere a senha com o hash guardado na solicitação. Só quando a senha confere ele responde `401` com a mensagem "em análise" (o fluxo de aprovação é descrito em [Usuários](/users)). Com senha errada, a resposta é a mesma de credencial inválida, de modo que ninguém descobre, só pelo email, se existe uma solicitação pendente.
 3. **A senha confere?** `ValidarSenha` compara a senha enviada com o **hash bcrypt** guardado no cadastro. Nunca há senha em texto puro no banco.
-4. **Coleta de contexto.** A partir do `User-Agent` e do IP, o backend deriva sistema operacional, navegador e **geolocalização aproximada** — dados que ficam registrados na sessão para auditoria ("de onde e de qual dispositivo esse login veio").
+4. **Coleta de contexto.** A partir do `User-Agent` e do IP, o backend deriva sistema operacional e navegador, dados que ficam registrados na sessão para auditoria ("de onde e de qual dispositivo esse login veio"). A **geolocalização aproximada** só é consultada se a variável `GEOIP_URL` estiver definida (ver [Configuração](/configuration#geolocalizacao-e-resolvedores-doh)), porque ela envia o IP do operador a um serviço externo.
 5. **Cria a sessão.** Gera um identificador aleatório (o **SID**) e grava um documento na coleção `sessions` do MongoDB.
 6. **Entrega o cookie.** O SID é devolvido em um cookie `HttpOnly`, e o navegador passa a enviá-lo em toda requisição.
 
@@ -99,8 +99,11 @@ Um detalhe conceitual importante para o TCC: **usar Redis não torna a autentica
 O SID é entregue em um cookie configurado assim:
 
 ```go
+c.SetSameSite(http.SameSiteLaxMode)
 c.SetCookie("sanchezdns_session_id", sessionID, 34560000, "/", siteURL, secure, true)
 ```
+
+- **`SameSite=Lax`** — o navegador não envia o cookie em requisições `POST`, `PUT`, `PATCH` ou `DELETE` disparadas por outro site, o que impede que uma página de terceiros faça alterações em nome de um operador logado (CSRF).
 
 - **`HttpOnly` (o último `true`)** — o cookie **não é acessível pelo JavaScript** do navegador. Isso protege contra roubo de sessão via XSS: mesmo que um script malicioso rode na página, ele não consegue ler o token. É também o motivo de o frontend ser SSR (Nuxt), como explicado na [Arquitetura](/architecture): quem repassa o cookie para a API é o servidor, não o código do cliente.
 - **`secure`** — em produção (`NUXT_PUBLIC_PRODUCTION=true`) o cookie só trafega por HTTPS, evitando que seja capturado em uma conexão sem criptografia.
@@ -110,9 +113,9 @@ c.SetCookie("sanchezdns_session_id", sessionID, 34560000, "/", siteURL, secure, 
 
 Toda rota autenticada passa antes pelo middleware `ValidateSession` ([validate-session.go](https://github.com/rafinhacuri/SanchezDNS/blob/main/api/middleware/validate-session.go)):
 
-1. Lê o cookie `sanchezdns_session_id`. Sem cookie → `400`.
+1. Lê o cookie `sanchezdns_session_id`. Sem cookie → `401`.
 2. Valida a sessão (Redis → fallback Mongo) e obtém `email` + `level`.
-3. Se a sessão for inválida, **limpa o cookie** (`maxAge -1`) e retorna erro — o navegador esquece o token morto.
+3. Se a sessão for inválida, **limpa o cookie** (`maxAge -1`) e retorna `401` — o navegador esquece o token morto.
 4. Se for válida, injeta `email`, `level` e `sid` no contexto, e o controlador segue sabendo quem é o usuário.
 
 Sobre esse contexto injetado é que se aplicam as regras de autorização: `AdminOnly` para rotas administrativas e a checagem das listas `leitura`/`escrita` por zona para operações de registro (ver [Usuários](/users)).

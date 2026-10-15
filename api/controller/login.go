@@ -2,6 +2,7 @@ package controller
 
 import (
 	"log"
+	"net/http"
 	"net/url"
 
 	"github.com/gin-gonic/gin"
@@ -38,7 +39,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	panding, err := solicitacoes.Panding(ctx, credentials.Email)
+	pendente, err := solicitacoes.SenhaPendente(ctx, credentials.Email, credentials.Password)
 	if err != nil {
 		log.Println(err)
 
@@ -47,7 +48,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	if panding {
+	if pendente {
 		c.AbortWithStatusJSON(401, gin.H{"message": "Seu cadastro ainda está em análise"})
 
 		return
@@ -100,6 +101,7 @@ func Login(c *gin.Context) {
 		secure = false
 	}
 
+	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie("sanchezdns_session_id", sessionID, 34560000, "/", siteURL, secure, true)
 
 	c.JSON(200, gin.H{

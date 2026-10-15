@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"log"
+	"net/http"
 	"net/url"
 
 	"github.com/gin-gonic/gin"
@@ -15,7 +16,7 @@ func ValidateSession(c *gin.Context) {
 
 	sid, err := c.Cookie("sanchezdns_session_id")
 	if err != nil || sid == "" {
-		c.AbortWithStatusJSON(400, gin.H{"message": "Missing session ID"})
+		c.AbortWithStatusJSON(401, gin.H{"message": "Missing session ID"})
 
 		return
 	}
@@ -41,14 +42,15 @@ func ValidateSession(c *gin.Context) {
 			secure = false
 		}
 
+		c.SetSameSite(http.SameSiteLaxMode)
 		c.SetCookie("sanchezdns_session_id", "", -1, "/", siteURL, secure, true)
-		c.AbortWithStatusJSON(400, gin.H{"message": "Invalid session"})
+		c.AbortWithStatusJSON(401, gin.H{"message": "Invalid session"})
 
 		return
 	}
 
 	if email == "" {
-		c.AbortWithStatusJSON(400, gin.H{"message": "Invalid session"})
+		c.AbortWithStatusJSON(401, gin.H{"message": "Invalid session"})
 
 		return
 	}

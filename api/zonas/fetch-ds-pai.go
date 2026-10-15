@@ -8,12 +8,14 @@ import (
 	"time"
 
 	"resty.dev/v3"
+
+	"github.com/rafinhacuri/SanchezDNS/api/env"
 )
 
 const tipoDs = 43
 
 //nolint:gochecknoglobals
-var resolversDoh = []string{
+var resolversDohPadrao = []string{
 	"https://dns.google/resolve",
 	"https://cloudflare-dns.com/dns-query",
 }
@@ -32,7 +34,12 @@ func FetchDsPai(ctx context.Context, domain string) ([]string, bool, error) {
 
 	var ultimoErr error
 
-	for _, resolver := range resolversDoh {
+	resolvers := env.C.DohResolver
+	if len(resolvers) == 0 {
+		resolvers = resolversDohPadrao
+	}
+
+	for _, resolver := range resolvers {
 		var res dohResponse
 
 		resp, err := client.R().

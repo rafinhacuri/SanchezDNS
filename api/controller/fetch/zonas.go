@@ -54,7 +54,7 @@ func Zonas(c *gin.Context) {
 	for _, zona := range lista {
 		nome := strings.ToLower(strings.TrimSpace(zona.Name))
 
-		if !zonas.MatchTipo(nome, tipo) || nome == "1.1.1.in-addr.arpa." || nome == "2.2.2.in-addr.arpa." {
+		if !zonas.MatchTipo(nome, tipo) {
 			continue
 		}
 

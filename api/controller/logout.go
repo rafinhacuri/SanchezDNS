@@ -2,6 +2,7 @@ package controller
 
 import (
 	"log"
+	"net/http"
 	"net/url"
 
 	"github.com/gin-gonic/gin"
@@ -40,6 +41,7 @@ func Logout(c *gin.Context) {
 		secure = false
 	}
 
+	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie("sanchezdns_session_id", "", -1, "/", siteURL, secure, true)
 
 	c.JSON(200, gin.H{"message": "deslogado com sucesso"})

@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"resty.dev/v3"
+
+	"github.com/rafinhacuri/SanchezDNS/api/env"
 )
 
 type ipAPIRes struct {
@@ -16,13 +18,17 @@ type ipAPIRes struct {
 }
 
 func GeoLocation(ip string) string {
+	if env.C.GeoIPURL == "" {
+		return ""
+	}
+
 	ipAPIClient := resty.New().
-		SetBaseURL("http://ip-api.com").
+		SetBaseURL(env.C.GeoIPURL).
 		SetTimeout(5*time.Second).
 		SetRetryCount(1).
 		SetRetryWaitTime(200*time.Millisecond).
 		SetHeader("Accept", "application/json").
-		SetHeader("User-Agent", "cbpf-sso/1.0")
+		SetHeader("User-Agent", "SanchezDNS")
 
 	ip = strings.TrimSpace(ip)
 	if ip == "" {

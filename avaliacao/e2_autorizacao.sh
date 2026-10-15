@@ -28,10 +28,10 @@
 #   DELETE /reverses?zone=&name=  escrita na zona           403 sem escrita
 #   GET    /logs?filter=&limit=   (admin)                   {logs[], total}
 #
-# Distinção 400 × 403 (api/middleware/validate-session.go): o middleware de
-# sessão responde 400 ("Missing session ID" / "Invalid session") antes de
-# qualquer verificação de permissão; 403 só sai do controlador, depois que a
-# sessão foi aceita. Um 400 de sessão num caso que espera 403 não diz nada
+# Distinção sessão × 403 (api/middleware/validate-session.go): o middleware de
+# sessão responde 401 a partir da 3.0.3 (400 até a 3.0.2) com "Missing session
+# ID" / "Invalid session", antes de qualquer verificação de permissão; 403 só
+# sai do controlador, depois que a sessão foi aceita. Um erro de sessão num caso que espera 403 não diz nada
 # sobre autorização, por isso é classificado como INCONCLUSIVO, e não como
 # APROVADO ou REPROVADO.
 #
@@ -136,13 +136,13 @@ req() {
 
 msg() { jq -r '.message // .error // empty' <<<"$BODY" 2>/dev/null; }
 
-# 400 vindo do middleware de sessão (e não de validação de corpo).
-erro_sessao() { [[ "$ST" == 400 ]] && [[ "$(msg)" == *session* ]]; }
+# 401 (ou 400 até a 3.0.2) vindo do middleware de sessão, e não de validação de corpo.
+erro_sessao() { [[ "$ST" == 401 || "$ST" == 400 ]] && [[ "$(msg)" == *session* ]]; }
 
 # Descrição do status para a coluna "Obtido".
 desc() {
   case "$ST" in
-    400) if erro_sessao; then echo "400 (sessão: $(msg))"; else echo "400 ($(msg))"; fi ;;
+    400|401) if erro_sessao; then echo "$ST (sessão: $(msg))"; else echo "$ST ($(msg))"; fi ;;
     000) echo "000 (sem resposta)" ;;
     *) echo "$ST" ;;
   esac
@@ -427,14 +427,14 @@ echo
 info "== CASOS"
 
 # A0 — Atualização dinâmica não autenticada (QP3).
-# Escrita sem cookie: o middleware de sessão deve barrar com 400 antes do controlador.
+# Escrita sem cookie: o middleware de sessão deve barrar antes do controlador.
 N="a0-$RUN.$ZD"
 req - PUT /records "$(reg "$ZD" A "a0-$RUN" 192.0.2.3)"
 r="APROVADO"; ob="$(desc)"
 if [[ "$ST" == 000 ]]; then r=INCONCLUSIVO; elif ! erro_sessao; then r=REPROVADO; fi
 le_estavel "$ZD" "$N" A
 r=$(pior "$r" "$(v_valor "")")
-caso "A0 — escrita sem sessão (PUT /records)" "400 de sessão; nada gravado" "$ob; A=$(mostra)" "$r"
+caso "A0 — escrita sem sessão (PUT /records)" "erro de sessão; nada gravado" "$ob; A=$(mostra)" "$r"
 
 # A1 — Privilégio excessivo (QP3): operador sem vínculo lê a zona.
 req "$OPC" GET "/records?zone=$(q "$ZD")"

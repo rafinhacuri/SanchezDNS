@@ -23,13 +23,13 @@ Decisão tomada: **avaliação sem participantes** por enquanto. Se aparecerem p
 
 ## Etapa 2 — Código: segurança e on-premises
 
-- [ ] **[Orient.]** Cookie de sessão sem `SameSite` (nem proteção CSRF). Definir `SameSite=Lax` ou `Strict`. Rotas POST (`/user`, `/logout`) aceitam corpo JSON sem checar o Content-Type.
-- [ ] **[Orient.]** Enumeração: o login responde "cadastro em análise" antes de conferir a senha. A solicitação guarda o hash da senha, então dá para conferir antes de revelar.
-- [ ] **[Orient.]** Geolocalização por serviço externo: tornar opcional por variável de ambiente (desligada por padrão). **[Achado]** Hoje usa `http://ip-api.com` sem TLS e o User-Agent `cbpf-sso/1.0`.
-- [ ] **[Orient.]** RF03 depende do DoH da Google e da Cloudflare: tornar os resolvedores configuráveis (rede isolada).
-- [ ] **[Achado]** Listagem de zonas exclui duas zonas por nome fixo (resíduo de teste, §4.3.3). Remover.
-- [ ] **[Orient.]** Sessão inválida responde 400 em vez de 401 (RFC 9110). Decidir se corrige (conferir o frontend) ou só registra no texto.
-- [ ] **[Achado]** `PUT /file` e `GET /file/:id` fora do grupo autenticado, o que contradiz o RNF04 ("não existe caminho de escrita não autenticado"). Decidir: autenticar ou ajustar o RNF04.
+- [x] **[Orient.]** Cookie de sessão sem `SameSite` (nem proteção CSRF). Definir `SameSite=Lax` ou `Strict`. Rotas POST (`/user`, `/logout`) aceitam corpo JSON sem checar o Content-Type.
+- [x] **[Orient.]** Enumeração: o login responde "cadastro em análise" antes de conferir a senha. A solicitação guarda o hash da senha, então dá para conferir antes de revelar.
+- [x] **[Orient.]** Geolocalização por serviço externo: tornar opcional por variável de ambiente (desligada por padrão). **[Achado]** Hoje usa `http://ip-api.com` sem TLS e o User-Agent `cbpf-sso/1.0`.
+- [x] **[Orient.]** RF03 depende do DoH da Google e da Cloudflare: tornar os resolvedores configuráveis (rede isolada).
+- [x] **[Achado]** Listagem de zonas exclui duas zonas por nome fixo (resíduo de teste, §4.3.3). Remover.
+- [x] **[Orient.]** Sessão inválida responde 400 em vez de 401 (RFC 9110). Corrigido para 401 (o frontend não dependia do 400; script do E2 aceita os dois).
+- [ ] **[Achado]** `PUT /file` e `GET /file/:id` fora do grupo autenticado, o que contradiz o RNF04 ("não existe caminho de escrita não autenticado"). O `PUT /file` é usado no cadastro, antes de existir sessão, então não dá para autenticar. Ajustar o RNF04 no texto (Etapa 8) para "nenhum caminho de escrita sobre dados de zona sem autenticação".
 
 ## Etapa 3 — Reexecutar a avaliação
 
@@ -98,6 +98,7 @@ Decisão tomada: **avaliação sem participantes** por enquanto. Se aparecerem p
 - [ ] **[Orient.]** Quadro 6 afirma impedir a enumeração de usuários: ajustar à Etapa 2.
 - [ ] **[Orient.]** Mencionar SameSite/CSRF no modelo de sessão.
 - [ ] **[Achado]** Quadro 7 omite `DELETE /reverses`, que o caso A7b usa.
+- [ ] **[Achado]** RNF04: restringir a "nenhum caminho de escrita sobre dados de zona sem autenticação" (`PUT /file` e `POST /cadastro` são escritas sem sessão, fora das zonas).
 - [ ] **[Achado]** RF10 diz "criação atômica em lote", mas a §3.6.4 diz não transacional.
 - [ ] **[Achado]** §3.7 diz "cada operação de escrita grava um documento" e que o ciclo de contas fica fora da trilha: alinhar com o RF13 e com a 3.0.3.
 - [ ] Descrever as mudanças da 3.0.3 (guardas, reapontamento, auditoria).
