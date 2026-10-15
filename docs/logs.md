@@ -6,7 +6,7 @@ A trilha de auditoria é uma das razões de existir do SanchezDNS (ver [Por que 
 
 Cada entrada de log traz:
 
-- **zona** — sobre qual zona (ou registro) a ação incidiu;
+- **zona** — sobre qual zona a ação incidiu (vazio nas ações sobre contas);
 - **usuário** — o email de quem executou;
 - **ação** — um código do que aconteceu (ex.: `insert_record`, `create_zone`, `update_soa`);
 - **detalhes** — uma descrição legível;
@@ -18,17 +18,18 @@ O sistema gera logs para as operações que realmente importam para auditoria:
 
 - **criação e remoção de zonas** (`create_zone`, `delete_zone`);
 - **criação, edição e remoção de registros** (`insert_record`, `edit_record`, `delete_record`);
+- **escritas automáticas no PTR** feitas pela sincronização de reversos, atribuídas a quem editou o `A`/`AAAA` e gravadas com a zona reversa no campo zona (`auto_insert_reverse`, `auto_update_reverse`, `auto_delete_reverse`);
 - **inclusão, edição e remoção de usuários por zona** (`insert_user`, `update_user`, `delete_user`);
-- **atualização de SOA** (`update_soa`);
+- **atualização de SOA e de NSEC3** (`update_soa`, `update_nsec3`);
 - **criação em lote de reversos ausentes e remoção de reversos órfãos** (`insert_reverses`, `delete_reverse`);
-- **aprovação ou rejeição de solicitações** de cadastro.
+- **ciclo de vida das contas**: primeiro cadastro da instância, solicitação de cadastro, aprovação ou rejeição, edição, exclusão e troca de nível (`insert_account`, `request_account`, `review_account`, `update_account`, `delete_account`, `update_level`).
 
 ## Como os logs são gravados — e por que de forma assíncrona
 
 Os logs são escritos no **MongoDB**, mas de um jeito específico: em **segundo plano**, via _goroutine_. Repare no padrão que aparece em todo o backend:
 
 ```go
-go logs.Insert(name, email, "insert_record", "Criado registro ...")
+go logs.Insert(body.Zone, email, "insert_record", "Criado registro ...")
 ```
 
 O `go` na frente faz a gravação do log rodar **em paralelo**, sem bloquear a resposta ao usuário. A operação principal (criar o registro, por exemplo) já retorna sucesso enquanto o log é persistido de forma independente.

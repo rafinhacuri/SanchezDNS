@@ -1,12 +1,14 @@
 package update
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/v2/bson"
 
 	"github.com/rafinhacuri/SanchezDNS/api/cadastro"
+	"github.com/rafinhacuri/SanchezDNS/api/logs"
 	"github.com/rafinhacuri/SanchezDNS/api/redis"
 )
 
@@ -39,7 +41,7 @@ func Level(c *gin.Context) {
 		return
 	}
 
-	email, err := cadastro.UpdateLevel(ctx, body.Id)
+	email, level, err := cadastro.UpdateLevel(ctx, body.Id)
 	if err != nil {
 		log.Println(err)
 
@@ -56,6 +58,8 @@ func Level(c *gin.Context) {
 
 		return
 	}
+
+	go logs.Insert("", c.GetString("email"), "update_level", fmt.Sprintf("Nível de %s alterado para %s", email, level))
 
 	c.JSON(200, gin.H{"message": "Nível do usuário atualizado com sucesso"})
 }

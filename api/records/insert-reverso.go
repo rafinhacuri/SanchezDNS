@@ -7,9 +7,13 @@ import (
 	"resty.dev/v3"
 )
 
-func InsertReverso(parentCtx context.Context, httpc *resty.Client, tipo, vl, zona, name string) error {
+func InsertReverso(
+	parentCtx context.Context,
+	httpc *resty.Client,
+	tipo, vl, zona, name string,
+) ([]MudancaReverso, error) {
 	if tipo != "A" && tipo != "AAAA" {
-		return nil
+		return nil, nil
 	}
 
 	ctx, cancel := context.WithTimeout(parentCtx, 6*time.Second)
@@ -17,32 +21,13 @@ func InsertReverso(parentCtx context.Context, httpc *resty.Client, tipo, vl, zon
 
 	ip := ParseIP(tipo, vl)
 	if ip == nil {
-		return nil
-	}
-
-	nomeReverso := NomeReverso(ip)
-	if nomeReverso == "" {
-		return nil
+		return nil, nil
 	}
 
 	zonas, err := FetchZonas(ctx, httpc)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	zonaReversa := ZonaReversa(zonas, nomeReverso)
-	if zonaReversa == "" {
-		return nil
-	}
-
-	zone, err := FetchZone(ctx, httpc, zonaReversa)
-	if err != nil {
-		return err
-	}
-
-	if FindRRSet(zone, "PTR", nomeReverso) != nil {
-		return nil
-	}
-
-	return InsertPTR(ctx, httpc, zonaReversa, nomeReverso, NomeCompleto(zona, name))
+	return gravarPTRDerivado(ctx, httpc, zonas, ip, NomeCompleto(zona, name))
 }

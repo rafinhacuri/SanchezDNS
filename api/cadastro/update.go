@@ -9,7 +9,7 @@ import (
 	"github.com/rafinhacuri/SanchezDNS/api/passwords"
 )
 
-func Update(ctx context.Context, id bson.ObjectID, nome, foto, senha string) error {
+func Update(ctx context.Context, id bson.ObjectID, nome, foto, senha string) (string, error) {
 	set := bson.M{
 		"nome": nome,
 		"foto": foto,
@@ -18,7 +18,7 @@ func Update(ctx context.Context, id bson.ObjectID, nome, foto, senha string) err
 	if senha != "" {
 		err := passwords.BCrypt(&senha)
 		if err != nil {
-			return err
+			return "", err
 		}
 
 		set["senha"] = senha
@@ -31,10 +31,12 @@ func Update(ctx context.Context, id bson.ObjectID, nome, foto, senha string) err
 		},
 	}
 
-	_, err := mongo.Dns.Collection("cadastros").UpdateByID(ctx, id, update)
+	var cadastro mongo.Cadastro
+
+	err := mongo.Dns.Collection("cadastros").FindOneAndUpdate(ctx, bson.M{"_id": id}, update).Decode(&cadastro)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return cadastro.Email, nil
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/rafinhacuri/SanchezDNS/api/cadastro"
+	"github.com/rafinhacuri/SanchezDNS/api/logs"
 	"github.com/rafinhacuri/SanchezDNS/api/solicitacoes"
 	"github.com/rafinhacuri/SanchezDNS/api/util"
 )
@@ -55,6 +56,8 @@ func Cadastro(c *gin.Context) {
 			return
 		}
 
+		go logs.Insert("", body.Email, "insert_account", "Primeiro cadastro da instância, criado como administrador")
+
 		c.JSON(200, gin.H{"message": "Cadastro realizado com sucesso"})
 
 		return
@@ -83,6 +86,8 @@ func Cadastro(c *gin.Context) {
 
 		return
 	}
+
+	go logs.Insert("", body.Email, "request_account", "Solicitação de cadastro enviada por "+body.Email)
 
 	c.JSON(200, gin.H{"message": "Solicitação realizada com sucesso e será analisada em breve"})
 }

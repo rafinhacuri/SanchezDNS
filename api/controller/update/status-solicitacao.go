@@ -1,12 +1,14 @@
 package update
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/v2/bson"
 
 	"github.com/rafinhacuri/SanchezDNS/api/cadastro"
+	"github.com/rafinhacuri/SanchezDNS/api/logs"
 	"github.com/rafinhacuri/SanchezDNS/api/solicitacoes"
 )
 
@@ -55,7 +57,7 @@ func SolicitacaoStatus(c *gin.Context) {
 		return
 	}
 
-	err = solicitacoes.Status(ctx, body.Id, body.Status)
+	solicitante, err := solicitacoes.Status(ctx, body.Id, body.Status)
 	if err != nil {
 		log.Println(err)
 
@@ -63,6 +65,12 @@ func SolicitacaoStatus(c *gin.Context) {
 
 		return
 	}
+
+	go logs.Insert(
+		"",
+		c.GetString("email"),
+		"review_account",
+		fmt.Sprintf("Solicitação de cadastro de %s marcada como %s", solicitante, body.Status))
 
 	c.JSON(200, gin.H{"message": "Solicitação atualizada com sucesso"})
 }

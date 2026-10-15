@@ -8,12 +8,12 @@ import (
 	"github.com/rafinhacuri/SanchezDNS/api/mongo"
 )
 
-func UpdateLevel(ctx context.Context, id bson.ObjectID) (string, error) {
+func UpdateLevel(ctx context.Context, id bson.ObjectID) (string, string, error) {
 	var cadastro mongo.Cadastro
 
 	err := mongo.Dns.Collection("cadastros").FindOne(ctx, bson.M{"_id": id}).Decode(&cadastro)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	var level string
@@ -28,8 +28,8 @@ func UpdateLevel(ctx context.Context, id bson.ObjectID) (string, error) {
 	_, err = mongo.Dns.Collection("cadastros").
 		UpdateByID(ctx, id, bson.M{"$set": bson.M{"level": level}, "$currentDate": bson.M{"updatedAt": true}})
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	return cadastro.Email, nil
+	return cadastro.Email, level, nil
 }

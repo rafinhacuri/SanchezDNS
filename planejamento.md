@@ -10,15 +10,15 @@ Decisão tomada: **avaliação sem participantes** por enquanto. Se aparecerem p
 
 ## Etapa 1 — Código 3.0.3: o que muda os resultados
 
-- [ ] **[Orient.]** A8: `records/update-reverso.go` grava o PTR novo com REPLACE sem a guarda de PTR existente que `InsertReverso` tem. Aplicar a mesma guarda na alteração de endereço.
-- [ ] **[Orient.]** A9: quando o nome removido é o alvo do PTR e o endereço continua em uso por outro nome, reapontar o PTR para o nome remanescente (o 2º princípio precisa incluir o reapontamento).
-- [ ] **[Achado]** Remoção encadeada apaga o PTR mesmo quando ele aponta para outro nome (PTR de outra equipe): só remover se o PTR apontar para o nome removido. Mesma classe do A8, no caminho da remoção.
-- [ ] **[Achado]** Guarda de referência trata falha de leitura de zona como "sem referência" e remove o PTR. Tornar conservadora: na falha, não remover.
-- [ ] **[Orient.]** Registrar na trilha cada escrita derivada de PTR (criação, reapontamento, remoção), com o operador que a disparou, a zona reversa, o endereço e o alvo.
-- [ ] **[Orient.]** Campo `zone` do `edit_record` guarda o nome do registro. **[Achado]** `insert_record` e `delete_record` também gravam o FQDN no lugar da zona. Corrigir os três.
-- [ ] **[Orient.]** RF13 exige "toda operação de escrita sobre ... usuários". **[Achado]** Não são auditados: solicitação de cadastro, aprovação/recusa, remoção de cadastro, edição de cadastro e troca de nível (promoção a admin, `update.Level`).
-- [ ] **[Orient.]** A12: o 422 do PowerDNS vira 500 genérico. Repassar como erro do cliente (422) com a mensagem do servidor.
-- [ ] Testes automatizados das guardas (A8, A9, remoção de PTR alheio) com PowerDNS simulado; `go test`, lint e build.
+- [x] **[Orient.]** A8: `records/update-reverso.go` grava o PTR novo com REPLACE sem a guarda de PTR existente que `InsertReverso` tem. Aplicar a mesma guarda na alteração de endereço.
+- [x] **[Orient.]** A9: quando o nome removido é o alvo do PTR e o endereço continua em uso por outro nome, reapontar o PTR para o nome remanescente (o 2º princípio precisa incluir o reapontamento).
+- [x] **[Achado]** Remoção encadeada apaga o PTR mesmo quando ele aponta para outro nome (PTR de outra equipe): só remover se o PTR apontar para o nome removido. Mesma classe do A8, no caminho da remoção.
+- [x] **[Achado]** Guarda de referência trata falha de leitura de zona como "sem referência" e remove o PTR. Tornar conservadora: na falha, não remover.
+- [x] **[Orient.]** Registrar na trilha cada escrita derivada de PTR (criação, reapontamento, remoção), com o operador que a disparou, a zona reversa, o endereço e o alvo.
+- [x] **[Orient.]** Campo `zone` do `edit_record` guarda o nome do registro. **[Achado]** `insert_record` e `delete_record` também gravam o FQDN no lugar da zona. Corrigir os três.
+- [x] **[Orient.]** RF13 exige "toda operação de escrita sobre ... usuários". **[Achado]** Não são auditados: solicitação de cadastro, aprovação/recusa, remoção de cadastro, edição de cadastro e troca de nível (promoção a admin, `update.Level`).
+- [x] **[Orient.]** A12: o 422 do PowerDNS vira 500 genérico. Repassar como erro do cliente (422) com a mensagem do servidor.
+- [x] Testes automatizados das guardas (A8, A9, remoção de PTR alheio) com PowerDNS simulado; `go test`, lint e build.
 - [ ] Release 3.0.3.
 
 ## Etapa 2 — Código: segurança e on-premises

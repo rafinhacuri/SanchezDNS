@@ -70,15 +70,17 @@ func Record(c *gin.Context) {
 		return
 	}
 
-	err = records.DeleteReverso(ctx, httpc, body.Type, body.VL)
+	mudancas, err := records.DeleteReverso(ctx, httpc, body.Type, body.VL, body.Zone, body.Name)
 	if err != nil {
 		log.Println(err)
 	}
 
 	name := records.NomeCompleto(body.Zone, body.Name)
 
+	go logs.ReversosDerivados(email, fmt.Sprintf("exclusão do registro %s %s", body.Type, name), mudancas)
+
 	go logs.Insert(
-		name,
+		body.Zone,
 		email,
 		"delete_record",
 		fmt.Sprintf("Excluído registro %s do tipo %s na zona %s", name, body.Type, body.Zone))

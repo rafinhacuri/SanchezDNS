@@ -2,14 +2,19 @@ package records
 
 import (
 	"context"
+	"net"
 	"time"
 
 	"resty.dev/v3"
 )
 
-func UpdateReverso(parentCtx context.Context, httpc *resty.Client, tipo, vl, vlAntigo, zona, name string) error {
+func UpdateReverso(
+	parentCtx context.Context,
+	httpc *resty.Client,
+	tipo, vl, vlAntigo, zona, name string,
+) ([]MudancaReverso, error) {
 	if tipo != "A" && tipo != "AAAA" {
-		return nil
+		return nil, nil
 	}
 
 	ctx, cancel := context.WithTimeout(parentCtx, 6*time.Second)
@@ -19,40 +24,40 @@ func UpdateReverso(parentCtx context.Context, httpc *resty.Client, tipo, vl, vlA
 	antigo := ParseIP(tipo, vlAntigo)
 
 	if novo == nil && antigo == nil {
-		return nil
+		return nil, nil
 	}
 
 	zonas, err := FetchZonas(ctx, httpc)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if novo != nil {
-		nomeReverso := NomeReverso(novo)
+	fqdn := NomeCompleto(zona, name)
 
-		zonaReversa := ZonaReversa(zonas, nomeReverso)
-		if zonaReversa != "" {
-			err = InsertPTR(ctx, httpc, zonaReversa, nomeReverso, NomeCompleto(zona, name))
-			if err != nil {
-				return err
-			}
-		}
+	gravadas, err := gravarDoNovo(ctx, httpc, zonas, novo, fqdn)
+	if err != nil {
+		return gravadas, err
 	}
 
 	if antigo == nil || (novo != nil && novo.Equal(antigo)) {
-		return nil
+		return gravadas, nil
 	}
 
-	nomeAntigo := NomeReverso(antigo)
+	liberadas, err := liberarPTRDerivado(ctx, httpc, zonas, antigo, fqdn)
 
-	zonaAntiga := ZonaReversa(zonas, nomeAntigo)
-	if zonaAntiga == "" {
-		return nil
+	return append(gravadas, liberadas...), err
+}
+
+func gravarDoNovo(
+	ctx context.Context,
+	httpc *resty.Client,
+	zonas []ZoneInfo,
+	novo net.IP,
+	fqdn string,
+) ([]MudancaReverso, error) {
+	if novo == nil {
+		return nil, nil
 	}
 
-	if TemForward(ctx, httpc, zonas, antigo) {
-		return nil
-	}
-
-	return DeletePTR(ctx, httpc, zonaAntiga, nomeAntigo)
+	return gravarPTRDerivado(ctx, httpc, zonas, novo, fqdn)
 }

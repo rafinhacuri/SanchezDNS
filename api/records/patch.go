@@ -2,7 +2,6 @@ package records
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/url"
 
@@ -21,7 +20,7 @@ func Patch(ctx context.Context, httpc *resty.Client, zona string, body PDNSZoneP
 	}
 
 	if resp.StatusCode() != 204 && resp.StatusCode() != 201 {
-		return errors.New("pdns: " + resp.Status() + " " + resp.String())
+		return &PdnsError{Status: resp.StatusCode(), Corpo: resp.String()}
 	}
 
 	return nil

@@ -74,12 +74,18 @@ func Record(c *gin.Context) {
 	if err != nil {
 		log.Println(err)
 
+		if motivo, ok := records.RecusaPdns(err); ok {
+			c.AbortWithStatusJSON(422, gin.H{"message": "O servidor DNS recusou o registro: " + motivo})
+
+			return
+		}
+
 		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao editar o registro no servidor DNS"})
 
 		return
 	}
 
-	err = records.UpdateReverso(
+	mudancas, err := records.UpdateReverso(
 		ctx,
 		httpc,
 		body.NewValue.Type,
@@ -91,13 +97,17 @@ func Record(c *gin.Context) {
 		log.Println(err)
 	}
 
+	name := records.NomeCompleto(body.NewValue.Zone, body.NewValue.Name)
+
+	go logs.ReversosDerivados(email, fmt.Sprintf("alteração do registro %s %s", body.NewValue.Type, name), mudancas)
+
 	go logs.Insert(
-		body.NewValue.Name,
+		body.NewValue.Zone,
 		email,
 		"edit_record",
 		fmt.Sprintf(
 			"Editado registro %s do tipo %s na zona %s",
-			body.NewValue.Name,
+			name,
 			body.NewValue.Type,
 			body.NewValue.Zone))
 

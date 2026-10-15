@@ -7,6 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 
 	"github.com/rafinhacuri/SanchezDNS/api/cadastro"
+	"github.com/rafinhacuri/SanchezDNS/api/logs"
 	"github.com/rafinhacuri/SanchezDNS/api/redis"
 	"github.com/rafinhacuri/SanchezDNS/api/users"
 )
@@ -49,6 +50,12 @@ func Cadastro(c *gin.Context) {
 
 		return
 	}
+
+	go logs.Insert(
+		"",
+		c.GetString("email"),
+		"delete_account",
+		"Excluído o cadastro de "+email+" e suas permissões por zona")
 
 	c.JSON(200, gin.H{"message": "cadastro deletado"})
 }

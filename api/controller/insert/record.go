@@ -66,20 +66,28 @@ func Record(c *gin.Context) {
 	if err != nil {
 		log.Println(err)
 
+		if motivo, ok := records.RecusaPdns(err); ok {
+			c.AbortWithStatusJSON(422, gin.H{"message": "O servidor DNS recusou o registro: " + motivo})
+
+			return
+		}
+
 		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao adicionar o registro no servidor DNS"})
 
 		return
 	}
 
-	err = records.InsertReverso(ctx, httpc, body.Type, records.NormalizarValor(body), body.Zone, body.Name)
+	mudancas, err := records.InsertReverso(ctx, httpc, body.Type, records.NormalizarValor(body), body.Zone, body.Name)
 	if err != nil {
 		log.Println(err)
 	}
 
 	name := records.NomeCompleto(body.Zone, body.Name)
 
+	go logs.ReversosDerivados(email, fmt.Sprintf("inclusão do registro %s %s", body.Type, name), mudancas)
+
 	go logs.Insert(
-		name,
+		body.Zone,
 		email,
 		"insert_record",
 		fmt.Sprintf("Criado registro %s do tipo %s na zona %s", name, body.Type, body.Zone))

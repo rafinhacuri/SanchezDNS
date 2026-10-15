@@ -104,7 +104,7 @@ Se o segundo `PATCH` (dos comentários) falhar, a operação retorna erro; se o 
 
 Este é o comportamento mais característico do SanchezDNS. Sempre que um registro **`A`** ou **`AAAA`** é criado, editado ou removido, o backend mantém o **PTR reverso** correspondente em sincronia, sem intervenção manual. Cada operação tem sua função: [insert-reverso.go](https://github.com/rafinhacuri/SanchezDNS/blob/main/api/records/insert-reverso.go), [update-reverso.go](https://github.com/rafinhacuri/SanchezDNS/blob/main/api/records/update-reverso.go) e [delete-reverso.go](https://github.com/rafinhacuri/SanchezDNS/blob/main/api/records/delete-reverso.go).
 
-As três compartilham os mesmos blocos de construção — `ParseIP`, `NomeReverso`, `ZonaReversa`, `TemForward`, `InsertPTR` e `DeletePTR` — o que faz IPv4 e IPv6 seguirem exatamente o mesmo caminho, em vez de terem implementações separadas.
+As três compartilham os mesmos blocos de construção — `ParseIP`, `NomeReverso`, `ZonaReversa`, `NomesComIP`, `InsertPTR` e `DeletePTR` — o que faz IPv4 e IPv6 seguirem exatamente o mesmo caminho, em vez de terem implementações separadas.
 
 ### Por que isso importa
 
@@ -144,13 +144,17 @@ for _, zona := range zonas {
 
 **Por que o sufixo mais longo?** Porque pode haver zonas reversas de granularidades diferentes (por exemplo, uma `/16` e uma `/24` da mesma rede). A mais específica (nome mais longo) é a dona correta daquele IP — a mesma lógica de "correspondência mais específica" que o roteamento usa. Se **nenhuma** zona reversa cobrir o IP, o backend simplesmente não faz nada (não é erro: talvez você não gerencie o reverso daquela faixa).
 
-Antes de criar, ele verifica se o PTR já existe naquela zona; se existir, não sobrescreve. Se não, faz um `PATCH` criando o PTR que aponta de volta para o FQDN do registro `A`/`AAAA`.
+Antes de criar, ele verifica se o PTR já existe naquela zona; se existir, não sobrescreve, seja na criação ou na edição do registro. Se não, faz um `PATCH` criando o PTR que aponta de volta para o FQDN do registro `A`/`AAAA`.
 
 ### O ciclo completo
 
-- **criar** `A`/`AAAA` → cria o PTR correspondente;
-- **editar** o valor → atualiza o PTR (remove o antigo, garante o novo);
-- **remover** `A`/`AAAA` → remove o PTR junto.
+- **criar** `A`/`AAAA` → cria o PTR correspondente, se ainda não houver PTR para o IP;
+- **editar** o valor → cria o PTR do IP novo (com a mesma regra: um PTR existente nunca é sobrescrito) e libera o do IP antigo;
+- **remover** `A`/`AAAA` → libera o PTR do IP.
+
+Liberar o PTR só mexe nele se ele apontar para o nome que deixou de usar o IP; um PTR definido para outro nome, por exemplo por outra equipe, fica intacto. Se o IP ainda é usado por outro registro direto, o PTR é **reapontado** para esse nome; se ninguém mais usa o IP, o PTR é removido. Se alguma zona direta não puder ser lida, o backend não tem como confirmar que o IP ficou livre e não remove nada.
+
+Cada escrita automática no PTR gera uma entrada própria nos [logs](/logs), atribuída a quem editou o registro direto.
 
 Tudo isso roda com um **timeout curto (6s)** e em caráter de "melhor esforço": se a parte reversa falhar, ela é registrada no log, mas **não derruba** a operação principal sobre o registro direto.
 

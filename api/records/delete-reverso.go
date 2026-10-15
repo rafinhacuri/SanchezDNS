@@ -7,9 +7,13 @@ import (
 	"resty.dev/v3"
 )
 
-func DeleteReverso(parentCtx context.Context, httpc *resty.Client, tipo, vl string) error {
+func DeleteReverso(
+	parentCtx context.Context,
+	httpc *resty.Client,
+	tipo, vl, zona, name string,
+) ([]MudancaReverso, error) {
 	if tipo != "A" && tipo != "AAAA" {
-		return nil
+		return nil, nil
 	}
 
 	ctx, cancel := context.WithTimeout(parentCtx, 6*time.Second)
@@ -17,24 +21,13 @@ func DeleteReverso(parentCtx context.Context, httpc *resty.Client, tipo, vl stri
 
 	ip := ParseIP(tipo, vl)
 	if ip == nil {
-		return nil
+		return nil, nil
 	}
 
 	zonas, err := FetchZonas(ctx, httpc)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if TemForward(ctx, httpc, zonas, ip) {
-		return nil
-	}
-
-	nomeReverso := NomeReverso(ip)
-
-	zonaReversa := ZonaReversa(zonas, nomeReverso)
-	if zonaReversa == "" {
-		return nil
-	}
-
-	return DeletePTR(ctx, httpc, zonaReversa, nomeReverso)
+	return liberarPTRDerivado(ctx, httpc, zonas, ip, NomeCompleto(zona, name))
 }
