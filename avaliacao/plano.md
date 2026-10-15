@@ -77,3 +77,12 @@ Passos, entradas e valores formatados são relatados lado a lado. A ameaça de q
 ## 7. Registro dos resultados
 
 Cada script grava os resultados com a versão no nome do arquivo (`resultado_e2_v3.0.3.md`, `resultado_referencia_api.md` etc.), sem sobrescrever os da primeira rodada.
+
+## 8. Registro de desvios (acrescentado depois da primeira execução, em 15/10/2026)
+
+Os critérios e as classes das seções 3 a 6 não mudaram. Mudaram apenas os instrumentos, por defeitos encontrados na primeira execução:
+
+- **R3, primeira execução inválida para os casos de conteúdo.** O script supunha que o `pdnsutil` 5.0.1 trata o nome do registro como relativo à zona. Ele o trata como absoluto (`n1` vira `n1.`), e 12 das 14 entradas foram recusadas pelo nome, antes de o conteúdo ser avaliado. Os casos de conteúdo passam a usar o nome completo; N8 a N10 continuam exercitando a forma do nome. A primeira execução fica em `resultado_referencia_pdnsutil_execucao1.md` como registro do comportamento do nome.
+- **R2 e R3, coluna acrescentada.** "Corresponde ao pretendido" compara o valor gravado com a forma canônica que o operador pretendia (ou indica que a entrada deveria ter sido recusada). É a informação que a regra de atribuição da seção 4 exige; as três classes continuam as mesmas.
+- **R4, HTTPS não verificado na primeira execução.** O `dig` do macOS (9.10.6) não reconhece o tipo HTTPS e consultou o registro A. O HTTPS passa a ser consultado como `TYPE65` e comparado na forma genérica da RFC 3597.
+- **R4, remoção do MX.** O `DELETE /records` espera o MX como a tela o envia, com a prioridade dentro do valor e no campo próprio. Enviado só com o valor, o pedido respondeu 400; enviado sem o campo de prioridade, respondeu 200 **sem remover nada**, e a inclusão seguinte foi recusada pelo PowerDNS como registro duplicado (422). O script passou a enviar o formato da tela.

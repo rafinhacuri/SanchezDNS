@@ -34,15 +34,20 @@ Decisão tomada: **avaliação sem participantes** por enquanto. Se aparecerem p
 ## Etapa 3 — Reexecutar a avaliação
 
 - [x] **[Orient.]** Commitar `avaliacao/` (hoje fora do git) com `avaliacao/plano.md` datado, contendo critérios e regras **antes** da nova rodada. Isso serve de evidência de que os critérios foram fixados antes da execução. Tirar o default `mizle.cbpf.dev.br` do script (endereço por variável de ambiente).
-- [ ] **[Orient.]** Reexecutar o E2 de autorização e trilha na 3.0.3 (A8, A9, escritas derivadas, contas).
+- [x] **[Orient.]** Reexecutar o E2 de autorização e trilha na 3.0.3 (A8, A9, escritas derivadas, contas).
 - [x] **[Achado]** Novo caso: criar A sobre o PTR de outra equipe e depois apagá-lo (o PTR alheio deve ficar).
-- [ ] **[Orient.]** Condição de referência do E2 (prometida na §2.6.2, nunca executada): mandar as entradas N1–N13 direto à API do PowerDNS e ao `pdnsutil`, sem a plataforma. Hipótese a testar: a API recusa conteúdo não canônico e nome sem ponto; o pdnsutil trata conteúdo como absoluto, mas nome do registro como relativo (duplicação possível); TTL 30 passa nos dois.
-- [ ] **[Orient.]** Oráculo independente na normalização: incluir MX, SRV, CAA, HTTPS e PTR na zona de teste e rodar o Zonemaster de novo (hoje só A, NS e TXT).
+- [x] **[Orient.]** Condição de referência do E2 (prometida na §2.6.2, nunca executada): mandar as entradas N1–N13 direto à API do PowerDNS e ao `pdnsutil`, sem a plataforma. Hipótese a testar: a API recusa conteúdo não canônico e nome sem ponto; o pdnsutil trata conteúdo como absoluto, mas nome do registro como relativo (duplicação possível); TTL 30 passa nos dois.
+- [x] **[Orient.]** Oráculo independente na normalização: incluir MX, SRV, CAA, HTTPS e PTR na zona de teste e rodar o Zonemaster de novo (hoje só A, NS e TXT).
 - [x] **[Orient.]** Teste do 3º princípio (exibir o publicado): gravar pela API um valor sem ponto e reler por `GET /records`.
-- [ ] **[Orient.]** E3: definir a regra de contagem de passos antes de recontar. Reposicionar a comparação contra a API e o `pdnsutil`.
-- [ ] **[Achado]** Quadro 16, tarefa 1: diz "1 valor (nome da zona)", mas o formulário exige domínio, servidor primário e e-mail do SOA (`api/zonas/types.go`).
-- [ ] Rodar R1 a R5 do `avaliacao/plano.md` (scripts prontos; precisam das credenciais, por isso rodam na sua máquina e no servidor).
+- [x] **[Orient.]** E3: definir a regra de contagem de passos antes de recontar. Reposicionar a comparação contra a API e o `pdnsutil`.
+- [x] **[Achado]** Quadro 16, tarefa 1: diz "1 valor (nome da zona)", mas o formulário exige domínio, servidor primário e e-mail do SOA (`api/zonas/types.go`).
+- [x] Rodar R1 a R5 do `avaliacao/plano.md`. Feitos: R1 (18/18; trilha 26/26; derivadas 5/5), R2 (API recusou 11 de 13), R3 (pdnsutil corrige ponto final e recusa RDATA malformado; TTL 30 passa nos dois), R5 (`resultado_e3_v3.0.3.md`) e Zonemaster; R4 com os seis tipos publicados na forma canônica (terceira execução) (scripts prontos; precisam das credenciais, por isso rodam na sua máquina e no servidor).
 - [ ] **[Achado]** `records/nome-completo.go` compara o nome com a zona como texto, sem fronteira de rótulo (mesma classe do P4): com a zona `curi.dev.br`, o nome `xcuri.dev.br` vira FQDN fora da zona. Corrigir numa 3.0.4 e criar caso de teste.
+- [ ] **[Achado]** O E2 (3.0.2 e 3.0.3) rodou no ambiente de desenvolvimento desta máquina (`bun dev`, `mizle.cbpf.dev.br:3000`) ligado ao PowerDNS do E4, e não na imagem publicada. A §5.3.3 diz "sobre a instância do episódio E4": corrigir no texto (Etapa 9).
+- [ ] **[Achado]** API inconsistente no MX: `PUT /records` recebe a prioridade em campo próprio; `DELETE /records` exige a prioridade dentro do valor (`"10 mail..."`). Uniformizar numa 3.0.4.
+- [ ] **[Achado]** `DELETE /records` responde 200 quando nenhum registro casa com o valor enviado (nada é removido). Devolver 404 numa 3.0.4.
+- [ ] **[Achado]** No `pdnsutil` 5.0.1 o nome do registro é absoluto (nome relativo é recusado como fora da zona) e o conteúdo passa pelo mesmo parser da API. A "edição manual" da linha de base não reproduz o erro de ponto final do .se: o argumento da §1.1 e o E3 precisam refletir isso.
+- [ ] **[Achado]** O campo "Email do responsável" vai para o RNAME do SOA sem converter o `@` (`api/zonas/update-soa.go`). Verificar se um e-mail comum produz RNAME malformado; se sim, converter numa 3.0.4.
 
 ## Etapa 4 — Nova estrutura da monografia (esquema de Gregor e Hevner, 2013)
 

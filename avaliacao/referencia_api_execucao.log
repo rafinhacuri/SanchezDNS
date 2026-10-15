@@ -1,0 +1,52 @@
+== Referência pela API do PowerDNS · http://152.84.126.7:8081 · zona ref-sanchezdns.example.
+  GET /zones → 200 [{"account": "", "catalog": "", "dnssec": true, "edited_serial": 2026080305, "id": "20.152.in-addr.arpa.", "kind": "Native", "last_check": 0, "masters": [], "name": "20.152.in-addr.arpa.", "notified_serial": 0, "serial": 2026080305, "url": "/api/v1/servers/localhost/zones/20.152.in-addr.arpa."}, {"a
+  POST /zones → 201 {"account": "", "api_rectify": false, "catalog": "", "dnssec": false, "edited_serial": 2026101501, "id": "ref-sanchezdns.example.", "kind": "Native", "last_check": 0, "master_tsig_key_ids": [], "masters": [], "name": "ref-sanchezdns.example.", "notified_serial": 0, "nsec3narrow": false, "nsec3param"
+  zona criada (PowerDNS 5.0.1)
+  PATCH /zones/ref-sanchezdns.example. → 422 {"error": "Record n1.ref-sanchezdns.example./CNAME 'www.destino.com.br': Not in expected format (parsed as 'www.destino.com.br.')"}
+  GET /zones/ref-sanchezdns.example. → 200 {"account": "", "api_rectify": false, "catalog": "", "dnssec": false, "edited_serial": 2026101501, "id": "ref-sanchezdns.example.", "kind": "Native", "last_check": 0, "master_tsig_key_ids": [], "masters": [], "name": "ref-sanchezdns.example.", "notified_serial": 0, "nsec3narrow": false, "nsec3param"
+  [recusada pelo servidor] N1 CNAME sem ponto final → HTTP 422 (Record n1.ref-sanchezdns.example./CNAME 'www.destino.com.br': Not in expected format (parsed as 'www.destino.com.br.'))
+  PATCH /zones/ref-sanchezdns.example. → 422 {"error": "Record n2.ref-sanchezdns.example./NS 'ns1.exemplo.com.br': Not in expected format (parsed as 'ns1.exemplo.com.br.')"}
+  GET /zones/ref-sanchezdns.example. → 200 {"account": "", "api_rectify": false, "catalog": "", "dnssec": false, "edited_serial": 2026101501, "id": "ref-sanchezdns.example.", "kind": "Native", "last_check": 0, "master_tsig_key_ids": [], "masters": [], "name": "ref-sanchezdns.example.", "notified_serial": 0, "nsec3narrow": false, "nsec3param"
+  [recusada pelo servidor] N2 NS sem ponto final → HTTP 422 (Record n2.ref-sanchezdns.example./NS 'ns1.exemplo.com.br': Not in expected format (parsed as 'ns1.exemplo.com.br.'))
+  PATCH /zones/ref-sanchezdns.example. → 422 {"error": "Record n3a.ref-sanchezdns.example./MX '10 mail.exemplo.com.br': Not in expected format (parsed as '10 mail.exemplo.com.br.')"}
+  GET /zones/ref-sanchezdns.example. → 200 {"account": "", "api_rectify": false, "catalog": "", "dnssec": false, "edited_serial": 2026101501, "id": "ref-sanchezdns.example.", "kind": "Native", "last_check": 0, "master_tsig_key_ids": [], "masters": [], "name": "ref-sanchezdns.example.", "notified_serial": 0, "nsec3narrow": false, "nsec3param"
+  [recusada pelo servidor] N3a MX sem ponto final → HTTP 422 (Record n3a.ref-sanchezdns.example./MX '10 mail.exemplo.com.br': Not in expected format (parsed as '10 mail.exemplo.com.br.'))
+  PATCH /zones/ref-sanchezdns.example. → 422 {"error": "Record n3b.ref-sanchezdns.example./MX 'mail.exemplo.com.br.': Parsing record content (try 'pdnsutil check-zone'): expected digits at position 0 in 'mail.exemplo.com.br.'"}
+  GET /zones/ref-sanchezdns.example. → 200 {"account": "", "api_rectify": false, "catalog": "", "dnssec": false, "edited_serial": 2026101501, "id": "ref-sanchezdns.example.", "kind": "Native", "last_check": 0, "master_tsig_key_ids": [], "masters": [], "name": "ref-sanchezdns.example.", "notified_serial": 0, "nsec3narrow": false, "nsec3param"
+  [recusada pelo servidor] N3b MX sem prioridade → HTTP 422 (Record n3b.ref-sanchezdns.example./MX 'mail.exemplo.com.br.': Parsing record content (try 'pdnsutil check-zone'): expected digits at position 0 in 'mail.exemplo.com.br.')
+  PATCH /zones/ref-sanchezdns.example. → 422 {"error": "Record n4.ref-sanchezdns.example./TXT 'v=spf1 -all': Parsing record content (try 'pdnsutil check-zone'): Data field in DNS should start with quote (\") at position 0 of 'v=spf1 -all'"}
+  GET /zones/ref-sanchezdns.example. → 200 {"account": "", "api_rectify": false, "catalog": "", "dnssec": false, "edited_serial": 2026101501, "id": "ref-sanchezdns.example.", "kind": "Native", "last_check": 0, "master_tsig_key_ids": [], "masters": [], "name": "ref-sanchezdns.example.", "notified_serial": 0, "nsec3narrow": false, "nsec3param"
+  [recusada pelo servidor] N4 TXT sem aspas → HTTP 422 (Record n4.ref-sanchezdns.example./TXT 'v=spf1 -all': Parsing record content (try 'pdnsutil check-zone'): Data field in DNS should start with quote (") at position 0 of 'v=spf1 -all')
+  PATCH /zones/ref-sanchezdns.example. → 422 {"error": "Record n5.ref-sanchezdns.example./SRV '10 5 5060 sip.exemplo.com.br': Not in expected format (parsed as '10 5 5060 sip.exemplo.com.br.')"}
+  GET /zones/ref-sanchezdns.example. → 200 {"account": "", "api_rectify": false, "catalog": "", "dnssec": false, "edited_serial": 2026101501, "id": "ref-sanchezdns.example.", "kind": "Native", "last_check": 0, "master_tsig_key_ids": [], "masters": [], "name": "ref-sanchezdns.example.", "notified_serial": 0, "nsec3narrow": false, "nsec3param"
+  [recusada pelo servidor] N5 SRV sem ponto final no alvo → HTTP 422 (Record n5.ref-sanchezdns.example./SRV '10 5 5060 sip.exemplo.com.br': Not in expected format (parsed as '10 5 5060 sip.exemplo.com.br.'))
+  PATCH /zones/ref-sanchezdns.example. → 422 {"error": "Record n6.ref-sanchezdns.example./HTTPS '1': Parsing record content (try 'pdnsutil check-zone'): missing field at the end of record content '1'"}
+  GET /zones/ref-sanchezdns.example. → 200 {"account": "", "api_rectify": false, "catalog": "", "dnssec": false, "edited_serial": 2026101501, "id": "ref-sanchezdns.example.", "kind": "Native", "last_check": 0, "master_tsig_key_ids": [], "masters": [], "name": "ref-sanchezdns.example.", "notified_serial": 0, "nsec3narrow": false, "nsec3param"
+  [recusada pelo servidor] N6 HTTPS sem destino → HTTP 422 (Record n6.ref-sanchezdns.example./HTTPS '1': Parsing record content (try 'pdnsutil check-zone'): missing field at the end of record content '1')
+  PATCH /zones/ref-sanchezdns.example. → 422 {"error": "Record n7.ref-sanchezdns.example./CAA 'letsencrypt.org': Parsing record content (try 'pdnsutil check-zone'): expected digits at position 0 in 'letsencrypt.org'"}
+  GET /zones/ref-sanchezdns.example. → 200 {"account": "", "api_rectify": false, "catalog": "", "dnssec": false, "edited_serial": 2026101501, "id": "ref-sanchezdns.example.", "kind": "Native", "last_check": 0, "master_tsig_key_ids": [], "masters": [], "name": "ref-sanchezdns.example.", "notified_serial": 0, "nsec3narrow": false, "nsec3param"
+  [recusada pelo servidor] N7 CAA sem flag e tag → HTTP 422 (Record n7.ref-sanchezdns.example./CAA 'letsencrypt.org': Parsing record content (try 'pdnsutil check-zone'): expected digits at position 0 in 'letsencrypt.org')
+  PATCH /zones/ref-sanchezdns.example. → 422 {"error": "DNS Name 'www' is not canonical"}
+  GET /zones/ref-sanchezdns.example. → 200 {"account": "", "api_rectify": false, "catalog": "", "dnssec": false, "edited_serial": 2026101501, "id": "ref-sanchezdns.example.", "kind": "Native", "last_check": 0, "master_tsig_key_ids": [], "masters": [], "name": "ref-sanchezdns.example.", "notified_serial": 0, "nsec3narrow": false, "nsec3param"
+  [recusada pelo servidor] N8 nome relativo → HTTP 422 (DNS Name 'www' is not canonical)
+  PATCH /zones/ref-sanchezdns.example. → 422 {"error": "DNS Name 'www.ref-sanchezdns.example' is not canonical"}
+  GET /zones/ref-sanchezdns.example. → 200 {"account": "", "api_rectify": false, "catalog": "", "dnssec": false, "edited_serial": 2026101501, "id": "ref-sanchezdns.example.", "kind": "Native", "last_check": 0, "master_tsig_key_ids": [], "masters": [], "name": "ref-sanchezdns.example.", "notified_serial": 0, "nsec3narrow": false, "nsec3param"
+  [recusada pelo servidor] N9 nome completo sem ponto final → HTTP 422 (DNS Name 'www.ref-sanchezdns.example' is not canonical)
+  PATCH /zones/ref-sanchezdns.example. → 204 
+  GET /zones/ref-sanchezdns.example. → 200 {"account": "", "api_rectify": false, "catalog": "", "dnssec": false, "edited_serial": 2026101502, "id": "ref-sanchezdns.example.", "kind": "Native", "last_check": 0, "master_tsig_key_ids": [], "masters": [], "name": "ref-sanchezdns.example.", "notified_serial": 0, "nsec3narrow": false, "nsec3param"
+  PATCH /zones/ref-sanchezdns.example. → 204 
+  [aceita como enviada] N10 nome já qualificado (controle) → HTTP 204 
+  PATCH /zones/ref-sanchezdns.example. → 422 {"error": "Record n11.ref-sanchezdns.example./A '999.1.1.1': Parsing record content (try 'pdnsutil check-zone'): unable to parse IP address"}
+  GET /zones/ref-sanchezdns.example. → 200 {"account": "", "api_rectify": false, "catalog": "", "dnssec": false, "edited_serial": 2026101503, "id": "ref-sanchezdns.example.", "kind": "Native", "last_check": 0, "master_tsig_key_ids": [], "masters": [], "name": "ref-sanchezdns.example.", "notified_serial": 0, "nsec3narrow": false, "nsec3param"
+  [recusada pelo servidor] N11 endereço IPv4 inválido → HTTP 422 (Record n11.ref-sanchezdns.example./A '999.1.1.1': Parsing record content (try 'pdnsutil check-zone'): unable to parse IP address)
+  PATCH /zones/ref-sanchezdns.example. → 422 {"error": "Record n12.ref-sanchezdns.example./AAAA '192.0.2.1': Invalid IPv6 address"}
+  GET /zones/ref-sanchezdns.example. → 200 {"account": "", "api_rectify": false, "catalog": "", "dnssec": false, "edited_serial": 2026101503, "id": "ref-sanchezdns.example.", "kind": "Native", "last_check": 0, "master_tsig_key_ids": [], "masters": [], "name": "ref-sanchezdns.example.", "notified_serial": 0, "nsec3narrow": false, "nsec3param"
+  [recusada pelo servidor] N12 endereço IPv4 em AAAA → HTTP 422 (Record n12.ref-sanchezdns.example./AAAA '192.0.2.1': Invalid IPv6 address)
+  PATCH /zones/ref-sanchezdns.example. → 204 
+  GET /zones/ref-sanchezdns.example. → 200 {"account": "", "api_rectify": false, "catalog": "", "dnssec": false, "edited_serial": 2026101504, "id": "ref-sanchezdns.example.", "kind": "Native", "last_check": 0, "master_tsig_key_ids": [], "masters": [], "name": "ref-sanchezdns.example.", "notified_serial": 0, "nsec3narrow": false, "nsec3param"
+  PATCH /zones/ref-sanchezdns.example. → 204 
+  [aceita como enviada] N13 TTL de 30 segundos → HTTP 204 
+
+  tabela: /Users/rafaelcuri/projects/github/sanchez-dns/avaliacao/resultado_referencia_api.md
+  DELETE /zones/ref-sanchezdns.example. → 204 
+  zona ref-sanchezdns.example. removida: 204

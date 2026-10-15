@@ -26,22 +26,22 @@ OUT_MD="$DIR/resultado_referencia_api.md"
 OUT_LOG="$DIR/referencia_api_execucao.log"
 TMP="$(mktemp -d)"
 
-# id|tipo|nome|ttl|conteúdo|entrada como o operador a escreveria
+# id|tipo|nome|ttl|conteúdo|entrada como o operador a escreveria|conteúdo pretendido ("-" = deveria ser recusada)
 CASOS=(
-  "N1|CNAME|n1.$Z|300|www.destino.com.br|CNAME sem ponto final"
-  "N2|NS|n2.$Z|300|ns1.exemplo.com.br|NS sem ponto final"
-  "N3a|MX|n3a.$Z|300|10 mail.exemplo.com.br|MX sem ponto final"
-  "N3b|MX|n3b.$Z|300|mail.exemplo.com.br.|MX sem prioridade"
-  "N4|TXT|n4.$Z|300|v=spf1 -all|TXT sem aspas"
-  "N5|SRV|n5.$Z|300|10 5 5060 sip.exemplo.com.br|SRV sem ponto final no alvo"
-  "N6|HTTPS|n6.$Z|300|1|HTTPS sem destino"
-  "N7|CAA|n7.$Z|300|letsencrypt.org|CAA sem flag e tag"
-  "N8|A|www|300|192.0.2.8|nome relativo"
-  "N9|A|www.${Z%.}|300|192.0.2.9|nome completo sem ponto final"
-  "N10|A|n10.$Z|300|192.0.2.10|nome já qualificado (controle)"
-  "N11|A|n11.$Z|300|999.1.1.1|endereço IPv4 inválido"
-  "N12|AAAA|n12.$Z|300|192.0.2.1|endereço IPv4 em AAAA"
-  "N13|A|n13.$Z|30|192.0.2.13|TTL de 30 segundos"
+  "N1|CNAME|n1.$Z|300|www.destino.com.br|CNAME sem ponto final|www.destino.com.br."
+  "N2|NS|n2.$Z|300|ns1.exemplo.com.br|NS sem ponto final|ns1.exemplo.com.br."
+  "N3a|MX|n3a.$Z|300|10 mail.exemplo.com.br|MX sem ponto final|10 mail.exemplo.com.br."
+  "N3b|MX|n3b.$Z|300|mail.exemplo.com.br.|MX sem prioridade|-"
+  "N4|TXT|n4.$Z|300|v=spf1 -all|TXT sem aspas|\"v=spf1 -all\""
+  "N5|SRV|n5.$Z|300|10 5 5060 sip.exemplo.com.br|SRV sem ponto final no alvo|10 5 5060 sip.exemplo.com.br."
+  "N6|HTTPS|n6.$Z|300|1|HTTPS sem destino|-"
+  "N7|CAA|n7.$Z|300|letsencrypt.org|CAA sem flag e tag|0 issue \"letsencrypt.org\""
+  "N8|A|www|300|192.0.2.8|nome relativo|192.0.2.8"
+  "N9|A|www.${Z%.}|300|192.0.2.9|nome completo sem ponto final|192.0.2.9"
+  "N10|A|n10.$Z|300|192.0.2.10|nome já qualificado (controle)|192.0.2.10"
+  "N11|A|n11.$Z|300|999.1.1.1|endereço IPv4 inválido|-"
+  "N12|AAAA|n12.$Z|300|192.0.2.1|endereço IPv4 em AAAA|-"
+  "N13|A|n13.$Z|30|192.0.2.13|TTL de 30 segundos|-"
 )
 
 log() { printf '%s\n' "$*" >>"$OUT_LOG"; }
@@ -91,7 +91,7 @@ info "  zona criada (PowerDNS $VERSAO_PDNS)"
 
 LINHAS=()
 for c in "${CASOS[@]}"; do
-  IFS='|' read -r id tipo nome ttl conteudo descr <<<"$c"
+  IFS='|' read -r id tipo nome ttl conteudo descr pretendido <<<"$c"
   corpo=$(jq -cn --arg n "$nome" --arg t "$tipo" --argjson ttl "$ttl" --arg v "$conteudo" \
     '{rrsets:[{name:$n, type:$t, ttl:$ttl, changetype:"REPLACE", records:[{content:$v, disabled:false}]}]}')
   api PATCH "/zones/$Z" "$corpo"
@@ -111,9 +111,13 @@ for c in "${CASOS[@]}"; do
     else
       classe="aceita e reescrita"
     fi
+    if [[ "$pretendido" == "-" ]]; then confere="não (deveria ser recusada)"
+    elif [[ "$gravado_conteudo" == "$pretendido" ]]; then confere="sim"
+    else confere="não"; fi
   else
     classe="recusada pelo servidor"
     gravado="(nada)"
+    confere="-"
   fi
 
   publicado="-"
@@ -124,7 +128,7 @@ for c in "${CASOS[@]}"; do
   fi
 
   info "  [$classe] $id $descr → HTTP $st ${erro:+($erro)}"
-  LINHAS+=("$id"$'\t'"$descr"$'\t'"$tipo $nome $ttl $conteudo"$'\t'"$st"$'\t'"${erro:--}"$'\t'"${gravado:--}"$'\t'"${publicado:--}"$'\t'"$classe")
+  LINHAS+=("$id"$'\t'"$descr"$'\t'"$tipo $nome $ttl $conteudo"$'\t'"$st"$'\t'"${erro:--}"$'\t'"${gravado:--}"$'\t'"${publicado:--}"$'\t'"$classe"$'\t'"$confere")
 done
 
 md() { local s="${1//|/\\|}"; echo "| ${s//$'\t'/ | } |"; }
@@ -133,8 +137,8 @@ md() { local s="${1//|/\\|}"; echo "| ${s//$'\t'/ | } |"; }
   echo
   echo "Execução: $(date '+%Y-%m-%d %H:%M %z') · PowerDNS $VERSAO_PDNS · zona descartável \`$Z\` · critérios em \`avaliacao/plano.md\`, seção 4."
   echo
-  echo "| Caso | Entrada | Enviado (tipo nome ttl conteúdo) | HTTP | Mensagem do PowerDNS | Gravado | Publicado (dig) | Classificação |"
-  echo "| --- | --- | --- | --- | --- | --- | --- | --- |"
+  echo "| Caso | Entrada | Enviado (tipo nome ttl conteúdo) | HTTP | Mensagem do PowerDNS | Gravado | Publicado (dig) | Classificação | Corresponde ao pretendido |"
+  echo "| --- | --- | --- | --- | --- | --- | --- | --- | --- |"
   for l in "${LINHAS[@]}"; do md "$l"; done
 } >"$OUT_MD"
 

@@ -30,12 +30,15 @@ JAR="$TMP/admin.jar"
 Z="${ZONA%.}"
 
 # id|tipo|nome digitado|json com os campos do formulário|valor canônico esperado no dig
+# O HTTPS é consultado como TYPE65 porque o dig do macOS (9.10) não conhece o tipo;
+# o esperado é a forma genérica da RFC 3597 de "1 . alpn=h2" (prioridade 1, alvo
+# raiz, chave 1 = alpn, valor "h2").
 REGISTROS=(
   "Z1|A|mail|{\"vl\":\"$IP_MAIL\"}|$IP_MAIL"
   "Z2|MX|$Z|{\"vl\":\"mail.$Z\",\"priority\":10}|10 mail.$Z."
   "Z3|SRV|_sip._tcp|{\"priority\":10,\"weight\":5,\"port\":5060,\"target\":\"mail.$Z\"}|10 5 5060 mail.$Z."
   "Z4|CAA|$Z|{\"vl\":\"letsencrypt.org\"}|0 issue \"letsencrypt.org\""
-  "Z5|HTTPS|$Z|{\"svcPriority\":1,\"targetName\":\"\",\"svcParams\":\"\"}|1 . alpn=\"h2\""
+  "Z5|TYPE65|$Z|{\"svcPriority\":1,\"targetName\":\"\",\"svcParams\":\"\"}|\\# 10 00010000010003026832"
   "Z6|CNAME|www|{\"vl\":\"mail.$Z\"}|mail.$Z."
 )
 
@@ -48,8 +51,20 @@ req() { # req <método> <caminho> [json] → ST e BODY
   BODY=$(cat "$TMP/body" 2>/dev/null)
 }
 
+tipo_api() { [[ "$1" == TYPE65 ]] && echo HTTPS || echo "$1"; }
+
 corpo() { # corpo <tipo> <nome> <json dos campos>
-  jq -cn --arg z "$ZONA" --arg t "$1" --arg n "$2" --argjson f "$3" '{zone:$z, type:$t, name:$n, ttl:3600} + $f'
+  jq -cn --arg z "$ZONA" --arg t "$(tipo_api "$1")" --arg n "$2" --argjson f "$3" '{zone:$z, type:$t, name:$n, ttl:3600} + $f'
+}
+
+# A remoção (DELETE /records) espera o MX como a tela o envia: prioridade dentro do
+# valor E no campo próprio. Sem o campo, a API responde 200 sem remover nada.
+corpo_remocao() {
+  if [[ "$1" == MX ]]; then
+    jq -cn --arg z "$ZONA" --arg n "$2" --argjson f "$3" '{zone:$z, type:"MX", name:$n, ttl:3600, vl:"\($f.priority) \($f.vl)", priority:$f.priority}'
+  else
+    corpo "$@"
+  fi
 }
 
 nome_q() { [[ "$1" == "$Z" ]] && echo "$Z." || echo "$1.$Z."; }
@@ -67,7 +82,7 @@ req POST /login "$(jq -cn --arg e "$ADMIN_EMAIL" --arg s "$ADMIN_SENHA" '{email:
 if [[ "$ACAO" == remover ]]; then
   for ((i = ${#REGISTROS[@]} - 1; i >= 0; i--)); do
     IFS='|' read -r id tipo nome campos _ <<<"${REGISTROS[$i]}"
-    req DELETE /records "$(corpo "$tipo" "$nome" "$campos")"
+    req DELETE /records "$(corpo_remocao "$tipo" "$nome" "$campos")"
     echo "  $id $tipo $(nome_q "$nome") removido: $ST"
   done
   exit 0
@@ -80,7 +95,7 @@ for r in "${REGISTROS[@]}"; do
   st="$ST"
   sleep 2
   publicado=$(dig +short +time=2 +tries=2 @"$DNS_HOST" "$(nome_q "$nome")" "$tipo" 2>/dev/null | paste -sd, -)
-  if [[ "$st" == 200 && "$publicado" == *"$esperado"* ]]; then res="publicado na forma canônica"
+  if [[ "$st" == 200 && "${publicado// /}" == *"${esperado// /}"* ]]; then res="publicado na forma canônica"
   elif [[ "$st" == 200 ]]; then res="publicado com valor diferente do esperado"
   else res="recusado ($st)"; fi
   echo "  [$res] $id $tipo $(nome_q "$nome") → ${publicado:-(vazio)}"
