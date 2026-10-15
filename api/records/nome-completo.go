@@ -11,7 +11,7 @@ func NomeCompleto(zona, name string) string {
 	}
 
 	zone := strings.TrimSuffix(zona, ".")
-	if strings.HasSuffix(name, zone) {
+	if name == zone || strings.HasSuffix(name, "."+zone) {
 		return name + "."
 	}
 

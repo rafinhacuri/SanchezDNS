@@ -19,7 +19,7 @@ func UpdateSoa(ctx context.Context, httpc *resty.Client, zoneID string, soa Soa)
 	content := fmt.Sprintf(
 		"%s. %s. 1 %d %d %d %d",
 		strings.TrimSuffix(soa.StartOfAuthority, "."),
-		strings.TrimSuffix(soa.Email, "."),
+		Rname(soa.Email),
 		soa.Refresh,
 		soa.Retry,
 		soa.Expire,

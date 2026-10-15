@@ -42,12 +42,12 @@ Decisão tomada: **avaliação sem participantes** por enquanto. Se aparecerem p
 - [x] **[Orient.]** E3: definir a regra de contagem de passos antes de recontar. Reposicionar a comparação contra a API e o `pdnsutil`.
 - [x] **[Achado]** Quadro 16, tarefa 1: diz "1 valor (nome da zona)", mas o formulário exige domínio, servidor primário e e-mail do SOA (`api/zonas/types.go`).
 - [x] Rodar R1 a R5 do `avaliacao/plano.md`. Feitos: R1 (18/18; trilha 26/26; derivadas 5/5), R2 (API recusou 11 de 13), R3 (pdnsutil corrige ponto final e recusa RDATA malformado; TTL 30 passa nos dois), R5 (`resultado_e3_v3.0.3.md`) e Zonemaster; R4 com os seis tipos publicados na forma canônica (terceira execução) (scripts prontos; precisam das credenciais, por isso rodam na sua máquina e no servidor).
-- [ ] **[Achado]** `records/nome-completo.go` compara o nome com a zona como texto, sem fronteira de rótulo (mesma classe do P4): com a zona `curi.dev.br`, o nome `xcuri.dev.br` vira FQDN fora da zona. Corrigir numa 3.0.4 e criar caso de teste.
+- [x] **[Achado]** `records/nome-completo.go` compara o nome com a zona como texto, sem fronteira de rótulo (mesma classe do P4): com a zona `curi.dev.br`, o nome `xcuri.dev.br` vira FQDN fora da zona. Corrigido para a 3.0.5, com teste.
 - [ ] **[Achado]** O E2 (3.0.2 e 3.0.3) rodou no ambiente de desenvolvimento desta máquina (`bun dev`, `mizle.cbpf.dev.br:3000`) ligado ao PowerDNS do E4, e não na imagem publicada. A §5.3.3 diz "sobre a instância do episódio E4": corrigir no texto (Etapa 9).
-- [ ] **[Achado]** API inconsistente no MX: `PUT /records` recebe a prioridade em campo próprio; `DELETE /records` exige a prioridade dentro do valor (`"10 mail..."`). Uniformizar numa 3.0.4.
-- [ ] **[Achado]** `DELETE /records` responde 200 quando nenhum registro casa com o valor enviado (nada é removido). Devolver 404 numa 3.0.4.
+- [x] **[Achado]** API inconsistente no MX: `PUT /records` recebe a prioridade em campo próprio; `DELETE /records` exige a prioridade dentro do valor (`"10 mail..."`). Corrigido para a 3.0.5: inclusão, edição e remoção aceitam os dois formatos.
+- [x] **[Achado]** `DELETE /records` responde 200 quando nenhum registro casa com o valor enviado (nada é removido). Corrigido para a 3.0.5: remoção e edição sem registro correspondente respondem 404.
 - [ ] **[Achado]** No `pdnsutil` 5.0.1 o nome do registro é absoluto (nome relativo é recusado como fora da zona) e o conteúdo passa pelo mesmo parser da API. A "edição manual" da linha de base não reproduz o erro de ponto final do .se: o argumento da §1.1 e o E3 precisam refletir isso.
-- [ ] **[Achado]** O campo "Email do responsável" vai para o RNAME do SOA sem converter o `@` (`api/zonas/update-soa.go`). Verificar se um e-mail comum produz RNAME malformado; se sim, converter numa 3.0.4.
+- [x] **[Achado]** O campo "Email do responsável" vai para o RNAME do SOA sem converter o `@` (`api/zonas/update-soa.go`). Corrigido para a 3.0.5: o e-mail é convertido para RNAME (pontos da parte local escapados).
 
 ## Etapa 4 — Nova estrutura da monografia (esquema de Gregor e Hevner, 2013)
 

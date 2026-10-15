@@ -1,9 +1,9 @@
 package remove
 
 import (
+	"errors"
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 
@@ -31,15 +31,10 @@ func Record(c *gin.Context) {
 		return
 	}
 
-	if body.Type == "MX" {
-		partes := strings.Fields(body.VL)
-		if len(partes) < 2 {
-			c.AbortWithStatusJSON(400, gin.H{"message": "Valor MX inválido"})
+	if body.Type == "MX" && !records.PrioridadeMX(&body) {
+		c.AbortWithStatusJSON(400, gin.H{"message": "Valor MX inválido: informe prioridade e destino"})
 
-			return
-		}
-
-		body.VL = strings.Join(partes[1:], " ")
+		return
 	}
 
 	email := c.GetString("email")
@@ -64,6 +59,12 @@ func Record(c *gin.Context) {
 	err = records.Delete(ctx, httpc, body)
 	if err != nil {
 		log.Println(err)
+
+		if errors.Is(err, records.ErrRegistroNaoEncontrado) {
+			c.AbortWithStatusJSON(404, gin.H{"message": "Registro não encontrado"})
+
+			return
+		}
 
 		c.AbortWithStatusJSON(500, gin.H{"message": "Erro ao excluir o registro no servidor DNS"})
 

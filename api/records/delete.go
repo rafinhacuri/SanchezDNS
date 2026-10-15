@@ -15,7 +15,15 @@ func Delete(ctx context.Context, httpc *resty.Client, reg Registro) error {
 		return err
 	}
 
+	existente := FindRRSet(zone, reg.Type, name)
+	if existente == nil {
+		return ErrRegistroNaoEncontrado
+	}
+
 	restantes, comentarios := registrosRestantes(zone, reg.Type, name, valor)
+	if len(restantes) == len(existente.Records) {
+		return ErrRegistroNaoEncontrado
+	}
 
 	if len(restantes) == 0 {
 		return Patch(ctx, httpc, reg.Zone, PDNSZonePatchRequest{

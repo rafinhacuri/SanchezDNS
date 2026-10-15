@@ -16,7 +16,7 @@ Cada entrada mostra nome, serial, nível de acesso do usuário e status de DNSSE
 
 ## Criação de uma zona
 
-O formulário pede o domínio e os campos do SOA (`Start of Authority`, email do responsável, `refresh`, `retry`, `expire`, `negativeCacheTtl`). Ao submeter, o controlador executa **três chamadas à API do PowerDNS em sequência**, cada uma em uma função própria do pacote `zonas`:
+O formulário pede o domínio e os campos do SOA (`Start of Authority`, email do responsável, `refresh`, `retry`, `expire`, `negativeCacheTtl`). O email pode ser digitado normalmente (`hostmaster@exemplo.com`); o backend o converte para o formato do campo `rname` do SOA (`hostmaster.exemplo.com.`), escapando os pontos da parte local. Ao submeter, o controlador executa **três chamadas à API do PowerDNS em sequência**, cada uma em uma função própria do pacote `zonas`:
 
 1. **`POST .../zones`** cria a zona como `Native` com `soa_edit_api: DEFAULT` ([insert.go](https://github.com/rafinhacuri/SanchezDNS/blob/main/api/zonas/insert.go)).
 2. **`POST .../zones/{zona}/cryptokeys`** ativa DNSSEC com uma **KSK** ativa ([insert-dnssec.go](https://github.com/rafinhacuri/SanchezDNS/blob/main/api/zonas/insert-dnssec.go)).
@@ -57,7 +57,7 @@ DNS tem convenções de formatação que, se o usuário tivesse que digitar perf
 
 - **`TXT`** — o conteúdo é envolvido em aspas (`"..."`) se ainda não estiver. O formato de registro TXT exige aspas para delimitar a string; sem elas, o PowerDNS rejeitaria ou interpretaria errado.
 - **`CNAME`, `NS`, `ALIAS`, `MX`, `PTR`** — recebem um **ponto final** se não tiverem. Esses tipos apontam para **nomes**, e um nome sem ponto final seria interpretado como relativo à zona. O ponto o torna absoluto (FQDN), evitando que `mail.exemplo.com` vire `mail.exemplo.com.exemplo.com`.
-- **`MX`** — a **prioridade** é prefixada ao valor (`10 mail.exemplo.com.`). O formato do MX exige o número de prioridade antes do host; a interface coleta isso em um campo separado e o backend junta.
+- **`MX`** — a **prioridade** é prefixada ao valor (`10 mail.exemplo.com.`). O formato do MX exige o número de prioridade antes do host; a interface coleta isso em um campo separado e o backend junta. A inclusão, a edição e a remoção aceitam a prioridade tanto no campo próprio quanto no início do valor (`10 mail.exemplo.com`).
 - **`CAA`** — se o usuário digitou só a autoridade, o backend completa para o formato `0 issue "letsencrypt.org"`. Assim quem não conhece a sintaxe do CAA ainda consegue criar um registro válido.
 - **`SRV`** — montado como `prioridade peso porta alvo.`, cada parte vinda de um campo próprio da interface, com ponto final garantido no alvo.
 - **`HTTPS`** — montado como `prioridade alvo parâmetros` (por exemplo `1 . alpn=h2`), com um padrão sensato (`alpn=h2`) quando os parâmetros não são informados.
@@ -87,7 +87,7 @@ Ou seja:
 
 - nome **vazio** → usa o **apex** da zona (a raiz do domínio);
 - nome **curto** (`www`) → vira `www.exemplo.com.`;
-- nome que **já termina com a zona** → só recebe o ponto final.
+- nome que **já termina com a zona** → só recebe o ponto final. A comparação respeita a fronteira entre rótulos: com a zona `exemplo.com`, `www.exemplo.com` é tratado como completo, mas `meuexemplo.com` não, e vira `meuexemplo.com.exemplo.com.`.
 
 Isso libera o usuário de digitar o domínio inteiro toda vez, sem risco de duplicar o sufixo.
 
@@ -99,6 +99,8 @@ Como explicado em [PowerDNS a fundo](/powerdns#adicionar-editar-registros-get-pa
 2. **Alinhar comentários por posição** — o PowerDNS pode reordenar os registros ao gravar, e os comentários são posicionais, então o backend relê a ordem canônica antes de anexar cada comentário ao registro certo.
 
 Se o segundo `PATCH` (dos comentários) falhar, a operação retorna erro; se o **reverso** falhar, apenas registra no log e segue — a criação do registro principal não é revertida por causa do reverso.
+
+Na edição e na remoção, se o valor enviado não corresponder a nenhum registro do RRset, a API responde `404` em vez de confirmar uma operação que não alterou nada.
 
 ## Reverse automático — o PTR que se cuida sozinho
 

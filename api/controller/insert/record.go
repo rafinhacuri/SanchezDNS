@@ -37,6 +37,12 @@ func Record(c *gin.Context) {
 		return
 	}
 
+	if body.Type == "MX" && !records.PrioridadeMX(&body) {
+		c.AbortWithStatusJSON(400, gin.H{"message": "Valor MX inválido: informe prioridade e destino"})
+
+		return
+	}
+
 	if !records.TTLValido(body.TTL) {
 		c.AbortWithStatusJSON(400, gin.H{"message": "TTL precisa ser no mínimo 60 segundos"})
 

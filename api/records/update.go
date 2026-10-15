@@ -2,7 +2,7 @@ package records
 
 import (
 	"context"
-	"errors"
+	"slices"
 
 	"resty.dev/v3"
 )
@@ -18,8 +18,8 @@ func Update(ctx context.Context, httpc *resty.Client, novo, antigo Registro) err
 	}
 
 	existente := FindRRSet(zone, novo.Type, name)
-	if existente == nil {
-		return errors.New("rrset não encontrado para edição")
+	if existente == nil || !slices.ContainsFunc(existente.Records, conteudoIgual(valorAntigo)) {
+		return ErrRegistroNaoEncontrado
 	}
 
 	anteriores := Comentarios(existente)
@@ -45,4 +45,8 @@ func Update(ctx context.Context, httpc *resty.Client, novo, antigo Registro) err
 	}
 
 	return AplicarComentarios(ctx, httpc, novo, name, valorNovo, anteriores)
+}
+
+func conteudoIgual(valor string) func(Record) bool {
+	return func(r Record) bool { return r.Content == valor }
 }
