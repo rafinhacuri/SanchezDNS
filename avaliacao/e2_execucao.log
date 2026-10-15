@@ -1,0 +1,132 @@
+== E2 — autorização (QP3) e trilha de auditoria (QP4) · rodada 20261015113823
+   API: https://mizle.cbpf.dev.br:3000/go · DNS: 152.84.126.7
+  GET /healthcheck → 200 {"message":"ok!"}
+  POST /login → 200
+  GET /session → 200 {"email":"rafael@curi.dev.br","level":"admin"}
+  GET /zones?type=normal → 200 {"zones":[{"name":"teste.com.","serial":2026090804,"nivel":"ADMINISTRADOR","dnssec":true},{"name":"teste.curi.dev.br.","serial":2026090807,"nivel":"ADMINISTRADOR","dnssec":true}]}
+   pré-verificação ok (zonas de teste ausentes, dig respondendo)
+== SETUP
+  PUT /zone → 200 {"message":"Zona criada com sucesso!"}
+  zona aval-sanchezdns.example. criada (normal)
+  PUT /zone → 200 {"message":"Zona criada com sucesso!"}
+  zona 2.0.192.in-addr.arpa. criada (reverse)
+  POST /cadastro → 200 {"message":"Solicitação realizada com sucesso e será analisada em breve"}
+  GET /solicitacoes?limit=50&filter=aval-e2-opa-20261015113823%40example.com → 200 {"solicitacoes":[{"id":"6ad0e56088133d53573d844e","nome":"Avaliação E2 opA","email":"aval-e2-opa-20261015113823@example.com","senha":"","foto":"avaliacao-e2","status":"pendente","createdAt":"2026-10-15T14:38:24.491Z","updatedAt":"2026-10-15T14:38:24.491Z"}],"total":1}
+  PUT /solicitacoes/status → 200 {"message":"Solicitação atualizada com sucesso"}
+  GET /cadastros?limit=50&filter=aval-e2-opa-20261015113823%40example.com → 200 {"cadastros":[{"id":"6ad0e56088133d53573d844f","nome":"Avaliação E2 opA","email":"aval-e2-opa-20261015113823@example.com","senha":"","foto":"avaliacao-e2","level":"member","createdAt":"2026-10-15T14:38:24.664Z","updatedAt":"2026-10-15T14:38:24.664Z"}],"total":1}
+  POST /login → 200
+  GET /session → 200 {"email":"aval-e2-opa-20261015113823@example.com","level":"member"}
+  POST /user → 200 {"message":"Usuário inserido com sucesso!"}
+  opA criado, aprovado e logado; escrita em aval-sanchezdns.example.
+  POST /cadastro → 200 {"message":"Solicitação realizada com sucesso e será analisada em breve"}
+  GET /solicitacoes?limit=50&filter=aval-e2-opb-20261015113823%40example.com → 200 {"solicitacoes":[{"id":"6ad0e56188133d53573d8452","nome":"Avaliação E2 opB","email":"aval-e2-opb-20261015113823@example.com","senha":"","foto":"avaliacao-e2","status":"pendente","createdAt":"2026-10-15T14:38:25.439Z","updatedAt":"2026-10-15T14:38:25.439Z"}],"total":1}
+  PUT /solicitacoes/status → 200 {"message":"Solicitação atualizada com sucesso"}
+  GET /cadastros?limit=50&filter=aval-e2-opb-20261015113823%40example.com → 200 {"cadastros":[{"id":"6ad0e56188133d53573d8453","nome":"Avaliação E2 opB","email":"aval-e2-opb-20261015113823@example.com","senha":"","foto":"avaliacao-e2","level":"member","createdAt":"2026-10-15T14:38:25.599Z","updatedAt":"2026-10-15T14:38:25.599Z"}],"total":1}
+  POST /login → 200
+  GET /session → 200 {"email":"aval-e2-opb-20261015113823@example.com","level":"member"}
+  POST /user → 200 {"message":"Usuário inserido com sucesso!"}
+  opB criado, aprovado e logado; leitura em aval-sanchezdns.example.
+  POST /cadastro → 200 {"message":"Solicitação realizada com sucesso e será analisada em breve"}
+  GET /solicitacoes?limit=50&filter=aval-e2-opc-20261015113823%40example.com → 200 {"solicitacoes":[{"id":"6ad0e56288133d53573d8456","nome":"Avaliação E2 opC","email":"aval-e2-opc-20261015113823@example.com","senha":"","foto":"avaliacao-e2","status":"pendente","createdAt":"2026-10-15T14:38:26.346Z","updatedAt":"2026-10-15T14:38:26.346Z"}],"total":1}
+  PUT /solicitacoes/status → 200 {"message":"Solicitação atualizada com sucesso"}
+  GET /cadastros?limit=50&filter=aval-e2-opc-20261015113823%40example.com → 200 {"cadastros":[{"id":"6ad0e56288133d53573d8457","nome":"Avaliação E2 opC","email":"aval-e2-opc-20261015113823@example.com","senha":"","foto":"avaliacao-e2","level":"member","createdAt":"2026-10-15T14:38:26.511Z","updatedAt":"2026-10-15T14:38:26.511Z"}],"total":1}
+  POST /login → 200
+  GET /session → 200 {"email":"aval-e2-opc-20261015113823@example.com","level":"member"}
+  opC criado, aprovado e logado; sem vínculo
+  PUT /records → 200 {"message":"Registro adicionado com sucesso!"}
+  PTR semeado: 192.0.2.50 → servidor.outra-equipe.example.
+== CASOS
+  PUT /records → 400 {"message":"Missing session ID"}
+CASO A0 — escrita sem sessão (PUT /records) | 400 de sessão; nada gravado | 400 (sessão: Missing session ID); A=(vazio) | APROVADO
+  GET /records?zone=aval-sanchezdns.example. → 403 {"message":"Sem permissão para visualizar registros dessa zona"}
+CASO A1 — opC (sem vínculo) lê a zona direta | 403 | 403 | APROVADO
+  PUT /records → 403 {"message":"Sem permissão para alterar registros dessa zona"}
+CASO A2 — opB (leitura) cria A na zona direta | 403; nada gravado (dig) | 403; A=(vazio); PTR=(vazio) | APROVADO
+  PUT /records → 200 {"message":"Registro adicionado com sucesso!"}
+CASO A3 — opA cria A 192.0.2.10 sem PTR prévio | 200; PTR criado → a3-20261015113823.aval-sanchezdns.example. | 200; A=192.0.2.10; PTR=a3-20261015113823.aval-sanchezdns.example. | APROVADO
+  PUT /records → 200 {"message":"Registro adicionado com sucesso!"}
+CASO A4 — opA cria A no IP do PTR de outra equipe | 200; PTR intacto → servidor.outra-equipe.example. | 200; PTR=servidor.outra-equipe.example. | APROVADO
+  PUT /records → 200 {"message":"Registro adicionado com sucesso!"}
+CASO A5 — opA cria A em 198.51.100.7 (faixa sem zona reversa) | 200; nenhuma zona e nenhum PTR | 200; zonas novas: nenhuma; PTR=(vazio) (REFUSED) | APROVADO
+  GET /records?zone=2.0.192.in-addr.arpa. → 403 {"message":"Sem permissão para visualizar registros dessa zona"}
+CASO A6a — opA lista a zona reversa (GET /records) | 403 | 403 | APROVADO
+  PUT /records → 403 {"message":"Sem permissão para alterar registros dessa zona"}
+CASO A6b — opA cria PTR na zona reversa (PUT /records) | 403; nada gravado | 403; PTR=(vazio) | APROVADO
+  DELETE /records → 403 {"message":"Sem permissão para alterar registros dessa zona"}
+CASO A6c — opA apaga o PTR de outra equipe (DELETE /records) | 403; PTR intacto | 403; PTR=servidor.outra-equipe.example. | APROVADO
+  GET /reverses/orphans?zone=2.0.192.in-addr.arpa. → 403 {"message":"Sem permissão para visualizar registros dessa zona"}
+CASO A7 — opA consulta órfãos da zona reversa | 403 | 403 | APROVADO
+  DELETE /reverses?zone=2.0.192.in-addr.arpa.&name=50.2.0.192.in-addr.arpa. → 403 {"message":"Sem permissão para alterar registros dessa zona"}
+CASO A7b — opA remove o PTR como órfão (DELETE /reverses) | 403; PTR intacto | 403; PTR=servidor.outra-equipe.example. | APROVADO
+  PUT /records → 200 {"message":"Registro adicionado com sucesso!"}
+  PATCH /records → 200 {"message":"Registro editado com sucesso!"}
+CASO A8 — opA muda o IP de um host para 192.0.2.50 (PATCH /records) | 200; PTR de outra equipe mantido (QP3) | 200; PTR 192.0.2.50 SOBRESCRITO → a8-20261015113823.aval-sanchezdns.example.; PTR 192.0.2.20 removido | REPROVADO
+  PUT /records → 200 {"message":"Registro adicionado com sucesso!"}
+  DELETE /records → 200 {"message":"Registro excluído com sucesso!"}
+CASO A9 — opA apaga A cujo IP (192.0.2.10) segue em uso por outro nome | 200; PTR permanece | 200; A de a3=(vazio); PTR mantido → a3-20261015113823.aval-sanchezdns.example. (aponta para o nome recém-apagado) | APROVADO
+  DELETE /records → 200 {"message":"Registro excluído com sucesso!"}
+CASO A10 — opA apaga o último A de 192.0.2.10 | 200; PTR removido | 200; PTR=(vazio) | APROVADO
+  PUT /records → 200 {"message":"Registro adicionado com sucesso!"}
+  GET /reverses/orphans?zone=2.0.192.in-addr.arpa. → 200 [{"nomeReverso":"99.2.0.192.in-addr.arpa.","ip":"192.0.2.99","alvo":"orfao-20261015113823.aval-sanchezdns.example."}]
+CASO A11 — admin cria PTR sem A e consulta órfãos | 192.0.2.99 listado como órfão | 200; GET orphans 200; órfãos: 192.0.2.99 | APROVADO
+  PUT /records → 500 {"message":"Erro ao adicionar o registro no servidor DNS"}
+CASO A12 — opA grava PTR sob in-addr.arpa via FQDN na zona direta | recusado (≠200); nada gravado | 500; PTR=(vazio) | APROVADO
+== TRILHA DE AUDITORIA
+  entradas da rodada na trilha: 14
+
+  Trilha: 14 de 20 alterações registradas
+    zonas, registros e permissões: 14 de 14
+    contas (cadastro e aprovação): 0 de 6
+  Alterações derivadas (PTR pela automação): 0 de 5 registradas
+  Tentativas recusadas presentes na trilha: 0 de 5 (esperado 0)
+== RESULTADO
+Caso                                                               Esperado                                                      Obtido                                                                                                             Resultado
+A0 — escrita sem sessão (PUT /records)                             400 de sessão; nada gravado                                   400 (sessão: Missing session ID); A=(vazio)                                                                        APROVADO
+A1 — opC (sem vínculo) lê a zona direta                            403                                                           403                                                                                                                APROVADO
+A2 — opB (leitura) cria A na zona direta                           403; nada gravado (dig)                                       403; A=(vazio); PTR=(vazio)                                                                                        APROVADO
+A3 — opA cria A 192.0.2.10 sem PTR prévio                          200; PTR criado → a3-20261015113823.aval-sanchezdns.example.  200; A=192.0.2.10; PTR=a3-20261015113823.aval-sanchezdns.example.                                                  APROVADO
+A4 — opA cria A no IP do PTR de outra equipe                       200; PTR intacto → servidor.outra-equipe.example.             200; PTR=servidor.outra-equipe.example.                                                                            APROVADO
+A5 — opA cria A em 198.51.100.7 (faixa sem zona reversa)           200; nenhuma zona e nenhum PTR                                200; zonas novas: nenhuma; PTR=(vazio) (REFUSED)                                                                   APROVADO
+A6a — opA lista a zona reversa (GET /records)                      403                                                           403                                                                                                                APROVADO
+A6b — opA cria PTR na zona reversa (PUT /records)                  403; nada gravado                                             403; PTR=(vazio)                                                                                                   APROVADO
+A6c — opA apaga o PTR de outra equipe (DELETE /records)            403; PTR intacto                                              403; PTR=servidor.outra-equipe.example.                                                                            APROVADO
+A7 — opA consulta órfãos da zona reversa                           403                                                           403                                                                                                                APROVADO
+A7b — opA remove o PTR como órfão (DELETE /reverses)               403; PTR intacto                                              403; PTR=servidor.outra-equipe.example.                                                                            APROVADO
+A8 — opA muda o IP de um host para 192.0.2.50 (PATCH /records)     200; PTR de outra equipe mantido (QP3)                        200; PTR 192.0.2.50 SOBRESCRITO → a8-20261015113823.aval-sanchezdns.example.; PTR 192.0.2.20 removido              REPROVADO
+A9 — opA apaga A cujo IP (192.0.2.10) segue em uso por outro nome  200; PTR permanece                                            200; A de a3=(vazio); PTR mantido → a3-20261015113823.aval-sanchezdns.example. (aponta para o nome recém-apagado)  APROVADO
+A10 — opA apaga o último A de 192.0.2.10                           200; PTR removido                                             200; PTR=(vazio)                                                                                                   APROVADO
+A11 — admin cria PTR sem A e consulta órfãos                       192.0.2.99 listado como órfão                                 200; GET orphans 200; órfãos: 192.0.2.99                                                                           APROVADO
+A12 — opA grava PTR sob in-addr.arpa via FQDN na zona direta       recusado (≠200); nada gravado                                 500; PTR=(vazio)                                                                                                   APROVADO
+
+  15 aprovados · 1 reprovados · 0 inconclusivos
+
+  tabela: /Users/rafaelcuri/projects/github/sanchez-dns/avaliacao/resultado_e2.md
+  registro bruto: /Users/rafaelcuri/projects/github/sanchez-dns/avaliacao/e2_execucao.log
+== LIMPEZA
+  POST /logout → 200 {"message":"deslogado com sucesso"}
+  logout opA: 200
+  POST /logout → 200 {"message":"deslogado com sucesso"}
+  logout opB: 200
+  POST /logout → 200 {"message":"deslogado com sucesso"}
+  logout opC: 200
+  DELETE /cadastro → 200 {"message":"cadastro deletado"}
+  cadastro opA removido (e permissões retiradas): 200
+  DELETE /cadastro → 200 {"message":"cadastro deletado"}
+  cadastro opB removido (e permissões retiradas): 200
+  DELETE /cadastro → 200 {"message":"cadastro deletado"}
+  cadastro opC removido (e permissões retiradas): 200
+  DELETE /zone?id=2.0.192.in-addr.arpa. → 200 {"message":"Zona excluída com sucesso!"}
+  zona 2.0.192.in-addr.arpa. removida: 200 (dig: REFUSED)
+  DELETE /zone?id=aval-sanchezdns.example. → 200 {"message":"Zona excluída com sucesso!"}
+  zona aval-sanchezdns.example. removida: 200 (dig: REFUSED)
+  POST /logout → 200 {"message":"deslogado com sucesso"}
+  logout admin: 200
+  Resíduos sem rota de remoção na API:
+    - solicitação de aval-e2-opa-20261015113823@example.com (coleção solicitacoes)
+    - solicitação de aval-e2-opb-20261015113823@example.com (coleção solicitacoes)
+    - solicitação de aval-e2-opc-20261015113823@example.com (coleção solicitacoes)
+    - documento da zona aval-sanchezdns.example. na coleção users (vetores vazios após DELETE /cadastro)
+    - entradas da trilha (coleção logs), mantidas de propósito
+  Para remover as solicitações direto no MongoDB:
+    db.solicitacoes.deleteMany({email: /^aval-e2-op[abc]-20261015113823@example\.com$/})
+    db.users.deleteOne({zona: "aval-sanchezdns.example."})
