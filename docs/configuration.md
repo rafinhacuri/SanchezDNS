@@ -80,10 +80,10 @@ Se qualquer um dos três não bater com a configuração do PowerDNS, as rotas d
 
 ### Geolocalização e resolvedores DoH
 
-| Variável        | Papel                                                                                                                                                                                                                               |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Variável        | Papel                                                                                                                                                                                                                            |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `GEOIP_URL`     | Opcional. Base de um serviço com a API do ip-api.com (ex.: `http://ip-api.com`) para registrar a localização aproximada de cada login na sessão. Vazia, a geolocalização fica desligada e o IP do operador não sai da instância. |
-| `DOH_RESOLVERS` | Opcional. Lista, separada por vírgula, de resolvedores DNS sobre HTTPS no formato JSON usados para conferir o DS publicado na zona pai. Vazia, usa `https://dns.google/resolve` e `https://cloudflare-dns.com/dns-query`.       |
+| `DOH_RESOLVERS` | Opcional. Lista, separada por vírgula, de resolvedores DNS sobre HTTPS no formato JSON usados para conferir o DS publicado na zona pai. Vazia, usa `https://dns.google/resolve` e `https://cloudflare-dns.com/dns-query`.        |
 
 **Por que opcionais?** Em rede isolada, sem acesso à Internet, os dois serviços externos falham. A geolocalização desligada por padrão também evita enviar o IP de cada operador a terceiros. Para conferir o DS sem sair da rede, aponte `DOH_RESOLVERS` para um resolvedor interno com DoH.
 
