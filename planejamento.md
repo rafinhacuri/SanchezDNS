@@ -1,6 +1,6 @@
 # Planejamento da revisão da monografia e do artefato
 
-Checklist das mudanças pedidas pelo orientador (revisão de 15/10/2026), conferidas contra o texto do Google Doc e o código em 15/10/2026, mais os achados da conferência.
+Checklist das mudanças pedidas pelo orientador (revisões de 15/10/2026 e de 19/10/2026, esta com a estrutura de 8 capítulos), conferidas contra o texto do Google Doc e o código em 15/10/2026, mais os achados da conferência.
 
 Legenda: **[Orient.]** pedido do orientador · **[Achado]** encontrado na conferência do texto ou do código · ~~riscado~~ já resolvido no texto atual.
 
@@ -19,7 +19,7 @@ Decisão tomada: **avaliação sem participantes** por enquanto. Se aparecerem p
 - [x] **[Orient.]** RF13 exige "toda operação de escrita sobre ... usuários". **[Achado]** Não são auditados: solicitação de cadastro, aprovação/recusa, remoção de cadastro, edição de cadastro e troca de nível (promoção a admin, `update.Level`).
 - [x] **[Orient.]** A12: o 422 do PowerDNS vira 500 genérico. Repassar como erro do cliente (422) com a mensagem do servidor.
 - [x] Testes automatizados das guardas (A8, A9, remoção de PTR alheio) com PowerDNS simulado; `go test`, lint e build.
-- [ ] Release 3.0.3.
+- [x] Release 3.0.3.
 
 ## Etapa 2 — Código: segurança e on-premises
 
@@ -29,7 +29,7 @@ Decisão tomada: **avaliação sem participantes** por enquanto. Se aparecerem p
 - [x] **[Orient.]** RF03 depende do DoH da Google e da Cloudflare: tornar os resolvedores configuráveis (rede isolada).
 - [x] **[Achado]** Listagem de zonas exclui duas zonas por nome fixo (resíduo de teste, §4.3.3). Remover.
 - [x] **[Orient.]** Sessão inválida responde 400 em vez de 401 (RFC 9110). Corrigido para 401 (o frontend não dependia do 400; script do E2 aceita os dois).
-- [ ] **[Achado]** `PUT /file` e `GET /file/:id` fora do grupo autenticado, o que contradiz o RNF04 ("não existe caminho de escrita não autenticado"). O `PUT /file` é usado no cadastro, antes de existir sessão, então não dá para autenticar. Ajustar o RNF04 no texto (Etapa 8) para "nenhum caminho de escrita sobre dados de zona sem autenticação".
+- [ ] **[Achado]** `PUT /file` e `GET /file/:id` fora do grupo autenticado, o que contradiz o RNF04 ("não existe caminho de escrita não autenticado"). O `PUT /file` é usado no cadastro, antes de existir sessão, então não dá para autenticar. Ajustar o RNF04 no texto (Etapa 9) para "nenhum caminho de escrita sobre dados de zona sem autenticação".
 
 ## Etapa 3 — Reexecutar a avaliação
 
@@ -43,22 +43,58 @@ Decisão tomada: **avaliação sem participantes** por enquanto. Se aparecerem p
 - [x] **[Achado]** Quadro 16, tarefa 1: diz "1 valor (nome da zona)", mas o formulário exige domínio, servidor primário e e-mail do SOA (`api/zonas/types.go`).
 - [x] Rodar R1 a R5 do `avaliacao/plano.md`. Feitos: R1 (18/18; trilha 26/26; derivadas 5/5), R2 (API recusou 11 de 13), R3 (pdnsutil corrige ponto final e recusa RDATA malformado; TTL 30 passa nos dois), R5 (`resultado_e3_v3.0.3.md`) e Zonemaster; R4 com os seis tipos publicados na forma canônica (terceira execução) (scripts prontos; precisam das credenciais, por isso rodam na sua máquina e no servidor).
 - [x] **[Achado]** `records/nome-completo.go` compara o nome com a zona como texto, sem fronteira de rótulo (mesma classe do P4): com a zona `curi.dev.br`, o nome `xcuri.dev.br` vira FQDN fora da zona. Corrigido para a 3.0.5, com teste.
-- [ ] **[Achado]** O E2 (3.0.2 e 3.0.3) rodou no ambiente de desenvolvimento desta máquina (`bun dev`, `mizle.cbpf.dev.br:3000`) ligado ao PowerDNS do E4, e não na imagem publicada. A §5.3.3 diz "sobre a instância do episódio E4": corrigir no texto (Etapa 9).
+- [ ] **[Achado]** O E2 (3.0.2 e 3.0.3) rodou no ambiente de desenvolvimento desta máquina (`bun dev`, `mizle.cbpf.dev.br:3000`) ligado ao PowerDNS do E4, e não na imagem publicada. A §5.3.3 diz "sobre a instância do episódio E4": corrigir no texto (Etapa 10).
 - [x] **[Achado]** API inconsistente no MX: `PUT /records` recebe a prioridade em campo próprio; `DELETE /records` exige a prioridade dentro do valor (`"10 mail..."`). Corrigido para a 3.0.5: inclusão, edição e remoção aceitam os dois formatos.
 - [x] **[Achado]** `DELETE /records` responde 200 quando nenhum registro casa com o valor enviado (nada é removido). Corrigido para a 3.0.5: remoção e edição sem registro correspondente respondem 404.
 - [ ] **[Achado]** No `pdnsutil` 5.0.1 o nome do registro é absoluto (nome relativo é recusado como fora da zona) e o conteúdo passa pelo mesmo parser da API. A "edição manual" da linha de base não reproduz o erro de ponto final do .se: o argumento da §1.1 e o E3 precisam refletir isso.
 - [x] **[Achado]** O campo "Email do responsável" vai para o RNAME do SOA sem converter o `@` (`api/zonas/update-soa.go`). Corrigido para a 3.0.5: o e-mail é convertido para RNAME (pontos da parte local escapados).
+- [ ] Release 3.0.5 com as quatro correções acima (commit 33ccb8a), a publicar.
 
-## Etapa 4 — Nova estrutura da monografia (esquema de Gregor e Hevner, 2013)
+## Etapa 4 — Nova estrutura da monografia (revisão do orientador de 19/10/2026)
 
-- [ ] **[Orient.]** Reorganizar em: 1 Introdução · 2 Base de conhecimento (Ω descritivo / Λ prescritivo) · 3 Método · 4 Artefato · 5 Demonstração e avaliação · 6 Discussão · 7 Conclusões.
-- [ ] **[Orient.]** Mover a §2.4 (DSR), a §2.4.3 (FEDS) e a §2.6 (estratégia de avaliação) para o Cap. 3 (Método), junto com a §3.1 e a §3.2.
-- [ ] **[Orient.]** Fundir os Caps. 3 e 4 atuais, eliminando repetições (§3.6.1 × §4.5.1, §3.6.2 × §4.5.1, §3.4.1 × §4.3.1, §3.7 × §4.6).
-- [ ] **[Orient.]** Criar o capítulo de Discussão, para onde migra boa parte das §6.1 e §6.2.
-- [ ] Mapa "seção atual → seção nova" para mover os blocos no Docs.
+A estrutura proposta em 15/10 (7 capítulos) foi substituída pela de 19/10, com 8 capítulos e trabalhos correlatos separados da fundamentação. As Etapas 5 a 12 seguem esta estrutura.
 
-## Etapa 5 — Cap. 1, Introdução
+- [ ] **[Orient.]** Reorganizar em 8 capítulos, no esquema de Gregor e Hevner (2013):
+  1. Introdução (enxuta)
+  2. Fundamentação teórica
+  3. Trabalhos correlatos
+  4. Método
+  5. Projeto e desenvolvimento do artefato (fusão dos atuais Caps. 3 e 4)
+  6. Demonstração e avaliação
+  7. Discussão (novo)
+  8. Conclusões
+- [ ] **[Orient.]** Aplicar o mapa de migração (a reorganização é, em grande parte, mover texto):
 
+  | Conteúdo atual | Destino |
+  | --- | --- |
+  | 1.1 (parágrafos empíricos) | 2.3 (já duplicados lá) |
+  | 2.2.1 | 2.2 |
+  | 2.2.2 a 2.2.4 | 2.3 |
+  | 2.3 | 2.4 |
+  | 2.4.1 a 2.4.3 | 4.2 e 4.3 |
+  | 2.5 | Capítulo 3 |
+  | 2.5.3 (segundo motivo, Technitium) | 3.2 resumido; análise em 7.3 |
+  | 2.6 | 4.3 a 4.6 (E4 em 6.4) |
+  | 3.1 e 3.2 | 4.1 e 4.2 |
+  | 3.3 | 5.1 |
+  | 3.4 a 3.7 com 4.1 a 4.7 | Capítulo 5, fundidos |
+  | 5.1 a 5.6 | Capítulo 6 |
+  | 6.1.1 e 6.1.2 | 5.8 (enunciado), 7.2 (reavaliação), 8.1 |
+  | 6.1.3 | 7.1 |
+  | 6.2 | 7.6 |
+  | 6.3 | 8.2 |
+
+- [ ] **[Orient.]** Se o prazo apertar, a prioridade é: (1) mover a §2.6 para o capítulo de Método; (2) criar o capítulo de Discussão a partir das §6.1 e §6.2; (3) fundir os Caps. 3 e 4. O resto é refinamento.
+- [ ] **[Orient.]** Enxugar o texto onde puder: cortar repetições entre capítulos e parágrafos que só antecipam o que vem depois.
+- [ ] ~~**[Orient.]** Quadros 16 e 17 antes do 14 e do 15 e fora da Lista de Quadros~~ (renumeração já feita; faltam as páginas, Etapa 12).
+- [ ] Todo texto novo ou reescrito passa pelo humanizer antes de ir para o Doc; avisar o Rafael antes de mexer no Doc.
+
+## Etapa 5 — Cap. 1, Introdução (enxuta)
+
+Estrutura: 1.1 Contexto e problema · 1.2 Lacuna das soluções existentes · 1.3 Problema de pesquisa e questões · 1.4 Objetivos · 1.5 Escopo e delimitação · 1.6 Contribuições esperadas (nova) · 1.7 Estrutura do documento.
+
+- [ ] **[Orient.]** §1.1 reduzida em cerca de dois terços, com três ou quatro evidências-âncora (Oppenheimer, Bojović e Gajin, Sommese e um incidente); os parágrafos empíricos restantes migram para a §2.3, onde já estão duplicados.
+- [ ] **[Orient.]** §1.2 em versão curta, sem antecipar o Quadro 2.
 - [ ] **[Orient.]** Problema independente do artefato. Hoje diz "a falta de um meio de operação que torne esse erro impossível", o que embute a solução e torna a avaliação tautológica.
 - [ ] **[Orient.]** Contexto e interessados explícitos: organizações com PowerDNS próprio e equipes distintas para zonas diretas e reversas.
 - [ ] **[Orient.]** Enquadramento técnico: servidores validam a sintaxe de cada registro isoladamente, mas não a consistência entre registros interdependentes nem o alcance da autorização. O erro humano fica como motivação.
@@ -66,87 +102,110 @@ Decisão tomada: **avaliação sem participantes** por enquanto. Se aparecerem p
 - [ ] **[Orient.]** QP2: retirar "necessários" (a necessidade não é testada; exigiria ablação).
 - [ ] **[Orient.]** Rastreabilidade está sob a QP4, que não fala de auditoria. Realinhar a QP, o objetivo específico e o Quadro 3.
 - [ ] **[Orient.]** Objetivos de pesquisa (caracterizar, projetar, avaliar), não funcionalidades. Tirar "implementar sob arquitetura desacoplada" dos objetivos.
-- [ ] **[Orient.]** Natureza da contribuição pretendida: melhoria (Gregor e Hevner, 2013), com instanciação e princípios de projeto; declarar também a taxonomia e o protocolo de avaliação.
-- [ ] **[Orient.]** §1.1, "Era um erro sintático, do tipo que uma validação [...] teria barrado": refinar conforme o resultado da condição de referência.
+- [ ] **[Orient.]** Nova §1.6, Contribuições esperadas: melhoria (Gregor e Hevner, 2013), com instanciação e princípios de projeto; também a taxonomia e o protocolo de avaliação. Recebe as alegações de contribuição que hoje estão na §2.5.9.
+- [ ] **[Orient.]** §1.1, "Era um erro sintático, do tipo que uma validação [...] teria barrado": refinar conforme a condição de referência (o PowerDNS já recusa ou corrige esses erros).
 - [ ] **[Achado]** §1.3 "outras dependem de evidência empírica com operadores humanos" e "revisão sistemática da literatura" (não houve protocolo sistemático): restos do desenho antigo.
 - [ ] **[Achado]** QP principal "registre integralmente" e objetivo geral "reduza a ocorrência": verbos mais fortes do que a avaliação sustenta.
-- [ ] **[Orient.]** §1.2: o argumento on-premises precisa ficar coerente com a geolocalização externa e o DoH (ver Etapa 2).
+- [ ] **[Orient.]** §1.2: o argumento on-premises precisa ficar coerente com a geolocalização externa e o DoH (agora opcionais, Etapa 2).
 
-## Etapa 6 — Cap. 2, Base de conhecimento
+## Etapa 6 — Cap. 2, Fundamentação teórica
 
-- [ ] **[Orient.]** Parte descritiva (Ω): DNS, estudos de medição, erro humano como kernel theory, controle de acesso; fecho no Quadro 1.
-- [ ] **[Orient.]** Parte prescritiva (Λ): trabalhos correlatos; fecho no Quadro 2; a lacuna surge do confronto entre os dois.
+Estrutura: 2.1 Arquitetura do DNS (atual 2.1) · 2.2 Erro humano e projeto de interfaces (atual 2.2.1) · 2.3 Erros de configuração: evidência empírica, impactos e taxonomia (atuais 2.2.2 a 2.2.4) · 2.4 Controle de acesso e auditoria (atual 2.3).
+
+- [ ] **[Orient.]** §2.2 ampliada, com Reason (1990) e Norman (2013) apresentados como kernel theories.
+- [ ] **[Orient.]** §2.3 recebe os parágrafos empíricos tirados da §1.1, sem duplicar o que já está lá; fecho no Quadro 1.
 - [ ] **[Orient.]** Classe "DNSSEC incompleto" inclui a rotação de chaves (Chung et al.), mas nenhum mecanismo trata rotação: cortar a classe ou declarar a rotação fora do escopo.
-- [ ] **[Orient.]** Poweradmin aparece no Quadro 2 sem subseção própria na 2.5: criar.
 - [ ] **[Achado]** §2.2.4: "para que a redução de erros possa ser medida por categoria e no total" não é mais medido.
+
+## Etapa 7 — Cap. 3, Trabalhos correlatos
+
+Estrutura: 3.1 Critérios de comparação (nova) · 3.2 Ferramentas por abordagem (atuais 2.5.1 a 2.5.8) · 3.3 Quadro comparativo e lacuna (atual 2.5.9).
+
+- [ ] **[Orient.]** Nova §3.1 com os critérios de comparação (as colunas do Quadro 2 e a escala Sim/Parcial/Não).
+- [ ] **[Orient.]** Poweradmin aparece no Quadro 2 sem subseção própria: criar.
+- [ ] **[Orient.]** §2.5.3 (Technitium) antecipa a avaliação: manter o incidente resumido na §3.2 e levar a análise para a §7.3; tirar a remissão aos testes do Cap. 5.
+- [ ] **[Orient.]** §2.5.9 sem as alegações de contribuição ("o trabalho se situa no quadrante de melhoria"), que vão para a §1.6 e para a Discussão.
 - [ ] **[Achado]** §2.5.6: "o SanchezDNS precisa emular a atomicidade do Knot" contradiz o RNF03 (melhor esforço).
-- [ ] **[Achado]** "As documentações do Quadro 2 foram consultadas em setembro de 2026": manter a data, mas ela é usada no ponto de entrada do DSRM (Etapa 7).
+- [ ] **[Achado]** "As documentações do Quadro 2 foram consultadas em setembro de 2026": manter a data, que sustenta o ponto de entrada do DSRM (Etapa 8).
 
-## Etapa 7 — Cap. 3, Método
+## Etapa 8 — Cap. 4, Método
 
-- [ ] **[Orient.]** Classificação da pesquisa (atual §3.1).
+Estrutura: 4.1 Classificação da pesquisa (atual 3.1) · 4.2 DSR e DSRM, com ponto de entrada (atuais 2.4.1, 2.4.2 e 3.2) · 4.3 Estratégia de avaliação FEDS (atuais 2.4.3 e 2.6.1) · 4.4 Episódios de avaliação (atual 2.6.2) · 4.5 Matriz de avaliação e critérios de êxito (Quadro 3) · 4.6 Ameaças à validade (atual 2.6.4).
+
 - [ ] **[Orient.]** Ponto de entrada do DSRM: a §3.2 diz "centrada no problema", mas o código começou em out/2025 e a literatura e as fontes do Quadro 2 são de set/2026. Declarar entrada centrada em projeto e desenvolvimento (Peffers et al., 2007).
 - [ ] **[Orient.]** Estratégia FEDS (Technical Risk and Efficacy) justificada pelo risco dominante; declarar que se avalia a eficácia do meio, não a efetividade junto a operadores.
 - [ ] **[Orient.]** Proposição de projeto em forma CIMO (contexto, intervenção, mecanismo, resultado), indicando qual parte cada episódio testa.
-- [ ] **[Orient.]** Episódios, Quadro 3 com critérios de êxito e ameaças à validade (atual §2.6).
-- [ ] **[Orient.]** Evidência de que os critérios foram fixados antes da execução: commit datado do plano (Etapa 3). **[Achado]** Remover "definidos previamente à construção" (§1.6, §2.7), que é falso.
-- [ ] **[Orient.]** Ameaça à validade de construto: regra de contagem de passos do E3 (formulário de seis campos = 1 passo; cada comando = 1 passo) (Wohlin et al., 2012).
-- [ ] **[Orient.]** Ameaça: oráculo dos casos N é o valor esperado escrito pelo autor; o Zonemaster só é independente para serial e DNSSEC (até a Etapa 3 ampliar a zona).
+- [ ] **[Orient.]** A §2.6.3 (implantação real) é detalhe do E4: vai para a §6.4 ou fica como subseção da §4.4.
+- [ ] **[Orient.]** A §3.2 remete a "5.3 e 5.5" como demonstração sem seção própria: apontar para a demonstração do Cap. 6.
+- [ ] **[Orient.]** Evidência de que os critérios foram fixados antes da execução: commit datado do plano (`avaliacao/plano.md`, 48d40b4). **[Achado]** Remover "definidos previamente à construção" (§1.6, §2.7), que é falso.
+- [ ] **[Orient.]** Ameaça à validade de construto: regra de contagem de passos do E3 (formulário de seis campos = 1 passo; cada comando = 1 passo) (Wohlin et al., 2012), tratada pela coluna de entradas do R5.
+- [ ] **[Orient.]** Ameaça: oráculo dos casos N é o valor esperado escrito pelo autor; o Zonemaster só é independente para serial e DNSSEC (e sintaxe do MX, depois da zona ampliada).
 - [ ] **[Orient.]** Terminologia: vários casos "negativos" são testes de canonicalização positiva. Separar canonicalização (N1–N10) de rejeição (N11–N13).
-- [ ] **[Orient.]** Condição de referência: descrever como executada (Etapa 3) ou retirar a promessa.
+- [ ] **[Orient.]** Condição de referência: descrever como executada (R2 e R3).
 - [ ] **[Orient.]** Pseudonimização: a §2.6.4 promete, mas o texto e as Figuras 4–7 expõem curi.dev.br, 152.84.126.7 e o AS 2715. Decidir entre pseudonimizar ou retirar a promessa. **[Achado]** O servidor fica em infraestrutura do CBPF.
 - [ ] **[Achado]** Remover restos do desenho antigo: título "Framework FEDS e Escala SUS" (§2.4.3) e Quadro 4 "Demonstração ... com conferência por oráculo externo".
 
-## Etapa 8 — Cap. 4, Artefato (fusão dos Caps. 3 e 4)
+## Etapa 9 — Cap. 5, Projeto e desenvolvimento do artefato (fusão dos Caps. 3 e 4)
 
-- [ ] **[Orient.]** Requisitos rastreáveis à taxonomia, arquitetura, mecanismos e implementação numa sequência única.
-- [ ] **[Orient.]** Enunciar os quatro princípios de projeto aqui (não só na conclusão), cada um ligado ao mecanismo que o realiza e ao caso de teste que pode refutá-lo (Gregor e Jones, 2007).
-- [ ] **[Orient.]** Manter aqui os retornos do ciclo construir-avaliar (guarda de referência; exibição do valor publicado).
+Estrutura: 5.1 Requisitos e rastreabilidade (3.3, Quadro 5) · 5.2 Arquitetura e pilha tecnológica (4.1) · 5.3 Integração com o PowerDNS (4.2) · 5.4 Autenticação e controle de acesso (3.4 + 4.3) · 5.5 Normalização e interface preventiva (3.5 + 4.4) · 5.6 Sincronização de reversos (3.6 + 4.5) · 5.7 Auditoria (3.7 + 4.6) · 5.8 Princípios de projeto instanciados (de 6.1.2) · 5.9 Empacotamento e implantação (4.7).
+
+- [ ] **[Orient.]** Cada subseção segue a ordem: decisão de projeto, justificativa, implementação, limitação conhecida. Cada mecanismo descrito uma vez só (hoje duplicados: 3.4.1 × 4.3.1, 3.5 × 4.4, 3.6 × 4.5, 3.7 × 4.6).
+- [ ] **[Orient.]** Cuidar para não perder a rastreabilidade com os requisitos na fusão.
+- [ ] **[Orient.]** Retornos do ciclo construir-avaliar (guarda de referência; exibição do valor publicado) registrados dentro das §5.5 e §5.6.
+- [ ] **[Orient.]** §5.8: os quatro princípios de projeto, cada um ligado ao mecanismo que o realiza e ao caso de teste que pode refutá-lo (Gregor e Jones, 2007).
 - [ ] **[Orient.]** Quadro 6 afirma impedir a enumeração de usuários: ajustar à Etapa 2.
 - [ ] **[Orient.]** Mencionar SameSite/CSRF no modelo de sessão.
 - [ ] **[Achado]** Quadro 7 omite `DELETE /reverses`, que o caso A7b usa.
 - [ ] **[Achado]** RNF04: restringir a "nenhum caminho de escrita sobre dados de zona sem autenticação" (`PUT /file` e `POST /cadastro` são escritas sem sessão, fora das zonas).
 - [ ] **[Achado]** RF10 diz "criação atômica em lote", mas a §3.6.4 diz não transacional.
 - [ ] **[Achado]** §3.7 diz "cada operação de escrita grava um documento" e que o ciclo de contas fica fora da trilha: alinhar com o RF13 e com a 3.0.3.
-- [ ] Descrever as mudanças da 3.0.3 (guardas, reapontamento, auditoria).
+- [ ] Descrever as mudanças da 3.0.3 e da 3.0.5 (guardas, reapontamento, auditoria, nome por rótulo, MX, 404, RNAME).
 
-## Etapa 9 — Cap. 5, Demonstração e avaliação
+## Etapa 10 — Cap. 6, Demonstração e avaliação
+
+Estrutura: 6.1 E0 e E1 (atuais 5.1 e 5.2) · 6.2 E2: conformidade técnica (5.3: normalização, Zonemaster, autorização, auditoria) · 6.3 E3: comparação com a operação manual (5.4) · 6.4 E4: implantação real (5.5 e 2.6.3) · 6.5 Síntese frente aos critérios (5.6, com o quadro de resultados atualizado).
 
 - [ ] **[Orient.]** Separar demonstração (zona publicada, E4) de avaliação (casos N e A, E3, condição de referência).
-- [ ] **[Orient.]** Relatar os episódios na ordem do método, cada um contra o seu critério, sem interpretação; a interpretação vai para a Discussão.
-- [ ] **[Orient.]** Reportar as reprovações (N13, P4, P6, A8, A9) e as lacunas de execução.
-- [ ] Atualizar com os resultados da Etapa 3 (3.0.3, referência, Zonemaster ampliado, E3 recontado).
-- [ ] **[Orient.]** A12: registrar o 500 devolvido a um erro do cliente (ou a correção da 3.0.3).
-- [ ] **[Orient.]** RF13 parcialmente descumprido (0/5 escritas derivadas; contas fora da trilha), não "fora do escopo".
-- [ ] **[Achado]** Quadro 17, linha QP1: "casos de teste executados para parte delas" contradiz a §5.1 ("todas").
+- [ ] **[Orient.]** Resultados relatados sem interpretação, na ordem do método; as reprovações aparecem com o seu critério (N13, P4, P6, A8, A9) e as lacunas de execução também.
+- [ ] Atualizar com os resultados da Etapa 3 (3.0.3: R1 a R5) e indicar o que a 3.0.5 mudou.
+- [ ] **[Achado]** O E2 rodou no ambiente de desenvolvimento (`bun dev`) ligado ao PowerDNS do E4, não na imagem publicada: corrigir "sobre a instância do episódio E4".
+- [ ] **[Orient.]** A12: registrar o 500 devolvido a um erro do cliente na 3.0.2 e a correção para 422 na 3.0.3.
+- [ ] **[Orient.]** RF13 parcialmente descumprido na 3.0.2 (0/5 escritas derivadas; contas fora da trilha), não "fora do escopo"; na 3.0.3, 26/26 e 5/5.
+- [ ] **[Achado]** Quadro de síntese, linha QP1: "casos de teste executados para parte delas" contradiz a §5.1 ("todas").
 - [ ] ~~**[Orient.]** Quadro de resultados com QP3 "não executado" e rastreabilidade "não verificado"~~ (já atualizado no Quadro 17).
 - [ ] ~~**[Orient.]** §5.1 dizendo "apenas por inspeção"~~ (já atualizado).
 - [ ] **[Orient.]** §5.6: incluir o A9 no parágrafo (o Quadro 17 já cita; o texto não).
+- [ ] **[Achado]** E3 recontado (R5): tarefa 1 com 2 passos na plataforma (inclusão do NS) e linha de comando pelo `pdnsutil` 5.0.1, que corrige o ponto final e usa nome absoluto.
 
-## Etapa 10 — Cap. 6, Discussão
+## Etapa 11 — Cap. 7, Discussão (novo)
 
-- [ ] **[Orient.]** A8 e A9 à luz do incidente do Technitium 15.5: dificuldade de combinar automação e autorização granular.
-- [ ] **[Orient.]** A8 sobrescrevendo o PTR de outra equipe sem rastro na trilha é a combinação mais grave: destacar, não deixar como ressalva.
-- [ ] **[Orient.]** A9 é uma classe de erro nova criada pela automação: atinge a QP2 ("novos riscos").
-- [ ] **[Orient.]** Destino dos princípios: 1º se sustenta (N13 o refina: regra no servidor); 2º parcial (P4 + A9: precisa do reapontamento); 3º se sustenta (com o teste da Etapa 3); 4º refutado como implementado (A8) e reformulado como "a guarda vale para toda operação que grava o registro derivado".
-- [ ] **[Orient.]** Reposicionar o SanchezDNS no Quadro 2 pela evidência: "Parcial" em remoção encadeada e triagem (A9), permissão por zona (A8) e trilha (escritas derivadas), ou "Sim" com nota se a 3.0.3 for aprovada.
-- [ ] **[Orient.]** Contribuições não reconhecidas: taxonomia do Quadro 1 (com ressalva: não é revisão sistemática); evidência sobre automação × autorização; protocolo de avaliação.
-- [ ] **[Achado]** Corrigir a afirmação de que "A8 e A12 reproduzem a falha do Technitium": só o A8 reproduz; no A12 a proteção veio do PowerDNS, não da camada de autorização.
+Estrutura: 7.1 Respostas às questões de pesquisa (6.1.3) · 7.2 Princípios de projeto reavaliados (6.1.2) · 7.3 Automação e autorização granular: A8, A9 e A12 à luz do Technitium (2.5.3 e 5.3.3) · 7.4 Reposicionamento no quadro comparativo · 7.5 Eficácia demonstrada versus efetividade não medida · 7.6 Limitações (6.2).
+
+- [ ] **[Orient.]** §7.2, destino dos princípios: 1º se sustenta (N13 o refina: regra no servidor); 2º parcial (P4 + A9: precisa do reapontamento); 3º se sustenta (A14); 4º refutado como implementado (A8) e reformulado como "a guarda vale para toda operação que grava o registro derivado".
+- [ ] **[Orient.]** §7.3: A8 e A9 à luz do incidente do Technitium 15.5; A8 sobrescrevendo o PTR de outra equipe sem rastro na trilha é a combinação mais grave e merece destaque; A9 é uma classe de erro nova criada pela automação (QP2, "novos riscos").
+- [ ] **[Achado]** §7.3: só o A8 reproduz a falha do Technitium; no A12 a proteção veio do PowerDNS, não da camada de autorização.
 - [ ] **[Achado]** "A violação tende a ocorrer nos caminhos menos óbvios": apresentar como hipótese (dois casos), não como proposição demonstrada.
-- [ ] **[Achado]** Protocolo "replicável em outras ferramentas": o script é específico da API do SanchezDNS; replicável é o protocolo, não o script.
-- [ ] **[Orient.]** Separar a eficácia demonstrada da efetividade, que continua hipótese (Venable, Pries-Heje e Baskerville, 2016).
-- [ ] **[Orient.]** Condição de corrida (TOCTOU) entre a guarda de referência e a criação do PTR.
-- [ ] **[Orient.]** Geolocalização externa (dados pessoais, LGPD) e dependência de DoH em rede isolada.
+- [ ] **[Orient.]** §7.4: reposicionar o SanchezDNS no Quadro 2 pela evidência ("Parcial" na 3.0.2 em remoção encadeada e triagem, permissão por zona e trilha; dizer o que a 3.0.3 mudou).
+- [ ] **[Orient.]** §7.5: separar a eficácia demonstrada da efetividade, que continua hipótese (Venable, Pries-Heje e Baskerville, 2016).
+- [ ] **[Achado]** Condição de referência: no PowerDNS, o erro sintático de RDATA já é recusado (API) ou corrigido (`pdnsutil`); o que só a plataforma elimina é o que envolve mais de um registro ou zona, o que depende de lembrar um comando e o TTL abaixo de 60 s.
+- [ ] **[Orient.]** §7.6: condição de corrida (TOCTOU) entre a guarda de referência e a criação do PTR.
+- [ ] **[Orient.]** §7.6: geolocalização externa (dados pessoais, LGPD) e dependência de DoH em rede isolada, agora opcionais.
 - [ ] **[Orient.]** Ameaças à validade depois da execução.
+- [ ] **[Achado]** Protocolo "replicável em outras ferramentas": o script é específico da API do SanchezDNS; replicável é o protocolo, não o script.
 - [ ] **[Achado]** §6.2.5: "Parte do plano também ficou por executar" seguido de "foram executados depois" e "não verificados" (o Quadro 17 não tem mais esse status).
 
-## Etapa 11 — Cap. 7, Conclusões e acabamento
+## Etapa 12 — Cap. 8, Conclusões e acabamento
+
+Estrutura: 8.1 Contribuições · 8.2 Trabalhos futuros (6.3) · 8.3 Considerações finais.
 
 - [ ] **[Orient.]** Conclusão curta: responder ponto a ponto ao que a introdução prometeu; nada novo; só o que a avaliação demonstrou e a discussão interpretou.
-- [ ] **[Orient.]** Resumo e abstract com resultados e conclusões (ABNT NBR 6028:2021): 18/19 na 3.0.2, 15/16 de autorização, 0/5 escritas derivadas auditadas (atualizar com a 3.0.3). Escrever por último.
-- [ ] **[Orient.]** Lista de Quadros: Quadros 14 e 15 com página "??".
+- [ ] **[Orient.]** §8.1, contribuições em três grupos: descritiva (taxonomia), prescritiva (instanciação e princípios), evidência sobre automação entre zonas e protocolo de avaliação.
+- [ ] **[Orient.]** Resumo e abstract com resultados e conclusões (ABNT NBR 6028:2021), com os números da 3.0.3. Escrever por último.
+- [ ] **[Orient.]** Numeração de páginas (ABNT NBR 14724:2011): contadas desde a folha de rosto e impressas a partir da primeira folha textual (Introdução), em algarismos arábicos no canto superior direito.
+- [ ] **[Orient.]** Paginação: cada capítulo começa em página nova, e nenhum título fica sozinho no pé da página (no Google Docs, "Manter com o próximo" e "Quebra de página antes" nos estilos de título); tabelas e quadros sem quebra no meio quando couberem numa página.
+- [ ] **[Orient.]** Sumário, Lista de Quadros e Lista de Ilustrações com as páginas corretas (hoje Quadros 14 e 15 com "??").
 - [ ] **[Orient.]** Conferir as Figuras 1, 2 e 3. **[Achado]** As imagens existem no Doc; a Figura 1 está sem a linha "Fonte".
-- [ ] **[Achado]** Referências novas: Gregor e Jones (2007), Denyer, Tranfield e van Aken (2008) para o CIMO e, se usar, Wieringa (2014).
+- [ ] **[Achado]** Referências novas: Gregor e Jones (2007), Denyer, Tranfield e van Aken (2008) para o CIMO e, se usar, Wieringa (2014); conferir que Gregor e Hevner (2013) e Peffers et al. (2007) seguem com DOI.
 - [ ] Revisão final de coerência entre os capítulos e numeração de seções, quadros e figuras.
 
 ---

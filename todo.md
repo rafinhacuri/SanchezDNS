@@ -125,3 +125,108 @@ Contribuições não reconhecidas pelo próprio trabalho
 A taxonomia do Quadro 1. Ela organiza duas décadas de estudos de medição em dez classes e as separa pelo critério de eliminabilidade por construção numa camada de operação, em oposição às que só admitem detecção. Isso é conhecimento descritivo independente do artefato e reutilizável por quem projete ou avalie qualquer ferramenta de gestão de zonas. O texto a trata como etapa intermediária, mas ela merece ser declarada como contribuição.
 A evidência empírica sobre a interação entre automação e autorização granular. Os casos A8 e A12 reproduzem, num artefato projetado especificamente para evitá-la, a mesma classe de falha corrigida no Technitium 15.5: a escrita derivada que atravessa a fronteira de permissão. Isso sustenta uma proposição mais forte do que o texto atual faz. A fronteira de autorização precisa ser verificada em todo caminho de escrita derivada (criação, alteração e remoção), e sua violação tende a ocorrer nos caminhos menos óbvios, como a alteração. Junto com o caso A9, que expõe um estado inconsistente invisível às duas triagens, isso é conhecimento prescritivo novo, obtido justamente por causa do rigor da avaliação.
 O protocolo de avaliação, como contribuição metodológica menor. Ele reúne casos negativos derivados de uma taxonomia prévia, oráculos independentes (Zonemaster, pdnsutil, dig) e testes de autorização de ponta a ponta com zonas descartáveis em espaços reservados pelas RFC 2606 e 5737. Os testes estão versionados no repositório, o que permite replicar a avaliação em outras ferramentas.
+
+IMPORTANTE!!!! Análise da estrutura de tópicos e proposta de reordenação
+Diagnóstico da estrutura atual
+A estrutura atual é cronológica e por camadas: introdução, fundamentação, metodologia e modelagem, desenvolvimento, avaliação, conclusões. Ela funciona como relato do trabalho, mas não como argumento de pesquisa. Identifico seis problemas estruturais.
+
+1. O método está fragmentado em quatro lugares. A classificação da pesquisa e o DSRM estão no Capítulo 3 (3.1 e 3.2). O FEDS está em 2.4.3, e o desenho de avaliação completo (estratégia, episódios, implantação, matriz, ameaças) ocupa 2.6. O leitor só reconstitui o método percorrendo três capítulos.
+2. Os Capítulos 3 e 4 duplicam conteúdo. Cada mecanismo é descrito duas vezes: autenticação (3.4.1 e 4.3.1), normalização (3.5 e 4.4), reverso (3.6 e 4.5), auditoria (3.7 e 4.6). A derivação do nome reverso, a regra do sufixo mais longo e a guarda de referência aparecem quase literalmente nos dois. A separação "modelagem" versus "implementação" não se sustenta, porque o Capítulo 3 já cita Go, MongoDB, Redis, bcrypt e nomes de endpoints.
+3. A seção 2.5.3 antecipa a avaliação. O incidente do Technitium e a discussão da QP3 pertencem ao argumento da lacuna, mas a seção termina remetendo a testes que só existem no Capítulo 5. A seção 2.5.9 também faz alegações de contribuição ("o trabalho se situa no quadrante de melhoria") antes de o artefato ser apresentado.
+4. Falta um capítulo de discussão. A interpretação dos resultados está espalhada: parte em 5.3.3 e 5.6, parte em 6.1 e 6.2. As seções 6.1.2 (princípios de projeto) e 6.2 (limitações) fazem trabalho de discussão dentro de um capítulo de conclusões, e por isso a conclusão é longa e contém material novo.
+5. A introdução carrega fundamentação. A seção 1.1 tem nove parágrafos de evidência empírica que repetem quase integralmente a seção 2.2.2 (Pappas, Bojović e Gajin, Sommese, Liu, Chung, Korczyński, Akamai, Meta). A seção 1.2 antecipa o Quadro 2. Há redundância entre os dois capítulos, e a introdução fica longa a ponto de enfraquecer a função de estabelecer o problema de forma concisa.
+6. A numeração e as listas estão fora de sincronia. Os Quadros 16 e 17 antecedem o 14 e o 15 e não constam da Lista de Quadros. A seção 3.2 remete a "5.3 e 5.5" como demonstração, sem que essa atividade tenha seção própria.
+   Proposta de ordenação
+   A proposta segue o esquema de Gregor e Hevner (2013) discutido antes, ajustado aos materiais já existentes. Indico a origem de cada bloco para que a reorganização seja, em grande parte, mover texto.
+7. Introdução (enxuta)
+   1.1 Contexto e problema, com três ou quatro evidências-âncora (Oppenheimer, Bojović e Gajin, Sommese e um incidente)
+   1.2 Lacuna das soluções existentes (versão curta da atual 1.2)
+   1.3 Problema de pesquisa e questões
+   1.4 Objetivos (de pesquisa, não de funcionalidade)
+   1.5 Escopo e delimitação
+   1.6 Contribuições esperadas (nova)
+   1.7 Estrutura do documento
+   Origem: 1.1 reduzida em cerca de dois terços; o restante migra para 2.3.
+8. Fundamentação teórica
+   2.1 Arquitetura do DNS (atual 2.1)
+   2.2 Erro humano e projeto de interfaces (atual 2.2.1, ampliada com Reason e Norman como kernel theories)
+   2.3 Erros de configuração: evidência empírica, impactos e taxonomia (atuais 2.2.2 a 2.2.4)
+   2.4 Controle de acesso e auditoria (atual 2.3)
+9. Trabalhos correlatos
+   3.1 Critérios de comparação
+   3.2 Ferramentas por abordagem (atuais 2.5.1 a 2.5.8, com o Poweradmin ganhando subseção)
+   3.3 Quadro comparativo e lacuna (2.5.9, sem as alegações de contribuição, que migram para 1.6 e para a discussão)
+   Separar fundamentação de trabalhos correlatos é convenção em TCCs e faz o Quadro 2 funcionar como fecho do capítulo, não como apêndice da revisão.
+10. Método
+    4.1 Classificação da pesquisa (atual 3.1)
+    4.2 DSR e DSRM, com ponto de entrada (atuais 2.4.1, 2.4.2 e 3.2)
+    4.3 Estratégia de avaliação FEDS e sua justificativa (atuais 2.4.3 e 2.6.1)
+    4.4 Episódios de avaliação (atual 2.6.2)
+    4.5 Matriz de avaliação e critérios de êxito (Quadro 3)
+    4.6 Ameaças à validade (atual 2.6.4)
+    Aqui entra também a proposição de projeto em forma CIMO, indicando quais episódios testam qual parte. A seção 2.6.3 (implantação real) é detalhe do E4 e vai para o capítulo de avaliação ou fica como subseção de 4.4.
+11. Projeto e desenvolvimento do artefato (fusão dos atuais 3 e 4)
+    5.1 Requisitos e rastreabilidade (3.3, Quadro 5)
+    5.2 Arquitetura e pilha tecnológica (4.1)
+    5.3 Integração com o PowerDNS (4.2)
+    5.4 Autenticação e controle de acesso (3.4 + 4.3, fundidos)
+    5.5 Normalização e interface preventiva (3.5 + 4.4)
+    5.6 Sincronização de reversos (3.6 + 4.5)
+    5.7 Auditoria (3.7 + 4.6)
+    5.8 Princípios de projeto instanciados (extraídos de 6.1.2)
+    5.9 Empacotamento e implantação (4.7)
+    Cada subseção seguiria a ordem: decisão de projeto, justificativa, implementação, limitação conhecida. Isso elimina a duplicação. Os retornos do ciclo (guarda de referência e valor publicado) ficam registrados dentro das subseções 5.5 e 5.6, como evidência da iteração.
+12. Demonstração e avaliação
+    6.1 E0 e E1 (atuais 5.1 e 5.2)
+    6.2 E2: conformidade técnica (5.3: casos de normalização, Zonemaster, autorização, auditoria)
+    6.3 E3: comparação com a operação manual (5.4)
+    6.4 E4: implantação real (5.5 e 2.6.3)
+    6.5 Síntese frente aos critérios (5.6, com o Quadro 15 atualizado)
+    Os resultados são relatados sem interpretação; as reprovações aparecem com seu critério.
+13. Discussão (novo)
+    7.1 Respostas às questões de pesquisa (hoje 6.1.3)
+    7.2 Princípios de projeto reavaliados: o que sobrevive à avaliação (de 6.1.2, com o quarto reformulado e o segundo qualificado)
+    7.3 Automação e autorização granular: interpretação de A8, A9 e A12 à luz do Technitium (hoje em 2.5.3 e 5.3.3)
+    7.4 Reposicionamento no quadro comparativo, com base na evidência
+    7.5 Eficácia demonstrada versus efetividade não medida
+    7.6 Limitações (hoje 6.2)
+14. Conclusões
+    8.1 Contribuições, em três grupos: descritiva (taxonomia), prescritiva (instanciação e princípios), evidência sobre automação entre zonas e protocolo de avaliação
+    8.2 Trabalhos futuros (atual 6.3)
+    8.3 Considerações finais
+    A conclusão fica curta e só afirma o que a discussão interpretou.
+    Mapa de migração
+    Conteúdo atual Destino proposto
+    1.1 (parágrafos empíricos) 2.3 (já duplicados lá)
+    2.2.1 2.2
+    2.2.2 a 2.2.4 2.3
+    2.3 2.4
+    2.4.1 a 2.4.3 4.2 e 4.3
+    2.5 Capítulo 3
+    2.5.3 (segundo motivo) 3.2 resumido; análise em 7.3
+    2.6 4.3 a 4.6 (e E4 em 6.4)
+    3.1 e 3.2 4.1 e 4.2
+    3.3 5.1
+    3.4 a 3.7 com 4.1 a 4.7 Capítulo 5, fundidos
+    5.1 a 5.6 Capítulo 6
+    6.1.1 e 6.1.2 5.8 (enunciado), 7.2 (reavaliação), 8.1
+    6.1.3 7.1
+    6.2 7.6
+    6.3 8.2
+    Ganhos e custos
+    O ganho principal é que a ordem passa a acompanhar o argumento: problema, base de conhecimento, método, artefato, evidência, interpretação, síntese. O leitor encontra o método num só capítulo, cada mecanismo é descrito uma vez, e o texto ganha o espaço de discussão onde as reprovações (A8, A9) e o quarto princípio refutado podem ser tratados como resultado de pesquisa, e não como defeito a justificar.
+    O custo é trabalho de edição, não de conteúdo. A fusão dos Capítulos 3 e 4 é a parte mais trabalhosa, porque exige reescrever sem repetir, e é onde mais convém cuidado para não perder a rastreabilidade com os requisitos. Se o prazo não permitir a reordenação completa, a ordem de prioridade é: (1) mover a seção 2.6 para o capítulo de método, (2) criar o capítulo de discussão a partir de 6.1 e 6.2, (3) fundir 3 e 4. Essas três mudanças resolvem a maior parte do problema estrutural, e as demais são refinamentos.
+    Referências:
+    Gregor, S.; Hevner, A. R. (2013). Positioning and presenting design science research for maximum impact. MIS Quarterly, 37(2), 337–355. https://doi.org/10.25300/MISQ/2013/37.2.01
+    Peffers, K. et al. (2007). A design science research methodology for information systems research. JMIS, 24(3), 45–77. https://doi.org/10.2753/MIS0742-1222240302
+    Gregor, S.; Jones, D. (2007). The anatomy of a design theory. Journal of the AIS, 8(5), 312–335. https://doi.org/10.17705/1jais.00129
+    ABNT NBR 14724:2011, Trabalhos acadêmicos: apresentação, disponível pelo catálogo da ABNT.
+
+Positioning and Presenting Design Science Research for Maximum Impact1 | Management Information Systems Quarterly | MIS Quarterly
+Design science research (DSR) has staked its rightful ground as an important and legitimate Information Systems (IS) research paradigm. We contend that DSR
+
+tenta enxugar um pouco onde puder.
+
+coloca numeracao de pagina,
+
+paginacao tb precisa tentar quebrar topicos quando possivel junto com a pagina
