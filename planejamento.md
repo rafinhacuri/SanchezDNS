@@ -48,13 +48,13 @@ Decisão tomada: **avaliação sem participantes** por enquanto. Se aparecerem p
 - [x] **[Achado]** `DELETE /records` responde 200 quando nenhum registro casa com o valor enviado (nada é removido). Corrigido para a 3.0.5: remoção e edição sem registro correspondente respondem 404.
 - [ ] **[Achado]** No `pdnsutil` 5.0.1 o nome do registro é absoluto (nome relativo é recusado como fora da zona) e o conteúdo passa pelo mesmo parser da API. A "edição manual" da linha de base não reproduz o erro de ponto final do .se: o argumento da §1.1 e o E3 precisam refletir isso.
 - [x] **[Achado]** O campo "Email do responsável" vai para o RNAME do SOA sem converter o `@` (`api/zonas/update-soa.go`). Corrigido para a 3.0.5: o e-mail é convertido para RNAME (pontos da parte local escapados).
-- [ ] Release 3.0.5 com as quatro correções acima (commit 33ccb8a), a publicar.
+- [x] Release 3.0.5 com as quatro correções acima (commit 33ccb8a).
 
 ## Etapa 4 — Nova estrutura da monografia (revisão do orientador de 19/10/2026)
 
 A estrutura proposta em 15/10 (7 capítulos) foi substituída pela de 19/10, com 8 capítulos e trabalhos correlatos separados da fundamentação. As Etapas 5 a 12 seguem esta estrutura.
 
-- [ ] **[Orient.]** Reorganizar em 8 capítulos, no esquema de Gregor e Hevner (2013):
+- [x] **[Orient.]** Reorganizar em 8 capítulos, no esquema de Gregor e Hevner (2013):
   1. Introdução (enxuta)
   2. Fundamentação teórica
   3. Trabalhos correlatos
@@ -63,7 +63,7 @@ A estrutura proposta em 15/10 (7 capítulos) foi substituída pela de 19/10, com
   6. Demonstração e avaliação
   7. Discussão (novo)
   8. Conclusões
-- [ ] **[Orient.]** Aplicar o mapa de migração (a reorganização é, em grande parte, mover texto):
+- [x] **[Orient.]** Aplicar o mapa de migração (a reorganização é, em grande parte, mover texto):
 
   | Conteúdo atual | Destino |
   | --- | --- |
@@ -84,49 +84,61 @@ A estrutura proposta em 15/10 (7 capítulos) foi substituída pela de 19/10, com
   | 6.2 | 7.6 |
   | 6.3 | 8.2 |
 
-- [ ] **[Orient.]** Se o prazo apertar, a prioridade é: (1) mover a §2.6 para o capítulo de Método; (2) criar o capítulo de Discussão a partir das §6.1 e §6.2; (3) fundir os Caps. 3 e 4. O resto é refinamento.
-- [ ] **[Orient.]** Enxugar o texto onde puder: cortar repetições entre capítulos e parágrafos que só antecipam o que vem depois.
-- [ ] ~~**[Orient.]** Quadros 16 e 17 antes do 14 e do 15 e fora da Lista de Quadros~~ (renumeração já feita; faltam as páginas, Etapa 12).
-- [ ] Todo texto novo ou reescrito passa pelo humanizer antes de ir para o Doc; avisar o Rafael antes de mexer no Doc.
+- [ ] **[Orient.]** Se o prazo apertar, a prioridade é: (1) mover a §2.6 para o capítulo de Método; (2) criar o capítulo de Discussão a partir das §6.1 e §6.2; (3) fundir os Caps. 3 e 4. O resto é refinamento. Andamento: (1) feito na reestruturação; (2) capítulo criado com o texto movido, falta escrever (Etapa 11); (3) textos lado a lado no Cap. 5, falta fundir (Etapa 9).
+- [ ] **[Orient.]** Enxugar o texto onde puder: cortar repetições entre capítulos e parágrafos que só antecipam o que vem depois. Andamento: Cap. 1 (cerca de 40% menor) e Cap. 2 feitos; faltam os Caps. 3 a 8.
+- [x] ~~**[Orient.]** Quadros 16 e 17 antes do 14 e do 15 e fora da Lista de Quadros~~ (renumeração já feita; faltam as páginas, ver Fechamento).
+Regra para todas as etapas (não é tarefa): todo texto novo ou reescrito passa pelo humanizer antes de ir para o Doc, e o Rafael é avisado antes de qualquer mudança no Doc.
+- [x] Reestruturação aplicada no Doc em 26/10/2026, com texto movido sem reescrita. Cópia de segurança: "BACKUP 2026-10-26 antes da reestruturação". Conferido: 17/17 quadros, 10/10 figuras, todos os parágrafos de texto preservados (só uma linha em branco removida), 127 títulos na ordem do mapa, 11 comentários ancorados.
+- [x] **Rafael:** mover à mão os 4 blocos marcados em amarelo e apagar as marcas depois: Quadro 4 (fim do Cap. 4 → §4.2), Figura 3 (depois da §5.7.2 → §5.2.1), Quadro 10 (→ §5.2.2) e Quadro 11 (→ §5.3.1). Cada bloco é legenda + quadro/figura + linha Fonte. Feito e conferido em 26/10/2026, sem marcas restantes.
+- [ ] Notas "[A ESCREVER/REESCREVER NA ETAPA N]" marcam as seções novas vazias (1.6, 3.1, 3.2.3, 5.8, 7.3, 7.4, 7.5, 8.1); somem quando a etapa for feita. Andamento: 1.6 escrita (Etapa 5); faltam as outras sete.
+- [ ] O texto movido ainda cita a numeração antiga ("seção 3.6.3", "Capítulo 3", "seção 2.6.1" etc.) e a §5.4 tem as duas descrições de sessão (antigos 3.4 e 4.3) lado a lado: corrigir referências e fundir nas Etapas 5 a 12. Andamento: Caps. 1 e 2 corrigidos; faltam os Caps. 3 a 8.
+- [ ] Numeração dos quadros mudou de ordem (o Quadro 4 passa a vir antes do Quadro 3): renumerar no Fechamento, junto com Sumário e listas, que são texto digitado e estão desatualizados.
 
-## Etapa 5 — Cap. 1, Introdução (enxuta)
+## Etapa 5 — Cap. 1, Introdução (enxuta) — aplicada no Doc em 26/10/2026
 
 Estrutura: 1.1 Contexto e problema · 1.2 Lacuna das soluções existentes · 1.3 Problema de pesquisa e questões · 1.4 Objetivos · 1.5 Escopo e delimitação · 1.6 Contribuições esperadas (nova) · 1.7 Estrutura do documento.
 
-- [ ] **[Orient.]** §1.1 reduzida em cerca de dois terços, com três ou quatro evidências-âncora (Oppenheimer, Bojović e Gajin, Sommese e um incidente); os parágrafos empíricos restantes migram para a §2.3, onde já estão duplicados.
-- [ ] **[Orient.]** §1.2 em versão curta, sem antecipar o Quadro 2.
-- [ ] **[Orient.]** Problema independente do artefato. Hoje diz "a falta de um meio de operação que torne esse erro impossível", o que embute a solução e torna a avaliação tautológica.
-- [ ] **[Orient.]** Contexto e interessados explícitos: organizações com PowerDNS próprio e equipes distintas para zonas diretas e reversas.
-- [ ] **[Orient.]** Enquadramento técnico: servidores validam a sintaxe de cada registro isoladamente, mas não a consistência entre registros interdependentes nem o alcance da autorização. O erro humano fica como motivação.
-- [ ] **[Orient.]** Falar em grau ("em que medida reduz"), não em "impossível".
-- [ ] **[Orient.]** QP2: retirar "necessários" (a necessidade não é testada; exigiria ablação).
-- [ ] **[Orient.]** Rastreabilidade está sob a QP4, que não fala de auditoria. Realinhar a QP, o objetivo específico e o Quadro 3.
-- [ ] **[Orient.]** Objetivos de pesquisa (caracterizar, projetar, avaliar), não funcionalidades. Tirar "implementar sob arquitetura desacoplada" dos objetivos.
-- [ ] **[Orient.]** Nova §1.6, Contribuições esperadas: melhoria (Gregor e Hevner, 2013), com instanciação e princípios de projeto; também a taxonomia e o protocolo de avaliação. Recebe as alegações de contribuição que hoje estão na §2.5.9.
-- [ ] **[Orient.]** §1.1, "Era um erro sintático, do tipo que uma validação [...] teria barrado": refinar conforme a condição de referência (o PowerDNS já recusa ou corrige esses erros).
-- [ ] **[Achado]** §1.3 "outras dependem de evidência empírica com operadores humanos" e "revisão sistemática da literatura" (não houve protocolo sistemático): restos do desenho antigo.
-- [ ] **[Achado]** QP principal "registre integralmente" e objetivo geral "reduza a ocorrência": verbos mais fortes do que a avaliação sustenta.
-- [ ] **[Orient.]** §1.2: o argumento on-premises precisa ficar coerente com a geolocalização externa e o DoH (agora opcionais, Etapa 2).
+- [x] **[Orient.]** §1.1 reduzida em cerca de dois terços, com três ou quatro evidências-âncora (Oppenheimer, Bojović e Gajin, Sommese e um incidente); os parágrafos empíricos restantes migram para a §2.3, onde já estão duplicados.
+- [x] **[Orient.]** §1.2 em versão curta, sem antecipar o Quadro 2.
+- [x] **[Orient.]** Problema independente do artefato. Hoje diz "a falta de um meio de operação que torne esse erro impossível", o que embute a solução e torna a avaliação tautológica.
+- [x] **[Orient.]** Contexto e interessados explícitos: organizações com PowerDNS próprio e equipes distintas para zonas diretas e reversas.
+- [x] **[Orient.]** Enquadramento técnico: servidores validam a sintaxe de cada registro isoladamente, mas não a consistência entre registros interdependentes nem o alcance da autorização. O erro humano fica como motivação.
+- [x] **[Orient.]** Falar em grau ("em que medida reduz"), não em "impossível".
+- [x] **[Orient.]** QP2: retirar "necessários" (a necessidade não é testada; exigiria ablação).
+- [ ] **[Orient.]** Rastreabilidade está sob a QP4, que não fala de auditoria. Realinhar a QP, o objetivo específico e o Quadro 3. QP3 e objetivo específico já realinhados no Cap. 1 (26/10); falta o Quadro 3, na §4.5 (Etapa 8).
+- [x] **[Orient.]** Objetivos de pesquisa (caracterizar, projetar, avaliar), não funcionalidades. Tirar "implementar sob arquitetura desacoplada" dos objetivos.
+- [x] **[Orient.]** Nova §1.6, Contribuições esperadas: melhoria (Gregor e Hevner, 2013), com instanciação e princípios de projeto; também a taxonomia e o protocolo de avaliação. Recebe as alegações de contribuição que hoje estão na §2.5.9.
+- [x] **[Orient.]** §1.1, "Era um erro sintático, do tipo que uma validação [...] teria barrado": refinar conforme a condição de referência (o PowerDNS já recusa ou corrige esses erros).
+- [x] **[Achado]** §1.3 "outras dependem de evidência empírica com operadores humanos" e "revisão sistemática da literatura" (não houve protocolo sistemático): restos do desenho antigo.
+- [x] **[Achado]** QP principal "registre integralmente" e objetivo geral "reduza a ocorrência": verbos mais fortes do que a avaliação sustenta.
+- [x] **[Orient.]** §1.2: o argumento on-premises precisa ficar coerente com a geolocalização externa e o DoH (agora opcionais, Etapa 2).
 
-## Etapa 6 — Cap. 2, Fundamentação teórica
+## Etapa 6 — Cap. 2, Fundamentação teórica — aplicada no Doc em 26/10/2026
 
 Estrutura: 2.1 Arquitetura do DNS (atual 2.1) · 2.2 Erro humano e projeto de interfaces (atual 2.2.1) · 2.3 Erros de configuração: evidência empírica, impactos e taxonomia (atuais 2.2.2 a 2.2.4) · 2.4 Controle de acesso e auditoria (atual 2.3).
 
-- [ ] **[Orient.]** §2.2 ampliada, com Reason (1990) e Norman (2013) apresentados como kernel theories.
-- [ ] **[Orient.]** §2.3 recebe os parágrafos empíricos tirados da §1.1, sem duplicar o que já está lá; fecho no Quadro 1.
-- [ ] **[Orient.]** Classe "DNSSEC incompleto" inclui a rotação de chaves (Chung et al.), mas nenhum mecanismo trata rotação: cortar a classe ou declarar a rotação fora do escopo.
-- [ ] **[Achado]** §2.2.4: "para que a redução de erros possa ser medida por categoria e no total" não é mais medido.
+- [x] **[Orient.]** §2.2 ampliada, com Reason (1990) e Norman (2013) apresentados como kernel theories.
+- [x] **[Orient.]** §2.3 recebe os parágrafos empíricos tirados da §1.1, sem duplicar o que já está lá; fecho no Quadro 1.
+- [x] **[Orient.]** Classe "DNSSEC incompleto" inclui a rotação de chaves (Chung et al.), mas nenhum mecanismo trata rotação: cortar a classe ou declarar a rotação fora do escopo.
+- [x] **[Achado]** §2.2.4: "para que a redução de erros possa ser medida por categoria e no total" não é mais medido.
+- [x] Abertura e §2.5 reescritas (ainda citavam DSR, correlatos e avaliação); remissões a "Capítulo 3" e "seção 2.6" atualizadas para Cap. 5 e §4.5; Quadro 1 com rastreabilidade na QP3.
+- [x] Cap. 1: a QP1 cita os estudos de medição (comentário "literatura: quais?") e a abertura não descreve mais o capítulo.
+- [ ] Para a Etapa 11 (Discussão): a §2.3.3 diz que a camada elimina o erro sintático no RDATA, mas a condição de referência mostrou que o PowerDNS já recusa ou corrige a maior parte desses erros.
+- [ ] Para o Fechamento: siglas com travessão no Cap. 2 ("(*Fully Qualified Domain Name* – FQDN)") e com "do inglês" no Cap. 1; uniformizar.
 
-## Etapa 7 — Cap. 3, Trabalhos correlatos
+## Etapa 7 — Cap. 3, Trabalhos correlatos — aplicada no Doc em 26/10/2026
 
 Estrutura: 3.1 Critérios de comparação (nova) · 3.2 Ferramentas por abordagem (atuais 2.5.1 a 2.5.8) · 3.3 Quadro comparativo e lacuna (atual 2.5.9).
 
-- [ ] **[Orient.]** Nova §3.1 com os critérios de comparação (as colunas do Quadro 2 e a escala Sim/Parcial/Não).
-- [ ] **[Orient.]** Poweradmin aparece no Quadro 2 sem subseção própria: criar.
-- [ ] **[Orient.]** §2.5.3 (Technitium) antecipa a avaliação: manter o incidente resumido na §3.2 e levar a análise para a §7.3; tirar a remissão aos testes do Cap. 5.
-- [ ] **[Orient.]** §2.5.9 sem as alegações de contribuição ("o trabalho se situa no quadrante de melhoria"), que vão para a §1.6 e para a Discussão.
-- [ ] **[Achado]** §2.5.6: "o SanchezDNS precisa emular a atomicidade do Knot" contradiz o RNF03 (melhor esforço).
-- [ ] **[Achado]** "As documentações do Quadro 2 foram consultadas em setembro de 2026": manter a data, que sustenta o ponto de entrada do DSRM (Etapa 8).
+- [x] **[Orient.]** Nova §3.1 com os critérios de comparação (as colunas do Quadro 2 e a escala Sim/Parcial/Não).
+- [x] **[Orient.]** Poweradmin aparece no Quadro 2 sem subseção própria: criar.
+- [x] **[Orient.]** §2.5.3 (Technitium) antecipa a avaliação: manter o incidente resumido na §3.2 e levar a análise para a §7.3; tirar a remissão aos testes do Cap. 5.
+- [x] **[Orient.]** §2.5.9 sem as alegações de contribuição ("o trabalho se situa no quadrante de melhoria"), que vão para a §1.6 e para a Discussão.
+- [x] **[Achado]** §2.5.6: "o SanchezDNS precisa emular a atomicidade do Knot" contradiz o RNF03 (melhor esforço).
+- [x] **[Achado]** "As documentações do Quadro 2 foram consultadas em setembro de 2026": manter a data, que sustenta o ponto de entrada do DSRM (Etapa 8).
+- [x] Poweradmin conferido na documentação em 26/10/2026: a v4.5.0 (20/10/2026) mudou a linha do Quadro 2 (remoção e DNSSEC de "Não" para "Parcial"; auditoria de "Sim" para "Parcial", porque o registro em banco vem desligado). A §1.2 passou a citar a verificação de referência antes de remover o reverso.
+- [x] Remissões "seção 2.6.2" (para §4.4) e "seção 2.5.5" (para §3.2.6) corrigidas; análise do Technitium e frases de contribuição guardadas como texto de origem nas §7.3 e §7.4.
+- [x] **[Orient.]** Apêndice A com a fonte (link da documentação) de cada célula do Quadro 2, como o orientador sugeriu ("se fez a análise, tem que constar; pode até ir para o apêndice"). Aplicado em 26/10/2026, com 10 células do Quadro 2 corrigidas, a frase da §3.3 sobre remoção do reverso ajustada e 3 referências novas (ISC, AWS, Google Cloud). Pendente: auditoria do Technitium ficou "Não" por falta de fonte; Cloudflare não conferido célula a célula.
 
 ## Etapa 8 — Cap. 4, Método
 
@@ -201,11 +213,10 @@ Estrutura: 8.1 Contribuições · 8.2 Trabalhos futuros (6.3) · 8.3 Consideraç
 - [ ] **[Orient.]** Conclusão curta: responder ponto a ponto ao que a introdução prometeu; nada novo; só o que a avaliação demonstrou e a discussão interpretou.
 - [ ] **[Orient.]** §8.1, contribuições em três grupos: descritiva (taxonomia), prescritiva (instanciação e princípios), evidência sobre automação entre zonas e protocolo de avaliação.
 - [ ] **[Orient.]** Resumo e abstract com resultados e conclusões (ABNT NBR 6028:2021), com os números da 3.0.3. Escrever por último.
-- [ ] **[Orient.]** Numeração de páginas (ABNT NBR 14724:2011): contadas desde a folha de rosto e impressas a partir da primeira folha textual (Introdução), em algarismos arábicos no canto superior direito.
 - [ ] **[Orient.]** Paginação: cada capítulo começa em página nova, e nenhum título fica sozinho no pé da página (no Google Docs, "Manter com o próximo" e "Quebra de página antes" nos estilos de título); tabelas e quadros sem quebra no meio quando couberem numa página.
-- [ ] **[Orient.]** Sumário, Lista de Quadros e Lista de Ilustrações com as páginas corretas (hoje Quadros 14 e 15 com "??").
+- [ ] Numeração de páginas, Sumário e listas: ver "Fechamento", no fim deste arquivo.
 - [ ] **[Orient.]** Conferir as Figuras 1, 2 e 3. **[Achado]** As imagens existem no Doc; a Figura 1 está sem a linha "Fonte".
-- [ ] **[Achado]** Referências novas: Gregor e Jones (2007), Denyer, Tranfield e van Aken (2008) para o CIMO e, se usar, Wieringa (2014); conferir que Gregor e Hevner (2013) e Peffers et al. (2007) seguem com DOI.
+- [ ] **[Achado]** Referências novas: ~~Gregor e Jones (2007)~~ (incluída em 26/10/2026), Denyer, Tranfield e van Aken (2008) para o CIMO e, se usar, Wieringa (2014); conferir que Gregor e Hevner (2013) e Peffers et al. (2007) seguem com DOI.
 - [ ] Revisão final de coerência entre os capítulos e numeração de seções, quadros e figuras.
 
 ---
@@ -214,3 +225,13 @@ Estrutura: 8.1 Contribuições · 8.2 Trabalhos futuros (6.3) · 8.3 Consideraç
 
 - [ ] Avaliação com participantes: tarefas do E3 no pdnsutil, no SanchezDNS e no PowerDNS-Admin (mesmo PowerDNS); erros publicados (conferidos com dig), tempo e SUS. Antes, confirmar com a coordenação da UVA se precisa de aprovação no CEP (Resolução CNS 510/2016) e TCLE.
 - [ ] Comentários do orientador no Google Doc (10 comentários de 15/10/2026): tratar depois.
+
+---
+
+## Fechamento — paginação, Sumário e listas (por último, depois de todo o texto pronto)
+
+- [ ] **[Orient.]** Numeração de páginas (ABNT NBR 14724:2011): contadas desde a folha de rosto e impressas a partir da primeira folha textual (Introdução), em algarismos arábicos no canto superior direito.
+- [ ] **[Orient.]** Sumário refeito com a estrutura de 8 capítulos e os títulos novos (o atual é texto digitado e ainda mostra a estrutura antiga, inclusive os títulos do Cap. 1 de antes de 26/10/2026), com as páginas corretas.
+- [ ] **[Orient.]** Lista de Ilustrações atualizada: Figuras 1, 2 e 3 nas posições novas (a Figura 3 foi para a §5.2.1), com as páginas corretas.
+- [ ] Alinhamento: deixar justificados os parágrafos de corpo que ainda estão à esquerda (Caps. 2 a 8, sobretudo texto movido e notas antigas).
+- [ ] **[Orient.]** Lista de Quadros atualizada: renumerar os quadros na ordem em que aparecem depois da reestruturação (o Quadro 4 vem antes do Quadro 3), corrigir as remissões no texto e as páginas (hoje Quadros 14 e 15 com "??").
