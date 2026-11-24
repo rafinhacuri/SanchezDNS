@@ -60,19 +60,24 @@ services:
       /data
 
   s3-create-bucket:
-    image: minio/mc:latest
+    image: amazon/aws-cli:latest
     container_name: s3-create-bucket
     depends_on:
       - s3
     environment:
-      - FS_USERNAME=${FS_USERNAME}
-      - FS_PASSWORD=${FS_PASSWORD}
+      - AWS_ACCESS_KEY_ID=${FS_USERNAME}
+      - AWS_SECRET_ACCESS_KEY=${FS_PASSWORD}
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_ENDPOINT_URL=http://s3:9000
+      - AWS_REQUEST_CHECKSUM_CALCULATION=WHEN_REQUIRED
+      - AWS_RESPONSE_CHECKSUM_VALIDATION=WHEN_REQUIRED
       - FS_BUCKET=${FS_BUCKET}
     entrypoint: >
       /bin/sh -c "
-      until mc alias set local http://s3:9000 $$FS_USERNAME $$FS_PASSWORD; do sleep 2; done;
-      mc mb -p local/$$FS_BUCKET || true;
-      mc anonymous set download local/$$FS_BUCKET || true;
+      aws configure set default.s3.addressing_style path;
+      until aws s3api list-buckets > /dev/null; do sleep 2; done;
+      aws s3api create-bucket --bucket $$FS_BUCKET || true;
+      aws s3api put-bucket-policy --bucket $$FS_BUCKET --policy '{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"AWS\":[\"*\"]},\"Action\":[\"s3:GetObject\"],\"Resource\":[\"arn:aws:s3:::'$$FS_BUCKET'/*\"]}]}';
       exit 0;
       "
 

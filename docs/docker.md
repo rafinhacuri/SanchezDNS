@@ -125,7 +125,7 @@ services:
 Alguns pontos que valem justificativa:
 
 - **`depends_on`** garante a ordem de inicialização: o SanchezDNS só sobe depois de Mongo, Redis e S3 estarem de pé.
-- **`s3-create-bucket`** é um container efêmero (imagem `minio/mc`) que roda uma vez, cria o bucket configurado em `FS_BUCKET` e libera leitura pública das fotos, depois encerra (`exit 0`). É a forma de ter um bucket pronto sem passo manual.
+- **`s3-create-bucket`** é um container efêmero (imagem `amazon/aws-cli`) que roda uma vez, cria o bucket configurado em `FS_BUCKET` e libera leitura pública das fotos, depois encerra (`exit 0`). É a forma de ter um bucket pronto sem passo manual.
 - **`volumes`** (`mongo_data`, `redis_data`, `s3_data`) mantêm os dados persistentes **fora** dos containers. É o que permite recriar qualquer serviço sem perder dados — coerente com a ideia de containers descartáveis.
 - **`restart: unless-stopped`** faz os serviços voltarem sozinhos após uma falha ou reboot da máquina.
 - **`AWS_REQUEST_CHECKSUM_CALCULATION=WHEN_REQUIRED`** ajusta o comportamento do SDK da AWS para ser compatível com storages S3 alternativos (como o RustFS), que não implementam todos os checksums da AWS.
