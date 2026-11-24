@@ -138,7 +138,7 @@
 
     <div class="relative w-full max-w-md">
       <div class="mb-8 flex flex-col items-center gap-3">
-        <NuxtImg src="/logo.png" alt="SanchezDNS" width="72" height="72" />
+        <img src="/logo.png" alt="SanchezDNS" width="72" height="72" />
         <p class="text-2xl font-bold tracking-tight text-highlighted">
           Sanchez<span class="text-primary">DNS</span>
         </p>

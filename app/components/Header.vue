@@ -53,7 +53,7 @@
   <UHeader :ui="{ root: 'border-b border-default bg-default/80 backdrop-blur-xl' }">
     <template #title>
       <div class="flex items-center gap-2.5">
-        <NuxtImg src="/logo.png" alt="SanchezDNS" width="30" height="30" class="shrink-0" />
+        <img src="/logo.png" alt="SanchezDNS" width="30" height="30" class="shrink-0" />
 
         <span class="text-base leading-none font-bold tracking-tight text-highlighted">
           Sanchez<span class="text-primary">DNS</span>
